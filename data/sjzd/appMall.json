@@ -1,0 +1,32 @@
+[
+    {
+        "Id":"appMall1",
+        "title":"ceshi1",
+        "imgUrl":"https://os.alipayobjects.com/rmsportal/QBnOOoLaAfKPirc.png",
+        "isPublish":"0"
+    },
+    {
+        "Id":"appMall2",
+        "title":"ceshi2",
+        "imgUrl":"https://os.alipayobjects.com/rmsportal/QBnOOoLaAfKPirc.png",
+        "isPublish":"1"
+    },
+    {
+        "Id":"appMall3",
+        "title":"c3eshi",
+        "imgUrl":"https://os.alipayobjects.com/rmsportal/QBnOOoLaAfKPirc.png",
+        "isPublish":"0"
+    },
+    {
+        "Id":"appMall4",
+        "title":"cesh4i",
+        "imgUrl":"https://os.alipayobjects.com/rmsportal/QBnOOoLaAfKPirc.png",
+        "isPublish":"1"
+    },
+    {
+        "Id":"appMall5",
+        "title":"ces5hi",
+        "imgUrl":"https://os.alipayobjects.com/rmsportal/QBnOOoLaAfKPirc.png",
+        "isPublish":"0"
+    }
+]

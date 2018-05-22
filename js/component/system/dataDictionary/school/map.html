@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	<style type="text/css">
+	body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
+	.tipMapDiv{width:33.3%;text-align: center;margin-top: 8px;}
+	.tipBg{width: 204px;height: 40px;position: absolute;top: 26px;right:26px;background: url("./icon/map/tipBg.png");display: inline-flex;}
+	.tipMapSpan{font-size: 12px;color: #fefefe;filter:alpha(Opacity=80);-moz-opacity:0.8;opacity: 0.8;margin-left: 6px;}
+	.tipMapImage{vertical-align: middle;filter:alpha(Opacity=80);-moz-opacity:0.8;opacity: 0.8;}
+	.tipMapDiv:hover{cursor: pointer;}
+	.tipMapDiv:hover .tipMapImage,.tipMapDiv:hover .tipMapSpan{filter:alpha(Opacity=100);-moz-opacity:1;opacity: 1;}
+	</style>
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&amp;ak=gasAub7IZrGFF6y1w3uM3h8o2uQp8a6M"></script>
+	<title>地图展示</title>
+</head>
+<body>
+	<div style = "display:none">
+		区域地理位置：<input size="200" id="areaLocationInfo"/>
+	</div>
+	<div id="allmap">
+	</div>
+</body>
+</html>
+<script type="text/javascript">
+	var iconBaseDir = "./icon/map/";
+	// 百度地图API功能
+	var map = new BMap.Map("allmap",{enableMapClick: false});    // 创建Map实例
+	map.centerAndZoom(new BMap.Point(116.404, 39.915), 11);  // 初始化地图,设置中心点坐标和地图级别
+	//添加地图类型控件
+	/* map.addControl(new BMap.MapTypeControl({
+		mapTypes:[
+            BMAP_NORMAL_MAP,
+            BMAP_HYBRID_MAP
+        ]})); */
+	map.setCurrentCity("北京");          // 设置地图显示的城市 此项是必须设置的
+	map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
+//	map.setMapStyle({style:'midnight'});
+	map.disableDoubleClickZoom();
+	map.clearOverlays();
+	var curPoint = null;
+	var polygonPoints = [];
+	var savePoints = [];
+	var mapIsLoaded = false;
+	function drawPoint(e){
+		savePoints = [];
+		map.clearOverlays();
+		var marker = new BMap.Marker(e.point);
+		map.addOverlay(marker);
+		curPoint = e.point;
+		savePoints.push(curPoint);
+	};
+	
+	function initPoint(lng,lat){
+		//TODO 从form表单去获取到当前单位
+		map.clearOverlays();
+		var point = new BMap.Point(lng,lat);
+		var  marker = new BMap.Marker(point);
+		map.addOverlay(marker);
+		var Lng = new Number(lng);
+		var Lat = new Number(lat);
+		curPoint = point;
+		savePoints.push(curPoint);
+		map.panTo(point);				
+	};
+	
+	function drawPolyline(e){
+		if(curPoint != null){
+			//绘制折线
+			var polyline = new BMap.Polyline([curPoint, e.point], {strokeColor:"red", strokeWeight:5, strokeOpacity:0.5});
+			map.addOverlay(polyline);
+		}
+		else{
+			map.clearOverlays();	
+		}
+		curPoint = e.point;
+		polygonPoints.push(curPoint);
+	};
+	
+	function drawPolygon(e){
+		document.getElementById("areaLocationInfo").value = "";
+		if(polygonPoints.length > 2){
+			var polygon = new BMap.Polygon(polygonPoints, {strokeColor:"red", strokeWeight:5, strokeOpacity:0.5});
+			map.addOverlay(polygon);
+			savePoints = polygonPoints;
+			var storeStr = "";
+			for(var idx in savePoints){
+				storeStr = storeStr + savePoints[idx].lng + "," + savePoints[idx].lat + ":"
+			}
+			document.getElementById("areaLocationInfo").value = storeStr;
+			clearTools();
+		}
+		else{
+			alert("at last need two points");
+		}
+	};
+	
+	function saveData(){
+		//alert("save [" + savePoints.length + "] points success");
+	//	alert(JSON.stringify(savePoints));	
+		if(window.parent.document.getElementById("unitFocus")){
+			//console.log(savePoints.length);
+			if(savePoints.length != 0){				
+				window.parent.document.getElementById("unitFocus").value = savePoints[0].lng+","+savePoints[0].lat;
+		        window.parent.document.getElementById("unitFocusNo").value = JSON.stringify(savePoints);
+		        window.parent.document.getElementById("unitFocusEdit").value = savePoints[0].lng+","+savePoints[0].lat;
+		        window.parent.document.getElementById("unitFocusEditNo").value = JSON.stringify(savePoints);
+			}else{
+				window.parent.document.getElementById("unitFocusEdit").value = "点击选择坐标";
+		        window.parent.document.getElementById("unitFocusEditNo").value = "";
+			}
+			
+		}	
+		clearTools();
+	};
+	
+	function clearTools(){
+		map.removeEventListener("click", drawPoint);
+		map.removeEventListener("click", drawPolyline);
+		map.removeEventListener("dblclick", drawPolygon);
+	};
+	
+	function changeTool(toolType){
+		curPoint = null;
+		clearTools();
+		if("locate" == toolType){			
+			map.addEventListener("click", drawPoint);
+			savePoints = [];
+		}
+		if("polygon" == toolType){
+			map.addEventListener("click", drawPolyline);
+			map.addEventListener("dblclick", drawPolygon);
+			polygonPoints = [];
+			savePoints = [];
+		}
+		if("save" == toolType){
+			saveData();
+		}
+	};
+	map.addEventListener("tilesloaded",function(){		
+		if(!mapIsLoaded){
+			if(window.parent.document.getElementById("unitFocusEditNo")){
+				if(window.parent.document.getElementById("unitFocusEditNo").value){
+					var subEditData = eval(eval(window.parent.document.getElementById("unitFocusEditNo").value));					
+					if(subEditData != ""){
+						//console.log("subEditDatasubEditData",subEditData[0].lng);
+						if(subEditData[0].lng != ""){
+							for(var i = 0;i<subEditData.length;i++){
+								initPoint(subEditData[i].lng,subEditData[i].lat)
+							}
+						}
+						
+					}												
+				}			
+			}
+			mapIsLoaded = true;
+		}
+	});
+	//程艳鸿
+    var ALLMap = document.getElementById("allmap");
+		var tipBg = document.createElement("div");
+    tipBg.setAttribute("class","tipBg");
+    ALLMap.appendChild(tipBg);
+
+    var tipOne = document.createElement("div");
+    tipBg.appendChild(tipOne);
+    tipOne.setAttribute("class","tipMapDiv");
+    var tipOneImg = document.createElement("img");
+    tipOne.appendChild(tipOneImg);
+    tipOneImg.setAttribute("src",iconBaseDir + "tipDrag.png");
+    tipOneImg.setAttribute("class","tipMapImage");
+    var tipOneSpan = document.createElement("span");
+    tipOne.appendChild(tipOneSpan);
+    tipOneSpan.innerHTML="拖动";
+    tipOneSpan.setAttribute("class","tipMapSpan");
+    tipOne.onclick = function(){
+    	changeTool("pan");	
+    };
+
+    var tipThere = document.createElement("div");
+    tipBg.appendChild(tipThere);
+    tipThere.setAttribute("class","tipMapDiv");
+    var tipThereImg = document.createElement("img");
+    tipThereImg.setAttribute("class","tipMapImage");
+    tipThere.appendChild(tipThereImg);
+    tipThereImg.setAttribute("src",iconBaseDir + "tipPosition.png");
+    var tipThereSpan = document.createElement("span");
+    tipThere.appendChild(tipThereSpan);
+    tipThereSpan.innerHTML="定位";
+    tipThereSpan.setAttribute("class","tipMapSpan");
+    tipThere.onclick = function(){
+    	changeTool("locate");	
+    };
+    
+//  var tipTwo = document.createElement("div");
+//  tipBg.appendChild(tipTwo);
+//  tipTwo.setAttribute("class","tipMapDiv");
+//  var tipTwoImg = document.createElement("img");
+//  tipTwoImg.setAttribute("class","tipMapImage");
+//  tipTwo.appendChild(tipTwoImg);
+//  tipTwoImg.setAttribute("src",iconBaseDir + "tipDraw.png");
+//  var tipTwoSpan = document.createElement("span");
+//  tipTwo.appendChild(tipTwoSpan);
+//  tipTwoSpan.innerHTML="绘图";
+//  tipTwoSpan.setAttribute("class","tipMapSpan");
+//  tipTwo.onclick = function(){
+//  	changeTool("polygon");	
+//  };
+
+    var tipFour = document.createElement("div");
+    tipBg.appendChild(tipFour);
+    tipFour.setAttribute("class","tipMapDiv");
+    var tipFourImg = document.createElement("img");
+    tipFourImg.setAttribute("class","tipMapImage");
+    tipFour.appendChild(tipFourImg);
+    tipFourImg.setAttribute("src",iconBaseDir + "tipSave.png");
+    var tipFourSpan = document.createElement("span");
+    tipFour.appendChild(tipFourSpan);
+    tipFourSpan.innerHTML="保存";
+    tipFourSpan.setAttribute("class","tipMapSpan");
+    tipFour.onclick = function(){
+    	changeTool("save");	
+    };
+
+</script>

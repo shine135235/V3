@@ -1,0 +1,122 @@
+.appMall{
+    float:left;
+    width:85%;
+    height:95%;
+    position: relative;
+    padding:1.25%;
+    margin-left: 15%;
+    margin-top: 52px;
+    .appMall_topBtns{
+        width:100%;
+        height:7%;
+        line-height: 7%;
+        vertical-align: middle;
+        .ant-input-search{
+            position: absolute;
+            right: 1.5%;
+        }
+    }
+    .appMall_Card_Groups{
+        width: 100%;
+        height: 90%;
+        overflow-y: auto;
+        // margin-top: 2%;
+        .ant-card{
+            margin: 0 5% .3% 0;
+            display: inline-block;
+            overflow: hidden;
+            .ant-card-body{
+                position: relative;
+                .appMall_Card_image{
+                    padding: 6% 6% 0 6%;
+                    img {
+                        display: block;
+                        height: 160px;
+                    }
+                    .appMall_Card_topTitle_pushed{
+                        position: absolute;
+                        top: -40px;
+                        left: 0;
+                        width: 100%;
+                        height: 40px;
+                        background: #2192fa;
+                        text-align:center;
+                        line-height: 40px;
+                        opacity: .6; 
+                        color: white;
+                        z-index: 1;
+                        transition: all 1s ease;
+                        -webkit-transition:  all 1s ease;
+                    }
+                    .appMall_Card_topTitle_unPushed{
+                        position: absolute;
+                        top: -40px;
+                        left: 0;
+                        width: 100%;
+                        height: 40px;
+                        background: #cdcece;
+                        text-align:center;
+                        line-height: 40px;
+                        opacity: .8; 
+                        color: white;
+                        z-index: 1;
+                        transition: all 1s ease;
+                        -webkit-transition:  all 1s ease;
+                    }
+                }
+                .appMall_Card_Bottom {
+                    h3{
+                        padding-left: 6%;
+                    }
+                    .appMall_Card_Btn {
+                        width: 100%;
+                        height: 40px;
+                        line-height: 40px;
+                        background-color: #f7f9fa;
+                        .appMall_Card_BtnL{
+                            display: inline-block;
+                            width: 49.5%;
+                            text-align: center;
+                            cursor: pointer;
+                            color: #2192fa;
+                        }
+                        .appMall_Card_MiddleLine{
+                            display: inline-block;
+                            height: 12px;
+                            border-right: 1px solid #cdcece;
+                            width: 1%;
+                        }
+                        .appMall_Card_BtnR{
+                            display: inline-block;
+                            width: 49.5%;
+                            text-align: center;
+                            cursor: pointer;
+                            color: #2192fa;
+                        }
+                    }
+                } 
+            }
+            .ant-card-body:hover{
+                .appMall_Card_image{
+                    .appMall_Card_topTitle_pushed{
+                        top: 0;
+                    }
+                    .appMall_Card_topTitle_unPushed{
+                        top: 0;
+                    }
+                }
+            }
+            // .ant-card-body:hover{
+            //     .appMall_Card_image{
+            //         .appMall_Card_topTitle_unPushed{
+            //             top: 0;
+            //         }
+            //     }
+            // }
+        }
+    }
+    .appMall_Pagination{
+        width: 100%;
+        text-align: right;
+    }
+}

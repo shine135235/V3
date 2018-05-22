@@ -1,0 +1,28 @@
+[
+    {
+        "parentID":"9904",
+        "dataClass":[
+            {
+                "key":"A0",
+                "id": "A0",
+                "eventNane": "应用系统",
+                "disC":"应用系统"
+            }, {
+                "key":"A1",
+                "id": "A1",
+                "eventNane": "视频会议",
+                "disC":"视频会议"
+            }, { 
+                "key":"A2",
+                "id": "A2",
+                "eventNane": "安防监控",
+                "disC":"安防监控"
+            }, {
+                "key":"A3",
+                "id": "A3",
+                "eventNane": "校园网",
+                "disC":"校园网"
+            }
+        ]
+    }   
+]
