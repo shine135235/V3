@@ -4,6 +4,7 @@ import { Button,Input,Table,LocaleProvider,Modal} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import AddEventCategory from "./addDictionaryDetail";
 import EditEventCategory from "./editDictionaryDetailtest";
+import config from '../../../../config';
 // import './projectAdministration.less';
 const Search = Input.Search;
 const confirm = Modal.confirm;
@@ -19,7 +20,7 @@ export default class ChildArea extends Component{
             record:[],
             pageSize:10,
             pageNum:1,
-            tatalRecord:0
+            totalRecord:0
         }
     }
     columns = [{
@@ -45,10 +46,10 @@ export default class ChildArea extends Component{
         this.setState({record,editVisible:true});
     }
     getDataList =({pageNum=1,pageSize=10}) =>{
-        $axios.get(`http://172.16.6.11:9090/sys/dictitem/query/itemlist?pageNum=${pageNum}&pageSize=${pageSize}`).then(res =>{
+        $axios.get(`${config.api_server}/sys/dictitem/query/itemlist?pageNum=${pageNum}&pageSize=${pageSize}`).then(res =>{
                 if(res.data.page.datas){
                     this.setState({dataList:res.data.page.datas})
-                    this.setState({tatalRecord:res.data.page.datas.tatalRecord})
+                    this.setState({totalRecord:res.data.page.totalRecord})
                 }       
         })
     }
@@ -70,8 +71,8 @@ export default class ChildArea extends Component{
           setTimeout(() => modal.destroy(), 2000);
     };
     Delet = (record) => {
-        //eslint-disable-next-line
-         console.log("ssssss",record);
+        // //eslint-disable-next-line
+        //  console.log("ssssss",record);
          let records = record.id;
         confirm({
             title: '确定要删除此条信息吗?',
@@ -80,7 +81,7 @@ export default class ChildArea extends Component{
             okType: 'danger',
             cancelText: '否',  
             onOk:() => {
-                $axios.get(`http://172.16.6.11:9090/sys/dictitem/delete?id=${records}`).then(res =>{
+                $axios.get(`${config.api_server}/sys/dictitem/delete?id=${records}`).then(res =>{
                     //eslint-disable-next-line
                     console.log(res.data.success);
                     let datas = res.data.success;
@@ -126,14 +127,14 @@ export default class ChildArea extends Component{
             showQuickJumper:true,
             onShowSizeChange:this.onShowSizeChange,
             onChange:this.onChange,
-            total:this.state.tatalRecord,
+            total:this.state.totalRecord,
             showTotal:this.showTotal,
             showSizeChanger:true,
             size:"small",
         }
         return (
-            <div className='data-class-over'>
-                <div className = 'eventTitle'>
+            <div className='data-class-overKnow'>
+                {/* <div className = 'eventTitle'>
                     <span className="titleLeft"></span>
                     <span>自定子类型管理</span> 
                     <div className = "eventTitleSearch">
@@ -141,6 +142,13 @@ export default class ChildArea extends Component{
                         <Button  onClick = {this.refresh}>刷新</Button>
                         <AddEventCategory getDataList = {this.getDataList} />
                     </div>
+                </div> */}
+                <div className = 'eventTitle'>
+                        <AddEventCategory getDataList = {this.getDataList} />
+                        <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}>刷新</Button>
+                        <div className = "eventTitleSearch"  style={{ width: "20%" }}>
+                            <Search placeholder="搜索"  style={{ width: "100%" }} onSearch={this.onSearch}/>                          
+                        </div>
                 </div>
                 <div>
                     <LocaleProvider locale = {zhCN}>

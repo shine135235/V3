@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
 import axios from 'axios';
 import {Modal,Form, Input,Button,message} from 'antd';
+import config from '../../../config';
 
 const FormItem=Form.Item;
 class AddRoleFrom extends Component{
@@ -17,9 +18,9 @@ class AddRoleFrom extends Component{
   }
 
   handleOk = () => {
-    axios.post('http://172.16.6.5:9090/sys/role',{
+    axios.post(`${config.api_server}/sys/role`,{
       name:this.props.form.getFieldValue('role'),
-      isOpean:this.props.public
+      isOpen:this.props.public
     }).then(res =>{
        if(res.data.success){
          message.success('角色添加成功');
@@ -34,6 +35,7 @@ class AddRoleFrom extends Component{
    this.props.hide()
   }
     render(){
+      console.log(this.props.public)
       const { getFieldDecorator } = this.props.form;
       const formItemLayout = {
           labelCol: {

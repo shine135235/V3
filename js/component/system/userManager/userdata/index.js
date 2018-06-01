@@ -1,6 +1,6 @@
 import React,{Component} from 'react';
 import axios from 'axios';
-import {Table,Divider } from 'antd';
+import {Table,Divider,Button,Icon } from 'antd';
 import SetUserMsg from './setUser';
 
 export default class UserList extends Component{
@@ -8,7 +8,6 @@ export default class UserList extends Component{
         super(props)
         this.state={
             data:[],
-            openKyes:this.props.openKyes,
             setUser:false,
             Name:'1',
             workID:'1',
@@ -17,9 +16,31 @@ export default class UserList extends Component{
             uid:'1'
         }
     }
+    componentDidMount(){
+        this.getUserList(1)
+    }
+    componentWillReceiveProps(){
+        console.log(this.props.uid)
+        this.getUserList(1)
+    }
+    getUserList=(pn) =>{
+        console.log(this.props.uid)
+        axios.get('http://172.16.6.5:9090/sys/user',{
+            params:{
+                pageNum:pn,
+                pageSize:10,
+                unitId:this.props.uid,
+                roleId:this.props.rid,
+                code:this.props.code
+            }
+        }).then(res =>{
+            this.setState({
+                data:res.data.page.datas
+            })
+            
+        })
+    }
     showSet=(record) =>{
-        //eslint-disable-next-line
-        console.log(record)
         this.setState({
             setUser:true,
             Name:record.name,
@@ -39,10 +60,10 @@ export default class UserList extends Component{
         {
         title:"姓名",
         key:"1",
-        dataIndex:"name"
+        dataIndex:"username"
         },{
-        title:"工号",
-        dataIndex:"workID"
+        title:"用户名",
+        dataIndex:"loginid"
         },{
         title:"手机号",
         dataIndex:"phone"
@@ -58,33 +79,14 @@ export default class UserList extends Component{
         )
         }
     ];
-    rowSelection = {
-        onChange: (selectedRowKeys, selectedRows) => {
-            //eslint-disable-next-line
-          　console.log(`选择的行数: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-         
-        }
-      };
-    userList=() =>{
-        axios.get('/data/yhgl/userlist.json',{
-            params:{
-                cid:this.props.companyID,
-                pid:this.props.deptID
-            }
-        }).then(res =>{
-            this.setState({
-                data:res.data
-            })
-        })
-    }
-    componentDidMount(){
-        this.userList() 
-    }
-    
+ 
     render(){
         return(
             <div className="user-list">
-                <Table rowSelection={this.rowSelection} pagination={{ pageSize: 20 }} columns={this.userColumns} dataSource={this.state.data} />
+            <div className='user-data-aide'>
+            <Button type='primary'><Icon type="plus" /> 新增</Button>
+            </div>
+                <Table pagination={{ pageSize: 20 }} columns={this.userColumns} dataSource={this.state.data} />
                 <SetUserMsg cannel={this.handleCancel} showMask={this.state.setUser} uid={this.state.uid} name={this.state.Name} workid={this.state.workID} role={this.state.role} job={this.state.job} />
             </div>
         )

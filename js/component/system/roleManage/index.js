@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Menu, Icon,Tree,message,Button, Modal} from 'antd';
 import AddRole from './addRole';
 import EditRole from './editRole';
+import config from '../../../config';
 
 const TreeNode = Tree.TreeNode;
 const SubMenu = Menu.SubMenu;
@@ -20,7 +21,8 @@ export default class RoleManage extends Component{
             roleid:'4DD48590454811E8A4FB02004C4F4F32',
             rolename:'思维分服务台',
             roleType:true,
-            display:true
+            display:true,
+            treeDisabled:false
         };
     }
     componentDidMount(){
@@ -38,7 +40,7 @@ export default class RoleManage extends Component{
     }
     //获取用户权限
     getPowerData=(key) =>{
-        axios.get('http://172.16.6.5:9090/sys/permission',{
+        axios.get(`${config.api_server}/sys/permission`,{
             params:{
                 roleid:key
             }
@@ -51,7 +53,7 @@ export default class RoleManage extends Component{
     }
     //获取角色列表
     getRoleData=() =>{
-        axios.get('http://172.16.6.5:9090/sys/role/list').then(res =>{
+        axios.get(`${config.api_server}/sys/role/list`).then(res =>{
             this.setState({
                 publicRole:res.data.public,
                 privateRole:res.data.private
@@ -91,7 +93,7 @@ export default class RoleManage extends Component{
             okType: 'danger',
             cancelText: '取消',
             onOk() {
-                axios.delete(`http://172.16.6.5:9090/sys/role`,{
+                axios.delete(`${config.api_server}/sys/role`,{
                     data:{
                       id:_this.state.roleid
                     }
@@ -114,14 +116,19 @@ export default class RoleManage extends Component{
                 subKeys.push(item)
               ))
           }
-        console.log(this.state.roleid)
-        axios.post('http://172.16.6.5:9090/sys/permission',{
+        this.setState({
+            treeDisabled:true
+        })
+        axios.post(`${config.api_server}/sys/permission`,{
             permissionId:subKeys,
             roleId:this.state.roleid
         }).then(res =>{
             if(res.data.success){
                 message.success('权限修改成功!');
                 this.getPowerData(this.state.roleid);
+                this.setState({
+                    treeDisabled:false
+                })
             }else{
                 message.error('权限修改失败,请重试!')
             }
@@ -132,7 +139,7 @@ export default class RoleManage extends Component{
         return data.map((item,i) => {
           if (item.children) {
             return (
-              <TreeNode title={item.title} key={item.key} dataRef={item}>
+              <TreeNode title={item.title} key={item.key} dataRef={item} disabled={this.state.treeDisabled}>
                 {this.renderTreeNodes(item.children)}
               </TreeNode>
             );

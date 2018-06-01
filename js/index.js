@@ -32,7 +32,7 @@ console.log([
 ].join('\n'));
 
 ReactDOM.render((
-    <BrowserRouter history={browserHistory}>
+    <BrowserRouter  history={browserHistory}>
             <SiteRouter />
     </BrowserRouter>
 ),document.getElementById("root"))

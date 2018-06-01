@@ -1,6 +1,8 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Input,Select,message } from 'antd';
+import { Button,Modal,Form,Input,Select,message,LocaleProvider } from 'antd';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
+import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
 // import './eventCategory.less';
 
@@ -14,7 +16,7 @@ class AddEventCategory extends Component{
         data:[]
     }
     getSelectList = () =>{
-        $axios.get('http://172.16.6.5:9090/sys/faultcategory/list').then((res) =>{
+        $axios.get(`${config.api_server}/sys/faultcategory/list`).then((res) =>{
             if(res.data.page){
                 if(res.data.page.datas.length != 0){
                     this.setState({data:res.data.page.datas})
@@ -39,7 +41,7 @@ class AddEventCategory extends Component{
             }
             this.setState({ addLoading: true});
             $axios({
-                url:"http://172.16.6.5:9090/sys/faultcategory",
+                url:`${config.api_server}/sys/faultcategory`,
                 method:'put',
                 headers: {
                     'Content-type': 'application/json;charset=UTF-8'
@@ -111,6 +113,7 @@ class AddEventCategory extends Component{
                     </Button>,
                 ]}
             >
+                <LocaleProvider locale={zhCN}>
                 <Form onSubmit={this.handleSubmit}>
                     <FormItem
                     {...formItemLayout}
@@ -153,6 +156,7 @@ class AddEventCategory extends Component{
                     )}
                     </FormItem>
                 </Form>
+                </LocaleProvider>
             </Modal>
         )     
     }

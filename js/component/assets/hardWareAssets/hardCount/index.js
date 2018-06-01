@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import {  Button } from 'antd';
 import $axios from "axios";
 import * as echarts from "echarts";
-
+import config from '../../../../config';
 
 export default class AppCensus extends Component{
     state = {
@@ -83,7 +83,7 @@ export default class AppCensus extends Component{
          * @param startTime 开始时间 筛选的时候用
          * @param endTime 结束时间 筛选的时候用
          */
-        $axios.get(`http://172.16.6.11:9090/queryAppInstall?buttonType=${btnType}&startTime=${startTime}&endTime=${endTime}`)
+        $axios.get(`${config.api_server}/queryAppInstall?buttonType=${btnType}&startTime=${startTime}&endTime=${endTime}`)
             .then((json)=>{
                 //eslint-disable-next-line
                 console.log(json);

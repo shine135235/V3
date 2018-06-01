@@ -1,6 +1,7 @@
 import React,{Component} from "react";
 import {Button, Form, Modal, Input,Select,message,Row,Col} from "antd";
 import $axios from 'axios';
+import config from '../../../../../config';
 import './index.less'
 
 const FormItem = Form.Item;
@@ -44,7 +45,7 @@ class EditSysProject extends Component {
         });
     }
     editSysProjectData = ({id = "",name = "",quality = "", codename = "",ids = [],first_party="",supervisor="",fphone="",sphone=""}) => {
-        $axios.put(`http://172.16.6.9:9090/pro/project`,{
+        $axios.put(`${config.api_server}/pro/project`,{
             "id":id,
             "name":name,
             "quality":quality,
@@ -114,7 +115,7 @@ class EditSysProject extends Component {
     }
     getUnitListData = () => {
         let uId = JSON.parse(sessionStorage.getItem("user")).unitId;
-        $axios.post(`http://172.16.6.5:9090/sys/user/selectlist`,{
+        $axios.post(`${config.api_server}/sys/user/selectlist`,{
             "unitid":uId
         }).then((json) => {
             //eslint-disable-next-line
@@ -127,7 +128,7 @@ class EditSysProject extends Component {
     }
     getUserJfData = () => {
         // let userId = sessionStorage.getItem("user").id;
-        $axios.post(`http://172.16.6.5:9090/sys/user/selectlist`,{
+        $axios.post(`${config.api_server}/sys/user/selectlist`,{
             // "unitid":userId,
             "unitcode":3,
             "unittype":"JSDW"
@@ -142,7 +143,7 @@ class EditSysProject extends Component {
     }
     getUserJLData = () => {
         // let userId = sessionStorage.getItem("user").id;
-        $axios.post(`http://172.16.6.5:9090/sys/user/selectlist`,{
+        $axios.post(`${config.api_server}/sys/user/selectlist`,{
             // "unitid":userId,
             "unitcode":1,
             "unittype":"JLDW"
@@ -339,7 +340,7 @@ class EditSysProject extends Component {
                                             required: true, message: '请填写联系电话!'
                                         }],
                                     })(
-                                        <Input/>
+                                        <Input disabled={true}/>
                                     )}
                                 </FormItem>
                             </Col>
@@ -384,7 +385,7 @@ class EditSysProject extends Component {
                                             required: true, message: '请填写联系电话!'
                                         }],
                                     })(
-                                        <Input/>
+                                        <Input disabled={true}/>
                                     )}
                                 </FormItem>
                             </Col>

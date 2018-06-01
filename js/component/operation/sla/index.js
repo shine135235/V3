@@ -6,6 +6,7 @@ import AddSla from './addSla'
 import EditSla from './editSla'
 import AuditSla from './auditSla'
 import DetailSla from './detailSla'
+import config from '../../../config';
 import './index.less';
 
 const Search = Input.Search;
@@ -46,7 +47,7 @@ export default class Sla extends Component {
       })
     }
     columns = [{
-        title: 'sla名称',
+        title: 'SLA名称',
         dataIndex: 'name',
       },{
         title: '状态',
@@ -118,7 +119,7 @@ export default class Sla extends Component {
         // eslint-disable-next-line
         console.log(idString);
         let ids = idString.split(",");
-        $axios.post(`http://172.16.6.11:9090/ops/sla/destroy`,{
+        $axios.post(`${config.api_server}/ops/sla/destroy`,{
             "listStr":ids
         }).then((json) => {
             if(json.data.success == true){
@@ -174,7 +175,7 @@ export default class Sla extends Component {
         this.showDetail(rowId);
     }
     getListData = ({pageNum = 1,pageSize = 10,searchVal = ""}) => {
-        $axios.get(`http://172.16.6.11:9090/ops/sla/list?pageNum=${pageNum}&pageSize=${pageSize}&param=${searchVal}`).then((json) => {
+        $axios.get(`${config.api_server}/ops/sla/list?pageNum=${pageNum}&pageSize=${pageSize}&param=${searchVal}`).then((json) => {
             // eslint-disable-next-line
             console.log("liebiao",json);
             let data =  json.data.page.datas;
@@ -195,7 +196,7 @@ export default class Sla extends Component {
         this.getListData({searchVal:val})
     }
     getDetailData = ({rowId="",checkType = ""}) => {
-        $axios.get(`http://172.16.6.11:9090/ops/sla/id/${rowId}`).then((json) => {
+        $axios.get(`${config.api_server}/ops/sla/id/${rowId}`).then((json) => {
             
         // eslint-disable-next-line
         console.log("this.props.detailData",json);

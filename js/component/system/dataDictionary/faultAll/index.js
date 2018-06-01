@@ -5,6 +5,7 @@ import zhCN from 'antd/lib/locale-provider/zh_CN';
 import AddFault from "./addFaultAll";
 import EditFaultAll from "./editFaultAll";
 import Project from "./projectAction";
+import config from '../../../../config';
 // import './projectAdministration.less';
 
 const Search = Input.Search;
@@ -19,11 +20,13 @@ export default class ChildArea extends Component{
             addLoading:false,
             pageSize:10,
             pageNum:1,
-            tatalRecord:0,
+            totalRecord:0,
             record:{},
             data:[],
             name:"",
             initialSlect:[],
+            showBetchDel:"none",
+            selectedRowKeys:[],
         }
     }
     columns = [{
@@ -55,7 +58,7 @@ export default class ChildArea extends Component{
             <span>
                 <a href="#" onClick= {this.showModal.bind(this,record)} >编辑</a>
                 <span className="ant-divider" />
-                <a href="#" onClick = {this.Delet.bind(this,record)} >删除</a>
+                <a href="#" onClick = {this.delData.bind(this,record.id)} >删除</a>
                 {/* <span className="ant-divider" />
                 <a href="#" onClick = {this.Paction.bind(this,record)} >项目设置</a> */}
             </span>
@@ -67,10 +70,12 @@ export default class ChildArea extends Component{
         this.setState({record,initialSlect,name,editVisible:true});
     }
     getParentListData = ({pageNum=1,pageSize=10,search = ""}) => {
-        axios.get(`http://172.16.6.5:9090/sys/faultcategory/list?pageNum=${pageNum}&pageSize=${pageSize}&search=${search}`).then((res) =>{
+        axios.get(`${config.api_server}/sys/faultcategory/list?pageNum=${pageNum}&pageSize=${pageSize}&search=${search}`).then((res) =>{
             if(res.data.page){
                 this.setState({data:res.data.page.datas})
-                this.setState({tatalRecord:res.data.page.datas.tatalRecord})
+                      //eslint-disable-next-line
+             console.log("rowrowrowrowrowrowrowrow",res.data.page)
+                this.setState({totalRecord:res.data.page.totalRecord})
             }
         })
     }
@@ -93,43 +98,41 @@ export default class ChildArea extends Component{
         // });
         message.error("添加字典类别管理成功")
     }
-    Delet = (record) => {
-        let records = record.id;
-        let recordName = record.faultname;
-        let recordcont = record.projectname;
+    delData = (record) => {
         confirm({
-            title: `确定要删除${recordName}`,
-            content: recordcont,
+            title: "删除操作",
+            content: "确定要删除选中信息吗?",
             okText: '是',
             okType: 'danger',
             cancelText: '否',
             onOk:() => {
-              axios({
-                url:"http://172.16.6.5:9090/sys/faultcategory",
-                method:'delete',
-                headers: {
-                    'Content-type': 'application/json;charset=UTF-8'
-                },
-                data:{
-                    "id":records
-                }
-                }).then((res) => {
-                    let datas = res.data.success;
-                    if(datas){
-                        this.getParentListData({});
-                        setTimeout(() => {
-                            this.setState({ addLoading: false, addVisible: false});
-                        }, 1000);
-                        setTimeout(() => {
-                            this.success();
-                        }, 1000);
-                    }else{
-                        this.setState({ addLoading: false});
-                        setTimeout(() => {
-                            this.error();
-                        }, 1000);
-                    }
-                })
+                this.setDelet(record)
+            //   axios({
+            //     url:"http://172.16.6.5:9090/sys/faultcategory",
+            //     method:'delete',
+            //     headers: {
+            //         'Content-type': 'application/json;charset=UTF-8'
+            //     },
+            //     data:{
+            //         "id":record
+            //     }
+            //     }).then((res) => {
+            //         let datas = res.data.success;
+            //         if(datas){
+            //             this.getParentListData({});
+            //             setTimeout(() => {
+            //                 this.setState({ addLoading: false, addVisible: false});
+            //             }, 1000);
+            //             setTimeout(() => {
+            //                 this.success();
+            //             }, 1000);
+            //         }else{
+            //             this.setState({ addLoading: false});
+            //             setTimeout(() => {
+            //                 this.error();
+            //             }, 1000);
+            //         }
+            //     })
             },
             onCancel:() => {
                  //eslint-disable-next-line
@@ -137,6 +140,34 @@ export default class ChildArea extends Component{
             },
         });
     }
+    setDelet = (pid) =>{
+        let ids = pid.split(",");
+        axios({
+           url:`${config.api_server}/sys/faultcategory`,
+           method:'delete',
+           headers: {
+               'Content-type': 'application/json;charset=UTF-8'
+           },
+           data:{
+               "id":ids
+           }
+           }).then((res) => {
+               let datas = res.data.success;
+               if(datas){
+                    // this.setState({selectedRowKeys:[],showBetchDel:"none"})
+                    this.getParentListData({});
+                    setTimeout(() => {
+                        let success = "批量删除成功"
+                        this.success(success);
+                    }, 1000);
+               }else{
+                    setTimeout(() => {
+                        let error = "批量删除失败"
+                        this.error(error);
+                    }, 1000);
+               }
+           })
+   }
     onShowSizeChange = (current, size) =>{
         this.getParentListData({pageNum:current,pageSize:size})
     } 
@@ -158,19 +189,50 @@ export default class ChildArea extends Component{
         let search = value;
         this.getParentListData({pageNum,pageSize,search});
     }
+    onSelectedChange = (selectedRowKeys, selectedRows) => {
+        let selectedRowIds = [];
+        //eslint-disable-next-line
+        //console.log('selectedRowKeysselectedRowKeys',selectedRowKeys);
+        //eslint-disable-next-line
+        //console.log('selectedRowsselectedRows',selectedRows);
+        for( let i = 0;i<selectedRows.length;i++){
+            let item = selectedRows[i];
+            selectedRowIds.push(item.id);
+        }
+        selectedRowIds = selectedRowIds.join(",");
+        if(selectedRows.length > 0){
+            this.setState({
+              showBetchDel:"block",
+            })
+        }else{
+            this.setState({
+              showBetchDel:"none",
+            })
+        }
+        this.setState({
+          selectedRowKeys,
+          delIdsLength:selectedRows.length,
+          delIds:selectedRowIds,
+        })
+      }
     render(){
         const pagination = {
             showQuickJumper:true,
             onShowSizeChange:this.onShowSizeChange,
             onChange:this.onChange,
-            total:this.state.tatalRecord,
+            total:this.state.totalRecord,
             showTotal:this.showTotal,
             showSizeChanger:true,
             size:"small",
         }
+        const { selectedRowKeys } = this.state;
+        const rowSelection =  {
+            selectedRowKeys,
+            onChange: this.onSelectedChange,
+        }
         return (
-            <div className='data-class-over'>
-                <div className = 'eventTitle'>
+            <div className='data-class-overKnow'>
+                {/* <div className = 'eventTitle'>
                     <span className="titleLeft"></span>
                     <span>故障大类管理</span> 
                     <div className = "eventTitleSearch">
@@ -178,10 +240,22 @@ export default class ChildArea extends Component{
                         <Button onClick = {this.refresh} >刷新</Button>
                         <AddFault  getParentListData = {this.getParentListData}/>
                     </div>
+                </div> */}
+                <div className = 'eventTitle'>
+                        <AddFault  getParentListData = {this.getParentListData}/>
+                        <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}>刷新</Button>
+                        <div className = "eventTitleSearch"  style={{ width: "20%" }}>
+                            <Search placeholder="搜索"  style={{ width: "100%" }} onSearch={this.onSearch}/>                          
+                        </div>
                 </div>
+                {/* <div className="slaManagement_Betch_Delete" style={{"display":this.state.showBetchDel}}>
+                        <Icon type="check-circle" />
+                        <span className="slaManagement_Betch_WZ">已选择<span style={{"color":"#21adfc","margin":"0 5px"}}>{this.state.delIdsLength}</span>项</span>
+                        <span className='slaManagement_Betch_Delete_btn' onClick={this.delData.bind(this,this.state.delIds)} style = {{"color":"red"}}>批量删除</span>
+                </div> */}
                 <div>
                     <LocaleProvider locale = {zhCN}>
-                        <Table dataSource={this.state.data}  pagination = {pagination} columns={this.columns} />          
+                        <Table dataSource={this.state.data}  pagination = {pagination} columns={this.columns} rowSelection = {rowSelection}/>          
                     </LocaleProvider>
                     <EditFaultAll editVisible = {this.state.editVisible} getParentListData = {this.getParentListData } record={ this.state.record} initialSlect = {this.state.initialSlect}  changeT = {this.changeT} name = {this.state.name}/>
                     <Project />

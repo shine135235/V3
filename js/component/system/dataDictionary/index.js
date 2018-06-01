@@ -1,5 +1,5 @@
 import React,{Component} from 'react';
-import DataClass from './dataClass';
+// import DataClass from './dataClass';
 import './index.less';
 
 export default class DataDictionary extends Component{
@@ -11,7 +11,7 @@ export default class DataDictionary extends Component{
     }
     render(){
         return (
-            <DataClass pid={this.state.pannelID}></DataClass>
+           <span></span>
         )
     }
 }

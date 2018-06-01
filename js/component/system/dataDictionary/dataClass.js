@@ -25,8 +25,6 @@ export default class DataClass extends Component{
     componentDidMount(){
         axios.get('/data/sjzd/dataClass.json').then(res =>{
             res.data.forEach(child => {
-                // eslint-disable-next-line
-               // console.log(this.state.parentID==child.parentID)
                 if(this.state.parentID==child.parentID){
                     this.setState({
                         childs:child.dataClass

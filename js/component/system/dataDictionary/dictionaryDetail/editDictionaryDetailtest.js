@@ -1,6 +1,8 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Input,Col} from 'antd';
+import { Button,Modal,Form,Input,Col,LocaleProvider,message} from 'antd';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
+import config from '../../../../config';
 import './dictionaryAll.less';
 
 const FormItem = Form.Item; 
@@ -29,20 +31,14 @@ class EditDictionaryDetailTest extends Component{
     isOrNoStyle = ({type = true}) =>{
         this.setState({isOrNo:type})
     }
-    success = () => {                       //操作完成提示弹框
-        const modal = Modal.success({       // success('操作成功!');
-            title: '操作成功',
-            content: '编辑字典类别管理成功',
-          });
-          setTimeout(() => modal.destroy(), 2000);
+    //操作完成提示弹框
+    success = () => {
+        // success('操作成功!');
+        message.success("添加用户单位成功")
     };
     error = () => {
-        const modal = Modal.error({         // success('操作成功!');
-            title: '操作失败',
-            content: '编辑字典类别管理失败',
-          });
-          setTimeout(() => modal.destroy(), 2000);
-    };
+        message.error("添加用户单位失败")
+    }
     editHandleOk = () => { 
         let record = this.props.record;
         this.props.form.validateFieldsAndScroll((err, values) => {
@@ -52,7 +48,7 @@ class EditDictionaryDetailTest extends Component{
                 obj.itemKey = values.dicName1;
                 obj.itemValue = values.dicName2;
                 $axios({
-                    url:"http://172.16.6.11:9090/sys/dictitem/update",
+                    url:`${config.api_server}/sys/dictitem/update`,
                     method:'post',
                     headers: {
                         'Content-type': 'application/json;charset=UTF-8'
@@ -124,6 +120,7 @@ class EditDictionaryDetailTest extends Component{
                         >保存</Button>
                     ]}
                 >
+                <LocaleProvider locale={zhCN}>
                     <Form>
                         <FormItem
                         {...formItemLayout}
@@ -179,6 +176,7 @@ class EditDictionaryDetailTest extends Component{
                                 {/* </FormItem> */}
                         </FormItem>      
                     </Form>
+                    </LocaleProvider>
                 </Modal>
             </span>
         )

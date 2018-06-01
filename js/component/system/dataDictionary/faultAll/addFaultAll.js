@@ -1,6 +1,8 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Input,Select } from 'antd';
+import { Button,Modal,Form,Input,Select,LocaleProvider,message} from 'antd';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
+import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
 // import './eventCategory.less';
 //  import SelectOne from "../../../publicSub/selectOne";
@@ -17,7 +19,7 @@ class AddEventCategory extends Component{
       }
       
       getSelectList = () =>{
-        $axios.get('http://172.16.6.9:9090/pro/pList').then((res) =>{
+        $axios.get(`${config.api_server}/pro/pList`).then((res) =>{
             if(res.data.page){
                 if(res.data.page.datas.length != 0){
                     this.setState({data:res.data.page.datas})
@@ -31,20 +33,11 @@ class AddEventCategory extends Component{
     componentDidUpdate(){
        
     }
-    //操作完成提示弹框
     success = () => {
-        // success('操作成功!');
-        const modal = Modal.success({
-            title: '操作成功',
-            content: '添加单位成功',
-          });
-          setTimeout(() => modal.destroy(), 2000);
+        message.success("编辑故障大类成功")
     };
     error = () => {
-        Modal.error({
-          title: '操作失败',
-          content: '添加单位失败',
-        });
+        message.error("编辑故障大类失败")
     }
     addHandleOk = (e) => {
          e.preventDefault();
@@ -63,13 +56,13 @@ class AddEventCategory extends Component{
             }
             this.setState({ addLoading: true});
             $axios({
-                url:"http://172.16.6.5:9090/sys/faultcategory",
+                url:`${config.api_server}/sys/faultcategory`,
                 method:'post',
                 headers: {
                     'Content-type': 'application/json;charset=UTF-8'
                 },
                 data:{
-                    "falutName":values.falutName,
+                    "faultName":values.faultName,
                     "projects":arr,
                 }
             }).then((res) => {
@@ -160,6 +153,7 @@ class AddEventCategory extends Component{
                         </Button>,
                     ]}
                 >
+                <LocaleProvider locale={zhCN}>
                     <Form onSubmit={this.handleSubmit}>
                         <FormItem
                         {...formItemLayout}
@@ -170,7 +164,7 @@ class AddEventCategory extends Component{
                         )}
                         hasFeedback
                         >
-                            {getFieldDecorator('falutName', {
+                            {getFieldDecorator('faultName', {
                                 rules: [{ required: true, message: '请输名称', whitespace: true }, {
                                     validator: this.eventName,
                                 }],
@@ -202,6 +196,7 @@ class AddEventCategory extends Component{
                             )}
                         </FormItem>
                     </Form>
+                    </LocaleProvider>
                 </Modal> 
             </span>
         )

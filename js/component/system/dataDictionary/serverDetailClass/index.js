@@ -4,6 +4,7 @@ import { Button,Input,Table,LocaleProvider,Modal,message} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import AddServerDetail from './addServerDetail';
 import EditServerDetail from './editServerDetail';
+import config from '../../../../config';
 import './index.less';
 
 const Search = Input.Search;
@@ -57,7 +58,7 @@ export default class ChildArea extends Component{
         this.delSysServerDetailData(rowIds);
     }
     delSysServerDetailData = (idString) => {
-        $axios.put(`http://172.16.6.9:9090/pro/sla/item/${idString}`).then((json) => {
+        $axios.put(`${config.api_server}/pro/sla/item/${idString}`).then((json) => {
             if(json.data.success){
                 this.success("删除成功");
                 this.getListData({});
@@ -73,7 +74,7 @@ export default class ChildArea extends Component{
         message.error(msg);
     };
       showEditServerDetail = (rowId) => {
-        $axios.get(`http://172.16.6.9:9090/pro/sla/item?id=${rowId}`).then(json => {
+        $axios.get(`${config.api_server}/pro/sla/item?id=${rowId}`).then(json => {
             // eslint-disable-next-line
             console.log("详情数据",json);
             let rowId = json.data.data.id;
@@ -95,7 +96,7 @@ export default class ChildArea extends Component{
         this.getListData({})
     }
     getListData = ({pageNum=1,pageSize=10,searchVal = ""}) => {
-        $axios.get(`http://172.16.6.9:9090/pro/sla/itemList?pageNum=${pageNum}&pageSize=${pageSize}&mohu=${searchVal}`).then((json) => {
+        $axios.get(`${config.api_server}/pro/sla/itemList?pageNum=${pageNum}&pageSize=${pageSize}&mohu=${searchVal}`).then((json) => {
             // eslint-disable-next-line
             console.log("细类数据",json);
             let data = json.data.page.datas;

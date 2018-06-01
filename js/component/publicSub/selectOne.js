@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
 import {Form,Select} from 'antd';
+import config from '../../config';
 // import './dictionaryAll.less';
 
 // const FormItem = Form.Item;
@@ -16,13 +17,13 @@ class DynamicFieldSet extends Component {
     }
     componentDidMount(){
          let rowCode = this.props.rowCode;
-         $axios.get(`http://172.16.6.11:9090/sys/dictitem/query/id?code=${rowCode}`).then((res) =>{
+         $axios.get(`${config.api_server}/sys/dictitem/query/id?code=${rowCode}`).then((res) =>{
              if(res.data.data){
                  if(res.data.data.length != 0){
                      this.setState({selectData:res.data.data})
                  }
-                 //eslint-disable-next-line
-                //  console.log("get单位类型",res)
+                // eslint-disable-next-line
+                 console.log("get单位类型",res)
              } 
          })
     }

@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
 import {Button,Modal, Form,Input, Row, Col,message} from 'antd';
 import $axios from 'axios';
+import config from '../../../../config';
 
 const FormItem = Form.Item;
 class AuditSla extends Component {
@@ -27,7 +28,7 @@ class AuditSla extends Component {
         this.props.changeVisibleType({ visibleAudit: false });
     }
     auditSla = ({id="",status='',clickType = ""}) => {
-        $axios.put(`http://172.16.6.11:9090/ops/sla/audit`,{
+        $axios.put(`${config.api_server}/ops/sla/audit`,{
             "id":id,
             "status":status
         }).then((json) => {

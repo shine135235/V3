@@ -1,6 +1,7 @@
 import React,{Component} from "react";
 import {Button, Form,Modal,Select,Input,message} from "antd";
 import $axios from "axios";
+import config from '../../../../../config';
 import './index.less';
 
 const FormItem = Form.Item;
@@ -34,7 +35,7 @@ class EditServerCategory extends Component {
         this.props.changeVisibleVal({ visibleEdit: false });
     }
     editServerCategory = ({id = "",serverName = "",serverPname = ""}) =>{
-        $axios.put(`http://172.16.6.9:9090/pro/sla/servicelog`,{
+        $axios.put(`${config.api_server}/pro/sla/servicelog`,{
             "name":serverName,
             "id":id,
             "projectid":serverPname,
@@ -59,7 +60,7 @@ class EditServerCategory extends Component {
         message.error(msg);
     };
     getProjectData = () => {
-        $axios.get(`http://172.16.6.9:9090/pro/pList`).then((json) => {
+        $axios.get(`${config.api_server}/pro/pList`).then((json) => {
             // eslint-disable-next-line
             console.log("json",json);
             let projectData = json.data.page.datas;

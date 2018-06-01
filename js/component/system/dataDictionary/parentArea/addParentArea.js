@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
 import { Button,Modal,Form,Input } from 'antd';
+import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
 // import './eventCategory.less';
 
@@ -51,7 +52,7 @@ class AddEventCategory extends Component{
               return ;
           }
             $axios({
-                url:"http://172.16.6.11:9090/sys/dict/add",
+                url:`${config.api_server}/sys/dict/add`,
                 method:'post',
                 headers: {
                     'Content-type': 'application/json;charset=UTF-8'

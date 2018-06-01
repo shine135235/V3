@@ -1,8 +1,10 @@
 import React,{Component} from 'react';
 import axios from 'axios';
-import { Button,Modal,Form,Input,Row,Col} from 'antd';
+import { Button,Modal,Form,Input,Row,Col,LocaleProvider,message} from 'antd';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
 // import WrappedRegistrationForm from "./test";
 // import './eventCategory.less';
+import config from '../../../../config';
  import SelectOne from "../../../publicSub/selectOne";
 
 const { TextArea } = Input;
@@ -25,19 +27,11 @@ class AddEventCategory extends Component{
     //操作完成提示弹框
     success = () => {
         // success('操作成功!');
-        const modal = Modal.success({
-            title: '操作成功',
-            content: '添加单位成功',
-          });
-          setTimeout(() => modal.destroy(), 2000);
+        message.success("操作成功")
     };
-
-     error = () => {
-        Modal.error({
-          title: '操作失败',
-          content: '添加单位失败',
-        });
-      }
+    error = () => {
+        message.error("操作失败")
+    }
       editHandleOk = (e) => {
          e.preventDefault();
         this.props.form.validateFieldsAndScroll(['name','pepole','phone','adds','describeCode'],(err) => {
@@ -75,7 +69,7 @@ class AddEventCategory extends Component{
             }
             this.setState({ editLoading: true});
             axios({
-                url:"http://172.16.6.11:9090/sys/unit/update",
+                url:`${config.api_server}/sys/unit/update`,
                 method:'post',
                 headers: {
                     'Content-type': 'application/json;charset=UTF-8'
@@ -179,6 +173,7 @@ class AddEventCategory extends Component{
                         </Button>,
                     ]}
                 >
+                <LocaleProvider locale={zhCN}>
                     <Form onSubmit={this.handleSubmit}>
                         <FormItem
                         {...formItemLayout}
@@ -304,6 +299,7 @@ class AddEventCategory extends Component{
                             )}
                         </FormItem>
                     </Form>
+                    </LocaleProvider>
                 </Modal> 
             </span>
         )

@@ -4,19 +4,18 @@ const CleanWebpackPlugin=require('clean-webpack-plugin');
 
 const theme = require('./js/theme');
 
-// const imgPath='./img/';
-// const jsPath='./js/'
+const imgPath='./img/';
+const jsPath='./js/'
 
 
 module.exports={
     entry:{
-        index:'./js/index',// 默认配置入口文件
-        // index:'./js/index-charts',
-        vendor:['react','react-dom','antd','axios','echarts']
+        index:'./js/index',// 配置入口文件
+        vendor:['react','react-dom','antd','axios','echarts','./js/config']
     },
     output:{
-        publicPath:'/',
-        filename: `[name].[${process.env.NODE_ENV === 'production' ? 'chunkhash' : 'hash'}:8].js`,
+        //publicPath:'./js/',
+        filename: `${jsPath}[name].[${process.env.NODE_ENV === 'production' ? 'chunkhash' : 'hash'}:8].js`,
     },
     devServer: {
         historyApiFallback: true
@@ -57,13 +56,13 @@ module.exports={
                 }]
               },
             {
-                test: /\.(png|jpe?g|gif|svg)$/,//文件加载
+                test: /\.(png|jpe?g|gif|svg|woff|eot|ttf)$/,//文件加载
                 use: [
                   {
                     loader: 'url-loader',
                     options: {
                       limit: 10000,
-                      name: `[name].[hash:8].[ext]`
+                      name: `${imgPath}[name].[hash:8].[ext]`
                     }
                   }
                 ]

@@ -1,55 +1,58 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Input,Row,Col,Select} from 'antd';
+import { Button,Modal,Form,Input,Row,Col,Select,LocaleProvider,message} from 'antd';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
 import SelectOne from "../../../publicSub/selectOne";
 import SchoolMap from "./schoolMap";
+import config from '../../../../config';
 
 // import WrappedRegistrationForm from "./test";
 import './index.less';
 
+let _this;
 const Option = Select.Option;
 const { TextArea } = Input;
 const FormItem = Form.Item;
 class AddEventCategory extends Component{
-    state = {
-        addVisible:false,
-        addLoading:false,
-        mapVisible:false,
-        data:[],
-        rowCode:["BXXZ"],
-        areaCode:["SSPQ"]
-      }
+    constructor(props){
+        super(props);
+        _this = this;
+        this.state = {
+            addVisible:false,
+            addLoading:false,
+            mapVisible:false,
+            data:[],
+            prentsData:"",
+            searchData:"",
+            getChPoint:"",
+            prentssetLat:"",
+            rowCode:["BXXZ"],
+            areaCode:["SSPQ"]
+          }
+    }  
     componentDidMount(){
-        $axios.get('http://172.16.6.11:9090/sys/area/arealist').then((res) =>{
+        $axios.get(`${config.api_server}/sys/area/arealist`).then((res) =>{
             if(res.data.data){
                 if(res.data.data.length != 0){
                     this.setState({data:res.data.data})
                 }
                 //eslint-disable-next-line
-                // console.log("啊啊啊啊啊啊啊啊啊啊啊啊啊",res)
+               // console.log("啊啊啊啊啊啊啊啊啊啊啊啊啊",res)
             } 
         })
     }
     componentDidUpdate(){
        
     }
-    //操作完成提示弹框
     success = () => {
-        // success('操作成功!');
-        const modal = Modal.success({
-            title: '操作成功',
-            content: '添加单位成功',
-          });
-          setTimeout(() => modal.destroy(), 2000);
+        message.success("编辑故障大类成功")
     };
-
     error = () => {
-        Modal.error({
-          title: '操作失败',
-          content: '添加单位失败',
-        });
+        message.error("编辑故障大类失败")
     }
     addHandleOk = (e) => {
+        //eslint-disable-next-line
+        console.log("啊啊啊啊啊啊啊啊啊啊啊啊啊",sessionStorage.getItem('selectValue'))
          e.preventDefault();
         this.props.form.validateFieldsAndScroll(['name','area','pepole','phone','adds','describeCode'],(err) => {
            if(!sessionStorage.getItem('selectValue')){
@@ -66,6 +69,7 @@ class AddEventCategory extends Component{
                     }
                 })
             }
+             let addValue = this.state.prentsData;
             let values = {
                 "name":this.props.form.getFieldValue("name"),
                 "areaId":this.props.form.getFieldValue("area"),
@@ -74,15 +78,16 @@ class AddEventCategory extends Component{
                 "principalPhone":this.props.form.getFieldValue("phone"),
                 "note":this.props.form.getFieldValue("describeCode"),
                 "unitType":sessionStorage.getItem('selectValue'),
-                "lng":"116.472181",
-                "lat":"39.92603"
+                "lng":addValue.lng,
+                "lat":addValue.lat,
+                "unitCode":"2",
             }
             if (err) {
                 return ;
             }    
             this.setState({ addLoading: true});
             $axios({
-                url:"http://172.16.6.11:9090/sys/unit/add",
+                url:`${config.api_server}/sys/unit/add`,
                 method:'post',
                 headers: {
                     'Content-type': 'application/json;charset=UTF-8'
@@ -129,11 +134,74 @@ class AddEventCategory extends Component{
     afterClose = () => {
         sessionStorage.removeItem('selectValue');
     }
-    mapShow = () =>{
-        this.setState({mapVisible:true})
+    addrMassage = () =>{
+        let searchdata = this.props.form.getFieldValue("adds");
+        //eslint-disable-next-line
+        //console.log("wwwwwwwwwwwwwwwwwwwwww",searchdata)
+        if(searchdata != ""){
+            this.setState({searchData:searchdata,mapVisible:true})
+        }else{
+            this.setState({searchData:this.props.form.getFieldValue("name"),mapVisible:true})
+        }       
     }
     mapChange = ({mapVisible=false}) =>{
         this.setState({mapVisible})
+    }
+    prentsData = (value) =>{
+        //eslint-disable-next-line
+        //console.log("prentsDataprentsDataprentsData",value)
+        this.setState({prentsData:value})
+        // this.props.form.setFields({
+        //     ""
+        // })
+    }
+    getChPoint = (value) =>{
+        //eslint-disable-next-line
+        console.log("valuevaluevaluevaluevalue",value)
+        this.setState({getChPoint:value})
+        this.props.form.setFields({
+            adds:{
+                value:value
+            }
+        })
+    }
+
+    prentssetLat = (value) =>{
+        this.setState({prentssetLat:value})
+    }
+    addOnBlur = (value) =>{
+        let inptValue = value.target.value;
+        let addsVal =  _this.props.form.getFieldValue("adds"); 
+        let BMap = window.BMap;
+        var map = new BMap.Map("addressMap");
+        var point = new BMap.Point(116.331398,39.897445);
+        map.enableScrollWheelZoom(true);
+        map.centerAndZoom(point,12);
+         // 创建地址解析器实例
+        var myGeo = new BMap.Geocoder();  
+        // 将地址解析结果显示在地图上,并调整地图视野         
+        myGeo.getPoint(inptValue, function(point){
+            if (point) {
+                map.centerAndZoom(point, 16);    
+                 //eslint-disable-next-line
+                console.log("pointpointpointpointpoint",point.lat)            
+                 _this.setState({prentsData:point})
+                // map.addOverlay(new BMap.Marker(point));
+                _this.props.form.setFields({
+                    adds:{
+                        value: addsVal,
+                        // errors:[new Error("您选择地址没有解析到结果!")]
+                    }
+                })
+            }else{        
+                _this.props.form.setFields({
+                    adds:{
+                        value: addsVal,
+                        errors:[new Error("您选择地址没有解析到结果!")]
+                    }
+                })
+            }
+        }, "北京市"); 
     }
     render(){
         const { getFieldDecorator } = this.props.form;
@@ -186,6 +254,7 @@ class AddEventCategory extends Component{
                     onCancel={this.addHandleCancel}
                     afterClose = {this.afterClose}
                     width = {650}
+                    destroyOnClose={true}
                     footer={[
                         // <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;类别编码格式统一为拼音首字母大写</span>,
                         <Button key="back" size="large" onClick={this.addHandleCancel}>取消</Button>,
@@ -194,6 +263,7 @@ class AddEventCategory extends Component{
                         </Button>,
                     ]}
                 >
+                <LocaleProvider locale={zhCN}>
                     <Form onSubmit={this.handleSubmit}>
                         <FormItem
                         {...formItemLayout}
@@ -212,7 +282,7 @@ class AddEventCategory extends Component{
                                 <Input placeholder = "请输名称"/>
                             )}
                         </FormItem>
-                        <Row gutter={24}>
+                        <Row >
                             <Col span = {10} key = {1} offset = {1}>
                             <FormItem
                                 {...formItemLayoutWithOutLabel1}
@@ -260,7 +330,7 @@ class AddEventCategory extends Component{
                                 </FormItem>
                             </Col>
                         </Row>
-                        <Row gutter={24}>
+                        <Row >
                             <Col span = {10} key = {1}  offset = {1}>
                                 <FormItem
                                 {...formItemLayoutWithOutLabel1}
@@ -300,7 +370,7 @@ class AddEventCategory extends Component{
                                 </FormItem>
                             </Col>
                         </Row>
-                        <Row gutter={24}>
+                        <Row>
                             <Col span = {20} key = {1}  offset = {1}>
                                 <FormItem
                                 {...formItemLayoutWithOutLabel}
@@ -312,18 +382,19 @@ class AddEventCategory extends Component{
                                 hasFeedback
                                 >
                                     {getFieldDecorator('adds', {
-                                        rules: [{ required: true, message: '请输名称', whitespace: true }, {
+                                        rules: [{ required: true, message: '请输详细地址', whitespace: true }, {
                                             validator: this.eventName,
                                         }],
                                     })(
-                                        <Input placeholder = "请输名称"/>
+                                        <Input placeholder = "请输详细地址" onBlur = {this.addOnBlur}/>
                                     )}{
                                         
                                     }
                                 </FormItem>
                             </Col>
-                            <Col span = {2} key = {11}>
-                                <SchoolMap  mapVisible = {this.state.mapVisible} mapChange = {this.mapChange}/>
+                            <Col span = {2} key = {11} >
+                            
+                                <SchoolMap  mapVisible = {this.state.mapVisible} mapChange = {this.mapChange} searchData = {this.state.searchData} addrMassage = {this.addrMassage} prentsData={this.prentsData}  prentssetLat={this.prentssetLat} getChPoint = {this.getChPoint}/>
                             </Col>
                         </Row>
                         <FormItem
@@ -342,7 +413,9 @@ class AddEventCategory extends Component{
                             )}
                         </FormItem>
                     </Form>
+                    </LocaleProvider>
                 </Modal>
+                <div style = {{"width":"100px","height":"100opx","display":"none"}} id = "addressMap"></div>
             </span>
         )
     }

@@ -1,6 +1,7 @@
 import React , {Component} from "react";
 import { Form, Input, Icon , Button, InputNumber, Upload, Modal ,Radio,message} from 'antd';
 import $axios from "axios";
+import config from '../../../../../config';
 import './index.less';
 
 const FormItem = Form.Item;
@@ -104,7 +105,7 @@ class AddAppMall extends Component {
         });
     }
     addAppMallData = ({name = '',count = '',vcoin = '',resource = '',detailresource = '',status = ''}) => {
-        $axios.post("http://172.16.6.9:9090/app/goods",{
+        $axios.post(`${config.api_server}/app/goods`,{
                 "name": name,
                 "count":count,
                 "vcoin":vcoin,
@@ -274,9 +275,10 @@ class AddAppMall extends Component {
                                     <img alt="example" style={{ width: '100%' }} src={previewImageMain} />
                                 </Modal>
                                 
-                                <div>图片分辨率建议：750*750，图片大小不超过200k</div>  
+                               
                             </div>
                         )}
+                         <div>图片分辨率建议：750*750，图片大小不超过200k</div>  
                     </FormItem>
                     <FormItem
                         {...formItemLayout}
@@ -296,12 +298,13 @@ class AddAppMall extends Component {
                                 >
                                 {fileList.length >= 4 ? null : uploadButton}
                                 </Upload>
-                                <div>图片分辨率建议：750*450，图片大小不超过200k</div>
                                 <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
                                     <img alt="example" style={{ width: '100%' }} src={previewImage} />
                                 </Modal>  
                             </div>
                         )}
+                        
+                        <div>图片分辨率建议：750*450，图片大小不超过200k</div>
                     </FormItem>
                     <FormItem
                     {...formItemLayout}

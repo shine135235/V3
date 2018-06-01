@@ -4,6 +4,7 @@ import { Button,Input,Table,LocaleProvider,Modal} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import AddFaultType from "./addFaultType";
 import EditFaultType from "./editFaultType";
+import config from '../../../../config';
 // import './projectAdministration.less';
 
 const Search = Input.Search;
@@ -49,7 +50,7 @@ export default class ChildArea extends Component{
         ), 
     }];
     setChildstate  = (value) =>{
-        axios.get(`http://172.16.6.5:9090/sys/faultcategory/sublist?parentId=${value}`).then((res) =>{
+        axios.get(`${config.api_server}/sys/faultcategory/sublist?parentId=${value}`).then((res) =>{
             if(res.data.page){
                 this.setState({faultDetailList:res.data.page.datas})
             } 
@@ -70,10 +71,10 @@ export default class ChildArea extends Component{
         this.setState({record,editVisible:true,faultname:record.typename,faultAllId:record.fid,faultDetailId:record.ffid});  
     }
     getParentListData = ({pageNum=1,pageSize=10,search = ""}) => {
-        axios.get(`http://172.16.6.5:9090/sys/faulttype/list?pageNum=${pageNum}&pageSize=${pageSize}&search=${search}`).then((res) =>{
+        axios.get(`${config.api_server}/sys/faulttype/list?pageNum=${pageNum}&pageSize=${pageSize}&search=${search}`).then((res) =>{
             if(res.data.page){
                 this.setState({data:res.data.page.datas})
-                this.setState({tatalRecord:res.data.page.tatalRecord})
+                this.setState({tatalRecord:res.data.page.totalRecord})
             }
         })
     }
@@ -89,7 +90,7 @@ export default class ChildArea extends Component{
             cancelText: '否',
             onOk() {
                 axios({
-                    url:"http://172.16.6.5:9090/sys/faulttype",
+                    url:`${config.api_server}/sys/faulttype`,
                     method:'delete',
                     headers: {
                         'Content-type': 'application/json;charset=UTF-8'
@@ -137,13 +138,16 @@ export default class ChildArea extends Component{
     render(){
         const pagination = {
             showQuickJumper:true,
-            total:50,
+            onShowSizeChange:this.onShowSizeChange,
+            onChange:this.onChange,
+            total:this.state.totalRecord,
+            showTotal:this.showTotal,
             showSizeChanger:true,
             size:"small",
         }
         return (
-            <div className='data-class-over'>
-                <div className = 'eventTitle'>
+            <div className='data-class-overKnow'>
+                {/* <div className = 'eventTitle'>
                     <span className="titleLeft"></span>
                     <span>故障类型管理</span> 
                     <div className = "eventTitleSearch">
@@ -151,6 +155,13 @@ export default class ChildArea extends Component{
                         <Button onClick = {this.refresh}>刷新</Button>
                         <AddFaultType  getParentListData = {this.getParentListData}/>
                     </div>
+                </div> */}
+                <div className = 'eventTitle'>
+                        <AddFaultType  getParentListData = {this.getParentListData}/>       
+                        <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}>刷新</Button>
+                        <div className = "eventTitleSearch"  style={{ width: "20%" }}>
+                            <Search placeholder="搜索"  style={{ width: "100%" }} onSearch={this.onSearch}/>                          
+                        </div>
                 </div>
                 <div>
                     <LocaleProvider locale = {zhCN}>

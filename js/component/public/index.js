@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
 import {Select} from 'antd';
 import axios from 'axios';
+import config from '../../config';
 
 const Option = Select.Option;
 //eslint-disable-next-line
@@ -21,9 +22,12 @@ export class UserRoleList extends Component{
         sp:[]
     }
     componentDidMount(){
-        axios.get('/data/yhgl/depart.json').then(res =>{
+        console.log(this.props.uid)
+        axios.get(`${config.api_server}/sys/role/selectlist`,{
+                unitId:this.props.uid?this.props.uid:''
+        }).then(res =>{
             this.setState({
-                sp:res.data[0].childDept
+                sp:res.data
             })
         })
     }
@@ -33,11 +37,11 @@ export class UserRoleList extends Component{
     render(){
        if(this.state.sp!=null){
            return (
-               <Select key='role' defaultValue={this.props.selectValue} style={{width:"100%"}} mode={this.props.mode} onChange={this.handleChange} allowClear={true}  placeholder="请为该人员设置角色">
+               <Select key='role' defaultValue={this.props.selectValue} style={{width:"100%"}} mode={this.props.mode} onChange={this.handleChange}  placeholder="请为该人员设置角色">
                    {
                      this.state.sp.map((item,i) =>{
                          return (
-                             <Option key={`role${i}`} value={item.deptID}>{item.deptName}</Option>
+                             <Option key={`role${i}`} value={item.id}>{item.name}</Option>
                          )
                      })  
                    }
@@ -62,7 +66,7 @@ export class ProjectList extends Component{
         }
     }
     componentDidMount(){
-        axios.get('http://172.16.6.9:9090/pro/pList').then(res =>{
+        axios.get(`${config.api_server}/pro/pList`).then(res =>{
             this.setState({
                 project:res.data.page.datas
             })

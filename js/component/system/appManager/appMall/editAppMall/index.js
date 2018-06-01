@@ -1,6 +1,7 @@
 import React , {Component} from "react";
 import { Form, Input, Icon , Button, InputNumber, Upload, Modal ,Radio,message} from 'antd';
 import $axios from "axios";
+import config from '../../../../../config';
 import './index.less';
 
 const FormItem = Form.Item;
@@ -20,7 +21,7 @@ class EditAppMall extends Component {
         this.setState({ previewVisibleMain: false })
     }
     getMallDetailData = (rowId) => {
-        $axios.get(`http://172.16.6.9:9090/app/goods?id=${rowId}`).then((json) => {
+        $axios.get(`${config.api_server}/app/goods?id=${rowId}`).then((json) => {
             // eslint-disable-next-line
             console.log(json);
             let result = json.data.data;
@@ -167,7 +168,7 @@ class EditAppMall extends Component {
         });
     }
     editAppMallData = ({name = '',count = '',vcoin = '',resource = '',detailresource = '',status = '',id = ''}) => {
-        $axios.put("http://172.16.6.9:9090/app/goods",{
+        $axios.put(`${config.api_server}/app/goods`,{
             "id":id,
             "name": name,
             "count":count,
@@ -330,7 +331,7 @@ class EditAppMall extends Component {
                         })(
                             <div>
                                 <Upload
-                                    action="http://172.16.6.9:9090/app/goods/uploadimg"
+                                    action={`${config.api_server}/app/goods/uploadimg`}
                                     listType="picture-card"
                                     fileList={fileListMain}
                                     onPreview={this.handlePreviewMain}
@@ -355,7 +356,7 @@ class EditAppMall extends Component {
                         })(
                             <div>
                                 <Upload
-                                    action="http://172.16.6.9:9090/app/goods/uploadimg"
+                                    action={`${config.api_server}/app/goods/uploadimg`}
                                     listType="picture-card"
                                     fileList={fileList}
                                     onPreview={this.handlePreview}

@@ -1,6 +1,8 @@
 import React,{Component} from 'react';
 import $axios from 'axios'
-import { Button,Modal,Form,Input } from 'antd';
+import { Button,Modal,Form,Input,LocaleProvider} from 'antd';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
+import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
 // import './eventCategory.less';
 
@@ -55,7 +57,7 @@ class Editchild extends Component{
             //eslint-disable-next-line
             console.log("222",values);
             $axios({
-                url:"http://172.16.6.11:9090/sys/area/update",
+                url:`${config.api_server}/sys/area/update`,
                 method:'post',
                 headers: {
                     'Content-type': 'application/json;charset=UTF-8'
@@ -125,6 +127,7 @@ class Editchild extends Component{
                         </Button>,
                     ]}
                 >
+                <LocaleProvider local={zhCN}>
                     <Form onSubmit={this.handleSubmit}>
                         <FormItem
                         {...formItemLayout}
@@ -179,6 +182,7 @@ class Editchild extends Component{
                         )}
                         </FormItem>
                     </Form>
+                    </LocaleProvider>
                 </Modal> 
             </span>
         )

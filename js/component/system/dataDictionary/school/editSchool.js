@@ -1,7 +1,9 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Input,Row,Col,Select,message} from 'antd';
+import { Button,Modal,Form,Input,Row,Col,Select,message,LocaleProvider} from 'antd';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
 import SelectOne from "../../../publicSub/selectOne";
+import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
 import './index.less';
 
@@ -17,7 +19,7 @@ class AddEventCategory extends Component{
         data:[]
       }
     componentDidMount(){
-        $axios.get('http://172.16.6.11:9090/sys/area/arealist').then((res) =>{
+        $axios.get(`${config.api_server}/sys/area/arealist`).then((res) =>{
                    
             if(res.data.data){
                 if(res.data.data.length != 0){
@@ -83,7 +85,7 @@ class AddEventCategory extends Component{
             }
             this.setState({ editLoading: true});
             $axios({
-                url:"http://172.16.6.11:9090/sys/unit/update/userunit",
+                url:`${config.api_server}/sys/unit/update/userunit`,
                 method:'post',
                 headers: {
                     'Content-type': 'application/json;charset=UTF-8'
@@ -186,6 +188,7 @@ class AddEventCategory extends Component{
                     onOk={this.addHandleOk}
                     onCancel={this.addHandleCancel}
                     width = {700}
+                    destroyOnClose={true}
                     footer={[
                         // <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;类别编码格式统一为拼音首字母大写</span>,
                         <Button key="back" size="large" onClick={this.addHandleCancel}>取消</Button>,
@@ -194,6 +197,7 @@ class AddEventCategory extends Component{
                         </Button>,
                     ]}
                 >
+                <LocaleProvider locale={zhCN}>
                     <Form onSubmit={this.handleSubmit}>
                         <FormItem
                         {...formItemLayout}
@@ -304,7 +308,6 @@ class AddEventCategory extends Component{
                                 </FormItem>
                             </Col>
                         </Row>
-                        
                         <FormItem
                         {...formItemLayout}
                         label={(
@@ -340,6 +343,7 @@ class AddEventCategory extends Component{
                             )}
                         </FormItem>
                     </Form>
+                    </LocaleProvider>
                 </Modal> 
             </span>
         )

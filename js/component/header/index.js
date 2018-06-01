@@ -1,14 +1,34 @@
 import React,{Component} from 'react';
-import {Menu,Icon,Select} from 'antd';
+import {Menu,Icon,Avatar,Dropdown} from 'antd';
 import axios from 'axios';
 import 'antd/dist/antd.css';
 import {Link} from 'react-router-dom';
+import config from '../../config';
 
 import './header.less'
 
 axios.defaults.withCredentials=true;
 
-const Option=Select.Option;
+const outLogin=() =>{
+    console.log(JSON.parse(sessionStorage.getItem('user')))
+    axios.post(`${config.api_server}/sys/user/logout`,{
+        id:JSON.parse(sessionStorage.getItem('user')).id,
+        loginId:JSON.parse(sessionStorage.getItem('user')).loginId
+    }).then(res =>{
+        if(res.data.flag==='success'){
+            sessionStorage.clear();
+            location.href='/';
+        }
+    })
+}
+
+const menus = (
+    <Menu>
+      <Menu.Item onClick={outLogin}>
+        退出登录
+      </Menu.Item>
+    </Menu>
+);
 let cc=0;
 class SetNav extends Component{
     constructor(props){
@@ -55,13 +75,12 @@ class SetNav extends Component{
                     }
                 </Menu>
                 <div className='user-role'>
-                <Select defaultValue={this.state.userData.lastUsedRole.id} style={{ width: 120,right:'10%'}}>
-                    {
-                        this.state.userData.userRole.map((item,i) =>(
-                            <Option key={`ur${i}`} value={item.id}>{item.name}</Option> 
-                        ))
-                    }
-                </Select>
+                <Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />　
+                <Dropdown overlay={menus} trigger={['click']}>
+                    <a className="ant-dropdown-link big-line" href="#">
+                    11111<Icon type="down" />
+                    </a>
+                </Dropdown>
                 </div>
                 </div>
             )

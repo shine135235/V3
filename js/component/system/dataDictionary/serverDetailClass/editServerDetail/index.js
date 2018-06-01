@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
 import {Button,Form, Modal, Input,Select,message} from 'antd';
 import $axios from "axios";
+import config from '../../../../../config';
 import './index.less';
 
 
@@ -34,7 +35,7 @@ class EditServerDetail extends Component {
         this.props.changeVisibleType({visibleEdit:false});
     }
     editServerDetailData = ({id = "",serverLogId = "",serverItemName = ""}) => {
-        $axios.put(`http://172.16.6.9:9090/pro/sla/item`,{
+        $axios.put(`${config.api_server}/pro/sla/item`,{
             "id":id,
             "logid":serverLogId,
             "name":serverItemName,
@@ -59,7 +60,7 @@ class EditServerDetail extends Component {
         message.error(msg);
     };
     getLogListData = () =>{
-        $axios.get(`http://172.16.6.9:9090/pro/logList`).then((json) => {
+        $axios.get(`${config.api_server}/pro/logList`).then((json) => {
             //eslint-disable-next-line
             console.log("getLogListData",json);
             let categoryData = json.data.page.datas;

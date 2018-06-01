@@ -1,6 +1,7 @@
 import React , {Component} from "react";
 import { Modal, Button, Form, Input, message } from "antd"
 import $axios from "axios";
+import config from '../../../../../config';
 import "./index.less";
 
 const FormItem = Form.Item;
@@ -19,7 +20,7 @@ class AddSensitiveModal extends Component {
         this.setState({visible:true});
     }
     addSensitiveData = (name) => {
-        $axios.post(`http://172.16.6.9:9090/app/sensitive?name=${name}`).then((json) => {
+        $axios.post(`${config.api_server}/app/sensitive?name=${name}`).then((json) => {
             // eslint-disable-next-line
             console.log(json);
             if(json.data.success == true){

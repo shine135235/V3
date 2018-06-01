@@ -1,13 +1,15 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Input,Table,LocaleProvider} from 'antd';
+import { Button,Input,Table,LocaleProvider,Modal,Icon} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import AddSchool from "./addSchool";
 import EditSchool from "./editSchool";
+import config from '../../../../config';
 
 // import './index.less';
 
 const Search = Input.Search;
+const confirm = Modal.confirm;
 // const confirm = Modal.confirm;
 // const data = [
 //     {
@@ -43,7 +45,9 @@ export default class ChildArea extends Component{
             address:"",
             recordId:"",
             area:"",
-            tatalRecord:0
+            totalRecord:0,
+            selectedRowKeys:[],
+            showBetchDel:"none"
         }
     }
     columns = [{
@@ -77,14 +81,14 @@ export default class ChildArea extends Component{
             <span>
                 <a href="#" onClick= {this.showModal.bind(this,record.id)}>编辑</a>
                 <span className="ant-divider" />
-                <a href="#">删除</a>
+                <a href="#"onClick={this.delData.bind(this,record.id)}>删除</a>
             </span>
         ), 
     }];
     getEditData = (record) =>{
          //eslint-disable-next-line
          console.log("recordrecordrecordrecord",record)
-        $axios.get(`http://172.16.6.11:9090/sys/unit/query/userunit/id?id=${record}`).then((res) =>{
+        $axios.get(`${config.api_server}/sys/unit/query/userunit/id?id=${record}`).then((res) =>{
             //eslint-disable-next-line
             //console.log("recordrecordrecordrecord",record)
             //eslint-disable-next-line
@@ -102,31 +106,108 @@ export default class ChildArea extends Component{
                     area  : res.data.data.areaId,
                     recordId : record
                 })
-                // this.setState({tatalRecord:res.data.page.datas.tatalRecord})
+                //  this.setState({totalRecord:res.data.page.datas.totalRecord})
             }
             //eslint-disable-next-line
             // console.log("aboutall",res.data.data)
         })
     }
-    showModal = (record) =>{
-        this.getEditData(record);
+    delData = (record,e) => {
+        e.stopPropagation();
+         //eslint-disable-next-line
+           // console.log("iiiiiiiiiiiiii",record)
+        confirm({
+            title: `删除操作`,
+            content:"确定要删除吗?",
+            okText: '是',
+            okType: 'danger',
+            cancelText: '否',
+            onOk:() => {
+              this.setDelet(record)
+            },
+            onCancel:() => {
+                 //eslint-disable-next-line
+            //   console.log('Cancel');
+            },
+        });
     }
-    getSchoolDataList =({pageNum=1,pageSize=10}) =>{
-        $axios.get(`http://172.16.6.11:9090/sys/unit/userunit/list?pageNum=${pageNum}&pageSize=${pageSize}`).then(res =>{
+    setDelet = (pid) =>{
+        
+        let ids = pid.split(",");
+        // eslint-disable-next-line
+        console.log("eeeeeeeeeeeeeeeeeeeeeeee",ids);
+       $axios({
+           url:"http://172.16.6.11:9090/sys/unit",
+           method:'delete',
+           headers: {
+               'Content-type': 'application/json;charset=UTF-8'
+           },
+           data:{
+               "list":ids
+           }
+           }).then((res) => {
+               let datas = res.data.success;
+               if(datas){
+                   this.setState({selectedRowKeys:[],showBetchDel:"none"})
+                   this.getSchoolDataList({});
+                   
+                   setTimeout(() => {
+                       let success = "批量删除成功"
+                       this.success(success);
+                   }, 1000);
+               }else{
+                   setTimeout(() => {
+                       let error = "批量删除失败"
+                       this.error(error);
+                   }, 1000);
+               }
+           })
+   }
+   onSelectedChange = (selectedRowKeys, selectedRows) => {
+        let selectedRowIds = [];
         //eslint-disable-next-line
-        console.log("dataListdataList",res)        
-        if(res.data.page.datas){
-                    //eslint-disable-next-line
-                    console.log("dataListdataList",res.data.page.datas)
-                    this.setState({dataList:res.data.page.datas,tatalRecord:res.data.page.datas.tatalRecord})
-                }       
+        //console.log('selectedRowKeysselectedRowKeys',selectedRowKeys);
+        //eslint-disable-next-line
+        //console.log('selectedRowsselectedRows',selectedRows);
+        for( let i = 0;i<selectedRows.length;i++){
+            let item = selectedRows[i];
+            selectedRowIds.push(item.id);
+        }
+        selectedRowIds = selectedRowIds.join(",");
+        if(selectedRows.length > 0){
+            this.setState({
+            showBetchDel:"block",
+            })
+        }else{
+            this.setState({
+            showBetchDel:"none",
+            })
+        }
+        this.setState({
+        selectedRowKeys,
+        delIdsLength:selectedRows.length,
+        delIds:selectedRowIds,
         })
     }
+    showModal = (record) =>{
+            this.getEditData(record);
+    }
+    getSchoolDataList =({pageNum=1,pageSize=10}) =>{
+            $axios.get(`${config.api_server}/sys/unit/userunit/list?pageNum=${pageNum}&pageSize=${pageSize}`).then(res =>{
+            //eslint-disable-next-line
+            console.log("dataListdataList",res)        
+            if(res.data.page.datas){
+                        //eslint-disable-next-line
+                        console.log("dataListdataList",res.data.page.datas)
+                        this.setState({dataList:res.data.page.datas,totalRecord:res.data.page.datas.totalRecord})
+                    }       
+            })
+    }
     componentDidMount(){
-         this.getSchoolDataList({});
+            this.getSchoolDataList({});
     }
     refresh = () =>{
-        this.getSchoolDataList({});
+            this.getSchoolDataList({});
     }  
     onShowSizeChange = (current, size) =>{
         this.getSchoolDataList({pageNum:current,pageSize:size})
@@ -145,14 +226,19 @@ export default class ChildArea extends Component{
             showQuickJumper:true,
             onShowSizeChange:this.onShowSizeChange,
             onChange:this.onChange,
-            total:this.state.tatalRecord,
+            total:this.state.totalRecord,
             showTotal:this.showTotal,
             showSizeChanger:true,
             size:"small",
         }
+        const { selectedRowKeys } = this.state;
+        const rowSelection =  {
+            selectedRowKeys,
+            onChange: this.onSelectedChange,
+        }
         return (
-            <div className='data-class-over'>
-                <div className = 'eventTitle'>
+            <div className='data-class-overKnow'>
+                {/* <div className = 'eventTitle'>
                     <span className="titleLeft"></span>
                     <span>用户单位 管理</span> 
                     <div className = "eventTitleSearch">
@@ -160,10 +246,22 @@ export default class ChildArea extends Component{
                         <Button onClick = {this.refresh}>刷新</Button>
                         <AddSchool getSchoolDataList = {this.getSchoolDataList} dataList = {this.state.data} />
                     </div>
+                </div> */}
+                <div className = 'eventTitle'>
+                        <AddSchool getSchoolDataList = {this.getSchoolDataList} dataList = {this.state.data} /> 
+                        <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}>刷新</Button>
+                        <div className = "eventTitleSearch"  style={{ width: "20%" }}>
+                            <Search placeholder="搜索"  style={{ width: "100%" }} onSearch={this.onSearch}/>                          
+                        </div>
+                </div>
+                <div className="slaManagement_Betch_Delete" style={{"display":this.state.showBetchDel}}>
+                    <Icon type="check-circle" />
+                    <span className="slaManagement_Betch_WZ">已选择<span style={{"color":"#21adfc","margin":"0 5px"}}>{this.state.delIdsLength}</span>项</span>
+                    <span className='slaManagement_Betch_Delete_btn' onClick={this.delData.bind(this,this.state.delIds)} style = {{"color":"red"}}>批量删除</span>
                 </div>
                 <div>
                     <LocaleProvider locale = {zhCN}>
-                        <Table dataSource={this.state.dataList}  pagination = {pagination} columns={this.columns} />          
+                        <Table dataSource={this.state.dataList}  pagination = {pagination} columns={this.columns}  rowSelection = {rowSelection}  />          
                     </LocaleProvider>                   
                 </div>
 

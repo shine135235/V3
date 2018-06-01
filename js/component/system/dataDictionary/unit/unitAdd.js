@@ -1,9 +1,11 @@
 import React,{Component} from 'react';
 import axios from 'axios';
-import { Button,Modal,Form,Input,Row,Col} from 'antd';
+import { Button,Modal,Form,Input,Row,Col,LocaleProvider,message} from 'antd';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
 // import WrappedRegistrationForm from "./test";
 // import './eventCategory.less';
  import SelectOne from "../../../publicSub/selectOne";
+ import config from '../../../../config';
 
 const { TextArea } = Input;
 const FormItem = Form.Item;
@@ -43,17 +45,10 @@ class AddEventCategory extends Component{
     //操作完成提示弹框
     success = () => {
         // success('操作成功!');
-        const modal = Modal.success({
-            title: '操作成功',
-            content: '添加单位成功',
-          });
-          setTimeout(() => modal.destroy(), 2000);
+        message.success("操作成功")
     };
     error = () => {
-        Modal.error({
-          title: '操作失败',
-          content: '添加单位失败',
-        });
+        message.error("操作失败")
     }
     addHandleOk = (e) => {
          e.preventDefault();
@@ -83,16 +78,16 @@ class AddEventCategory extends Component{
                 "unitCode":"1",
             }
             //eslint-disable-next-line
-           console.log('valuesvaluesvaluesvalues ', values);
+           //console.log('valuesvaluesvaluesvalues ', values);
             //eslint-disable-next-line
-           console.log('selectValueselectValueselectValue ', sessionStorage.getItem('selectValue'));
+          // console.log('selectValueselectValueselectValue ', sessionStorage.getItem('selectValue'));
         //    values.categoryCode = sessionStorage.getItem('selectValue');
         if (err) {
             return ;
         }
         this.setState({ addLoading: true});
             axios({
-                url:"http://172.16.6.11:9090/sys/unit/add",
+                url:`${config.api_server}/sys/unit/add`,
                 method:'post',
                 headers: {
                     'Content-type': 'application/json;charset=UTF-8'
@@ -197,119 +192,121 @@ class AddEventCategory extends Component{
                         </Button>,
                     ]}
                 >
-                    <Form onSubmit={this.handleSubmit}>
-                        <FormItem
-                        {...formItemLayout}
-                        label={(
-                            <span>
-                            名称&nbsp;
-                            </span>
-                        )}
-                        hasFeedback
-                        >
-                            {getFieldDecorator('name', {
-                                rules: [{ required: true, message: '请输名称', whitespace: true }, {
-                                    validator: this.eventName,
-                                }],
-                            })(
-                                <Input placeholder = "请输名称"/>
+                    <LocaleProvider locale={zhCN}>
+                        <Form onSubmit={this.handleSubmit}>
+                            <FormItem
+                            {...formItemLayout}
+                            label={(
+                                <span>
+                                名称&nbsp;
+                                </span>
                             )}
-                        </FormItem>
-                        <FormItem
-                        {...formItemLayout}
-                        label={(
-                            <span>
-                            单位类型&nbsp;
-                            </span>
-                        )}
-                        hasFeedback
-                        >
-                            {getFieldDecorator('categoryCode', {
-                                //   initialValue:"",
-                                rules: [{ required: true, message: '请输入单位类型', whitespace: true }, {
-                                    validator: this.eventName,
-                                }],
-                            })(
-                                <SelectOne rowCode = {this.state.rowCode}/>
-                            )}
-                        </FormItem>
-                         {/* <SelectOne rowCode = {this.state.rowCode} setSelectChange = {this.setSelectChange} reset={this.state.reset} /> */}
-                        <Row>
-                            <Col span = {11} key = {1} >
-                                <FormItem
-                                style = {{"display":"inline-block"}}
-                                {...formItemLayoutWithOutLabel}
-                                label={(
-                                    <span>
-                                    负责人&nbsp;
-                                    </span>
+                            hasFeedback
+                            >
+                                {getFieldDecorator('name', {
+                                    rules: [{ required: true, message: '请输名称', whitespace: true }, {
+                                        validator: this.eventName,
+                                    }],
+                                })(
+                                    <Input placeholder = "请输名称"/>
                                 )}
-                                hasFeedback
-                                >
-                                    {getFieldDecorator('pepole', {
-                                        rules: [{ required: true, message: '请输负责人', whitespace: true }, {
-                                            validator: this.eventName,
-                                        }],
-                                    })(
-                                        <Input placeholder = "请输名称"/>
-                                    )}
-                                </FormItem>
-                            </Col>
-                            <Col span = {12} key = {2}  style = {{"display":"inline-block"}}>
-                                <FormItem
-                                style = {{"display":"inline-block"}}
-                                {...formItemLayoutWithOutLabel}
-                                label={(
-                                    <span>
-                                    联系电话&nbsp;
-                                    </span>
+                            </FormItem>
+                            <FormItem
+                            {...formItemLayout}
+                            label={(
+                                <span>
+                                单位类型&nbsp;
+                                </span>
+                            )}
+                            hasFeedback
+                            >
+                                {getFieldDecorator('categoryCode', {
+                                    //   initialValue:"",
+                                    rules: [{ required: true, message: '请输入单位类型', whitespace: true }, {
+                                        validator: this.eventName,
+                                    }],
+                                })(
+                                    <SelectOne rowCode = {this.state.rowCode}/>
                                 )}
-                                hasFeedback
-                                >
-                                    {getFieldDecorator('phone', {
-                                        rules: [{ required: true, message: '请输联系电话', whitespace: true }, {
-                                            validator: this.eventName,
-                                        }],
-                                    })(
-                                        <Input placeholder = "请输名称"/>
+                            </FormItem>
+                            {/* <SelectOne rowCode = {this.state.rowCode} setSelectChange = {this.setSelectChange} reset={this.state.reset} /> */}
+                            <Row>
+                                <Col span = {11} key = {1} >
+                                    <FormItem
+                                    style = {{"display":"inline-block"}}
+                                    {...formItemLayoutWithOutLabel}
+                                    label={(
+                                        <span>
+                                        负责人&nbsp;
+                                        </span>
                                     )}
-                                </FormItem>
-                            </Col>
-                        </Row>
-                        
-                        <FormItem
-                        {...formItemLayout}
-                        label={(
-                            <span>
-                            详细地址&nbsp;
-                            </span>
-                        )}
-                        hasFeedback
-                        >
-                            {getFieldDecorator('adds', {
-                                rules: [{ required: true, message: '请输名称', whitespace: true }, {
-                                    validator: this.eventName,
-                                }],
-                            })(
-                                <Input placeholder = "请输名称"/>
+                                    hasFeedback
+                                    >
+                                        {getFieldDecorator('pepole', {
+                                            rules: [{ required: true, message: '请输负责人', whitespace: true }, {
+                                                validator: this.eventName,
+                                            }],
+                                        })(
+                                            <Input placeholder = "请输名称"/>
+                                        )}
+                                    </FormItem>
+                                </Col>
+                                <Col span = {12} key = {2}  style = {{"display":"inline-block"}}>
+                                    <FormItem
+                                    style = {{"display":"inline-block"}}
+                                    {...formItemLayoutWithOutLabel}
+                                    label={(
+                                        <span>
+                                        联系电话&nbsp;
+                                        </span>
+                                    )}
+                                    hasFeedback
+                                    >
+                                        {getFieldDecorator('phone', {
+                                            rules: [{ required: true, message: '请输联系电话', whitespace: true }, {
+                                                validator: this.eventName,
+                                            }],
+                                        })(
+                                            <Input placeholder = "请输名称"/>
+                                        )}
+                                    </FormItem>
+                                </Col>
+                            </Row>
+                            
+                            <FormItem
+                            {...formItemLayout}
+                            label={(
+                                <span>
+                                详细地址&nbsp;
+                                </span>
                             )}
-                        </FormItem>
-                        <FormItem
-                        {...formItemLayout}
-                        label={(
-                            <span>
-                            备注&nbsp;
-                            </span>
-                        )}
-                        hasFeedback
-                        >
-                            {getFieldDecorator('describeCode', {
-                                rules: [{ required: false, message: '请输入区域描述!', whitespace: true }],
-                            })(
-                                <TextArea rows={4} />
+                            hasFeedback
+                            >
+                                {getFieldDecorator('adds', {
+                                    rules: [{ required: true, message: '请输名称', whitespace: true }, {
+                                        validator: this.eventName,
+                                    }],
+                                })(
+                                    <Input placeholder = "请输名称"/>
+                                )}
+                            </FormItem>
+                            <FormItem
+                            {...formItemLayout}
+                            label={(
+                                <span>
+                                备注&nbsp;
+                                </span>
                             )}
-                        </FormItem>
-                    </Form>
+                            hasFeedback
+                            >
+                                {getFieldDecorator('describeCode', {
+                                    rules: [{ required: false, message: '请输入区域描述!', whitespace: true }],
+                                })(
+                                    <TextArea rows={4} />
+                                )}
+                            </FormItem>
+                        </Form>
+                        </LocaleProvider>
                 </Modal> 
             </span>
         )

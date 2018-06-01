@@ -1,6 +1,8 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Input } from 'antd';
+import { Button,Modal,Form,Input,LocaleProvider } from 'antd';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
+import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
 // import './eventCategory.less';
 
@@ -53,7 +55,7 @@ class AddEventCategory extends Component{
             let parm = Object.assign(values,obj);
             this.setState({ editLoading: true});
             $axios({
-                url:"http://172.16.6.11:9090/sys/dict/update",
+                url:`${config.api_server}/sys/dict/update`,
                 method:'post',
                 headers: {
                     'Content-type': 'application/json;charset=UTF-8'
@@ -123,6 +125,7 @@ class AddEventCategory extends Component{
                     </Button>,
                 ]}
             >
+            <LocaleProvider locale={zhCN}>
                 <Form onSubmit={this.handleSubmit}>
                     <FormItem
                     {...formItemLayout}
@@ -177,6 +180,7 @@ class AddEventCategory extends Component{
                     )}
                     </FormItem>
                 </Form>
+                </LocaleProvider>
             </Modal>
         )     
     }

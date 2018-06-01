@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
 import axios from 'axios';
 import { Form, Input, Button, message} from 'antd';
+import config from '../../../config';
 import './index.less'
 
 
@@ -14,7 +15,7 @@ class UpdatePwd extends Component{
     handleSubmit = () => {
         this.props.form.validateFieldsAndScroll((err, values) => {
             if(!err){
-                axios.post('http://172.16.6.5:9090/sys/user/setpwd',{
+                axios.post(`${config.api_server}/sys/user/setpwd`,{
                     loginId:values.userName,
                     oldPwd:values.oldPassword,
                     newPwd:values.confirm

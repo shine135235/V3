@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
 import {Button,Modal, Form,Input, Row, Col,message} from 'antd';
 import $axios from 'axios';
+import config from '../../../../config';
 
 const FormItem = Form.Item;
 class EditSla extends Component {
@@ -62,7 +63,7 @@ class EditSla extends Component {
         
     }
     editSlaData = ({id="",slaName = "",slaStatus = "",list = []}) => {
-        $axios.post(`http://172.16.6.11:9090/ops/sla/edition`,{
+        $axios.post(`${config.api_server}/ops/sla/edition`,{
             "name":slaName,
             "slaStatus":slaStatus,
             "list":list,

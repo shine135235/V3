@@ -1,6 +1,9 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Input } from 'antd';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
+import { Button,Modal,Form,Input,LocaleProvider } from 'antd';
+import config from '../../../../config';
+
 // import WrappedRegistrationForm from "./test";
 // import './eventCategory.less';
 
@@ -51,7 +54,7 @@ class Addchild extends Component{
             console.log("test",values);
           if (!err) {
                 $axios({
-                    url:"http://172.16.6.11:9090/sys/area/add",
+                    url:`${config.api_server}/sys/area/add`,
                     method:'post',
                     headers: {
                         'Content-type': 'application/json;charset=UTF-8'
@@ -114,6 +117,7 @@ class Addchild extends Component{
                         </Button>,
                     ]}
                 >
+                 <LocaleProvider local={zhCN}>
                     <Form onSubmit={this.handleSubmit}>
                         <FormItem
                         {...formItemLayout}
@@ -165,6 +169,7 @@ class Addchild extends Component{
                         )}
                         </FormItem>
                     </Form>
+                    </LocaleProvider>
                 </Modal> 
             </span>
         )

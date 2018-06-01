@@ -4,6 +4,7 @@ import { Button,Input,Table,LocaleProvider,Modal,message} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import AddServerCategory from "./addServerCategory";
 import EditServerCategory from "./editServerCategory";
+import config from '../../../../config';
 import './index.less';
 
 const Search = Input.Search;
@@ -56,7 +57,7 @@ export default class ServerCategory extends Component{
         this.delSysServerCategoryData(rowIds);
     }
     delSysServerCategoryData = (idString) => {
-        $axios.put(`http://172.16.6.9:9090/pro/sla/servicelog/${idString}`).then((json) => {
+        $axios.put(`${config.api_server}/pro/sla/servicelog/${idString}`).then((json) => {
             if(json.data.success){
                 this.success("删除成功");
                 this.getListData({});
@@ -74,7 +75,7 @@ export default class ServerCategory extends Component{
     showEditServerCategory = (rowId) => {
         //eslint-disable-next-line
         console.log("rowId",rowId);
-        $axios.get(`http://172.16.6.9:9090/pro/sla/servicelog?id=${rowId}`).then((json) => {
+        $axios.get(`${config.api_server}/pro/sla/servicelog?id=${rowId}`).then((json) => {
             //eslint-disable-next-line
             console.log("详情数据",json);
             let rowId = json.data.data.id;
@@ -91,7 +92,7 @@ export default class ServerCategory extends Component{
         });
     }
     getListData = ({pageNum = 1,pageSize = 10,searchVal = ""}) => {
-        $axios.get(`http://172.16.6.9:9090/pro/slaList?pageNum=${pageNum}&pageSize=${pageSize}&mohu=${searchVal}`).then((json) => {
+        $axios.get(`${config.api_server}/pro/slaList?pageNum=${pageNum}&pageSize=${pageSize}&mohu=${searchVal}`).then((json) => {
             // eslint-disable-next-line
             console.log(json);
             let data = json.data.page.datas;

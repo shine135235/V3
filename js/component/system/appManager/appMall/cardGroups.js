@@ -2,6 +2,7 @@ import React,{Component} from "react";
 // import {Card, Col, Row} from "antd";
 import {Card,Modal ,message} from "antd";
 import $axios from "axios";
+import config from '../../../../config';
 // import { url } from "inspector";
 // import { wrap } from "module";
 
@@ -29,7 +30,7 @@ export default class CardGroups extends Component {
         this.delMallData(rowIds);
     }
     delMallData = (idString) => {
-        $axios.delete("http://172.16.6.9:9090/app/goods",{
+        $axios.delete(`${config.api_server}/app/goods`,{
             data:{
                 ids:idString
             }

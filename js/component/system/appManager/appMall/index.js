@@ -5,6 +5,7 @@ import $axios from "axios";
 import CardGroups from "./cardGroups"
 import AddAppMall from "./addAppMall/index"
 import EditAppMall from "./editAppMall/index"
+import config from '../../../../config';
 import './index.less'
 
 const Search = Input.Search;
@@ -16,7 +17,7 @@ export default class AppMall extends Component {
         rowId:'',
     }
     getListData = ({pageNum = 1,pageSize = 10,searchVal = ""}) => {
-        $axios.get(`http://172.16.6.9:9090/app/goodsList?pageNum=${pageNum}&pageSize=${pageSize}&mohu=${searchVal}`).then((json) => {
+        $axios.get(`${config.api_server}/app/goodsList?pageNum=${pageNum}&pageSize=${pageSize}&mohu=${searchVal}`).then((json) => {
             // eslint-disable-next-line
             console.log(json);
               let listData = json.data.page.datas;

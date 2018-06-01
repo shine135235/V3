@@ -4,6 +4,7 @@ import { Button,Input,Table,LocaleProvider,Modal} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import AddFaultDetail from "./addFaultDetail";
 import EditFaultDetail from "./editFaultDetail";
+import config from '../../../../config';
 // import './projectAdministration.less';
 
 const Search = Input.Search;
@@ -46,10 +47,10 @@ export default class ChildArea extends Component{
         this.setState({record,editVisible:true});
     }
     getParentListData = ({pageNum=1,pageSize=10,search = ""}) => {
-        axios.get(`http://172.16.6.5:9090/sys/faultcategory/sublist?pageNum=${pageNum}&pageSize=${pageSize}&search=${search}`).then((res) =>{
+        axios.get(`${config.api_server}/sys/faultcategory/sublist?pageNum=${pageNum}&pageSize=${pageSize}&search=${search}`).then((res) =>{
             if(res.data.page){
                 this.setState({data:res.data.page.datas})
-                this.setState({tatalRecord:res.data.page.tatalRecord})
+                this.setState({tatalRecord:res.data.page.totalRecord})
             }
         })
     }
@@ -67,7 +68,7 @@ export default class ChildArea extends Component{
             cancelText: '否',
             onOk:() => {
                 axios({
-                    url:"http://172.16.6.5:9090/sys/faultcategory",
+                    url:`${config.api_server}/sys/faultcategory`,
                     method:'delete',
                     headers: {
                         'Content-type': 'application/json;charset=UTF-8'
@@ -131,8 +132,8 @@ export default class ChildArea extends Component{
             size:"small",
         }
         return (
-            <div className='data-class-over'>
-                <div className = 'eventTitle'>
+            <div className='data-class-overKnow'>
+                {/* <div className = 'eventTitle'>
                     <span className="titleLeft"></span>
                     <span>故障细类管理</span> 
                     <div className = "eventTitleSearch">
@@ -140,6 +141,13 @@ export default class ChildArea extends Component{
                         <Button onClick = {this.refresh}>刷新</Button>
                         <AddFaultDetail getParentListData = {this.getParentListData} />
                     </div>
+                </div> */}
+                <div className = 'eventTitle'>
+                        <AddFaultDetail getParentListData = {this.getParentListData} /> 
+                        <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}>刷新</Button>
+                        <div className = "eventTitleSearch"  style={{ width: "20%" }}>
+                            <Search placeholder="搜索"  style={{ width: "100%" }} onSearch={this.onSearch}/>                          
+                        </div>
                 </div>
                 <div>
                     <LocaleProvider locale = {zhCN}>

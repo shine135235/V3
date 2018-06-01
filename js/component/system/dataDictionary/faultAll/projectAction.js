@@ -2,6 +2,7 @@ import React,{Component} from 'react';
 import axios from 'axios';
 import {Button,Input,Table,LocaleProvider,Modal,message} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
+import config from '../../../../config';
 // import './projectAdministration.less';
 
 const Search = Input.Search;
@@ -62,7 +63,7 @@ export default class ChildArea extends Component{
         this.setState({record,initialSlect,name,editVisible:true});
     }
     getParentListData = ({pageNum=1,pageSize=10,search = ""}) => {
-        axios.get(`http://172.16.6.5:9090/sys/faultcategory/list?pageNum=${pageNum}&pageSize=${pageSize}&search=${search}`).then((res) =>{
+        axios.get(`${config.api_server}/sys/faultcategory/list?pageNum=${pageNum}&pageSize=${pageSize}&search=${search}`).then((res) =>{
             if(res.data.page){
                 this.setState({data:res.data.page.datas})
                 this.setState({tatalRecord:res.data.page.datas.tatalRecord})

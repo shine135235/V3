@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
 import axios from 'axios';
 import {Modal,Form, Input,Button,message} from 'antd';
+import config from '../../../config';
 
 const FormItem=Form.Item;
 class EditRoleFrom extends Component{
@@ -16,10 +17,10 @@ class EditRoleFrom extends Component{
         })
     }
     handleOk = () => {
-        axios.put('http://172.16.6.5:9090/sys/role',{
+        axios.put(`${config.api_server}/sys/role`,{
             id:this.props.id,
             name:this.props.form.getFieldValue('role'),
-            isOpean:this.props.public
+            isOpen:this.props.public
         }).then(res =>{
         if(res.data.success){
             message.success('角色修改成功');

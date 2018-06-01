@@ -1,5 +1,6 @@
 import React,{Component} from 'react';
-import { Button,Modal,Form,Select } from 'antd';
+import { Button,Modal,Form,Select,LocaleProvider } from 'antd';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
 //  import Child from "./childTestEdit";
 import './dictionaryAll.less';
 
@@ -149,6 +150,7 @@ class EditDictionaryDetail extends Component{
                     ]}
                 >
                     {/* <WrappedRegistrationForm /> */}  
+                    <LocaleProvider locale={zhCN}>
                     <Form onSubmit={this.handleSubmit}>
                         <FormItem
                         {...formItemLayout}
@@ -182,6 +184,7 @@ class EditDictionaryDetail extends Component{
                         )}
                         </FormItem>      
                     </Form>
+                    </LocaleProvider>
                          {/* <Child  changeChilc={ childs =>this.changeChilc(childs)} childData = {this.state.data} changedataSource={ dataSource =>this.changedataSource(dataSource)} isOrNoStyle = {this.isOrNoStyle}/> */}
                 </Modal>
             </span>

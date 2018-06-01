@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
 import {Button,Modal, Form,Input, Row, Col,message} from 'antd';
 import $axios from 'axios';
+import config from '../../../../config';
 import './index.less';
 
 const FormItem = Form.Item;
@@ -65,7 +66,7 @@ class AddSla extends Component {
         
     }
     addSlaData = ({slaName = "",slaStatus = "",list = []}) => {
-        $axios.post(`http://172.16.6.11:9090/ops/sla/creation`,{
+        $axios.post(`${config.api_server}/ops/sla/creation`,{
             "name":slaName,
             "slaStatus":slaStatus,
             "list":list

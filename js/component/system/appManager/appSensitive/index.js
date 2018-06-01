@@ -1,10 +1,11 @@
 import React,{ Component } from "react";
 import { 
     // Button , 
-    Input , Table ,LocaleProvider , Modal , Icon,message} from 'antd';
+    Input , Table ,LocaleProvider , Modal , Icon,message, Pagination} from 'antd';
 import $axios from "axios";
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import AddSensitive from "./addModal/index";
+import config from '../../../../config';
 import './index.less'
 
 const confirm = Modal.confirm;
@@ -17,6 +18,9 @@ export default class AppSensitive extends Component {
         delIdsLength:0,
         showBetchDel:"none",
         selectedRowKeys:[],
+        pageNum:1,
+        pageSize:10,
+        searchVal:"",
     }
     delData = (rowId) => {
         let rowIds = rowId.split(",");
@@ -49,8 +53,8 @@ export default class AppSensitive extends Component {
         ),
       }];
       
-      getListData = ({pageNum = 1,pageSize = 10,searchVal = ""}) => {
-        $axios.get(`http://172.16.6.9:9090/app/sensitiveList?pageNum=${pageNum}&pageSize=${pageSize}&mohu=${searchVal}`).then((json) => {
+      getListData = ({pageNum = this.state.pageNum,pageSize = this.state.pageSize,searchVal = this.state.searchVal}) => {
+        $axios.get(`${config.api_server}/app/sensitiveList?pageNum=${pageNum}&pageSize=${pageSize}&mohu=${searchVal}`).then((json) => {
               let data = json.data.page.datas;
               let totalRecord = json.data.page.totalRecord;
               this.setState({
@@ -60,7 +64,7 @@ export default class AppSensitive extends Component {
         })
       }
       delSenSitiveData = (idString) => {
-        $axios.delete("http://172.16.6.9:9090/app/sensitive",{
+        $axios.delete(`${config.api_server}/app/sensitive`,{
             data:{
                 ids:idString
             }
@@ -87,15 +91,22 @@ export default class AppSensitive extends Component {
        this.getListData({});
     }
     searchFunc = (value) => {
-        this.getListData({searchVal:value});
+        this.setState({searchVal:value})
+        this.getListData({});
     }
     showTotal = (total, range) => {
         return `共 ${total} 条记录 第${range[0]}-${range[1]}条 `
     }
     onChange = (page, pageSize) => {
+        this.setState({
+            pageNum:page,pageSize:pageSize
+        })
         this.getListData({pageNum:page,pageSize:pageSize});
     }
     onShowSizeChange = (current, size) =>{
+        this.setState({
+            pageNum:current,pageSize:size
+        })
         this.getListData({pageNum:current,pageSize:size});
     }
     onSelectedChange = (selectedRowKeys, selectedRows) => {
@@ -122,15 +133,15 @@ export default class AppSensitive extends Component {
     }
     render(){
         const { selectedRowKeys } = this.state;
-        const pagination = {
-            size:'small',
-            total:this.state.totalRecord,
-            showSizeChanger:true,
-            showQuickJumper:true,
-            showTotal:this.showTotal,
-            onChange:this.onChange,
-            onShowSizeChange:this.onShowSizeChange,
-        }
+        // const pagination = {
+        //     size:'small',
+        //     total:this.state.totalRecord,
+        //     showSizeChanger:true,
+        //     showQuickJumper:true,
+        //     showTotal:this.showTotal,
+        //     onChange:this.onChange,
+        //     onShowSizeChange:this.onShowSizeChange,
+        // }
         const rowSelection = {
             selectedRowKeys,
             onChange: this.onSelectedChange,
@@ -154,7 +165,20 @@ export default class AppSensitive extends Component {
 
                 <div className='appSensitive_table'>
                     <LocaleProvider locale={zhCN}>
-                        <Table rowSelection={rowSelection} columns={this.columns} dataSource={this.state.data} pagination={pagination} />
+                        <Table rowSelection={rowSelection} columns={this.columns} dataSource={this.state.data} pagination={false} />
+                    </LocaleProvider>
+                </div>
+                <div className='appSensitive_table_pagination'>
+                    <LocaleProvider locale={zhCN}>
+                        <Pagination 
+                            size='small'
+                            total={this.state.totalRecord}
+                            showSizeChanger={true}
+                            showQuickJumper={true}
+                            showTotal={this.showTotal}
+                            onChange={this.onChange}
+                            onShowSizeChange={this.onShowSizeChange}
+                        />
                     </LocaleProvider>
                 </div>
             </div>

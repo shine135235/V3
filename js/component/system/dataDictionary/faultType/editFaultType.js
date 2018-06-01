@@ -1,6 +1,8 @@
 import React,{Component} from 'react';
 import axios from 'axios';
-import { Button,Modal,Form,Input,Select } from 'antd';
+import { Button,Modal,Form,Input,Select,LocaleProvider,message } from 'antd';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
+import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
 // import './eventCategory.less';
 
@@ -16,9 +18,9 @@ class AddEventCategory extends Component{
         faultDetailList:this.props.faultDetailList
     }
     getSelectList = () =>{
-        axios.get('http://172.16.6.5:9090/sys/faultcategory/list').then((res) =>{
+        axios.get(`${config.api_server}/sys/faultcategory/list`).then((res) =>{
             //eslint-disable-next-line
-            console.log("大类下拉列表",res.data.page.datas)
+           // console.log("大类下拉列表",res.data.page.datas)
             if(res.data.page){
                 if(res.data.page.datas.length != 0){
                     this.setState({data:res.data.page.datas})
@@ -29,31 +31,25 @@ class AddEventCategory extends Component{
     componentDidMount(){
         this.getSelectList();
     }  
-    success = () => {                       //操作完成提示弹框
-        const modal = Modal.success({       // success('操作成功!');
-            title: '操作成功',
-            content: '编辑字典类别管理成功',
-          });
-          setTimeout(() => modal.destroy(), 1000);
+     //操作完成提示弹框
+     success = () => {
+        // success('操作成功!');
+        message.success("添加用户单位成功")
     };
     error = () => {
-        const modal = Modal.error({         // success('操作成功!');
-            title: '操作失败',
-            content: '编辑字典类别管理失败',
-          });
-          setTimeout(() => modal.destroy(), 2000);
-    };
+        message.error("添加用户单位失败")
+    }
     editHandleOk = (e) => {
          e.preventDefault();
         this.props.form.validateFieldsAndScroll((err, values) => {
             //eslint-disable-next-line
-            console.log("valuesvaluesvalues",values)
+           // console.log("valuesvaluesvalues",values)
             if (err) {
                 return ;
             }
             this.setState({ addLoading: true});
             axios({
-                url:"http://172.16.6.5:9090/sys/faulttype",
+                url:`${config.api_server}/sys/faulttype`,
                 method:'put',
                 headers: {
                     'Content-type': 'application/json;charset=UTF-8'
@@ -94,7 +90,7 @@ class AddEventCategory extends Component{
     }
     onSelect = (value) => {
        if(value){
-           axios.get(`http://172.16.6.5:9090/sys/faultcategory/sublist?parentId=${value}`).then((res) =>{
+           axios.get(`${config.api_server}/sys/faultcategory/sublist?parentId=${value}`).then((res) =>{
            if(res.data.page){
                this.setState({dataDetail:res.data.page.datas}) 
                this.props.form.setFields({
@@ -130,7 +126,7 @@ class AddEventCategory extends Component{
         let bData = this.state.data;
         let bDataList = this.props.faultDetailList;
         //eslint-disable-next-line
-        console.log('子类编辑下拉',bDataList);
+        //console.log('子类编辑下拉',bDataList);
         if(bData.length > 0){
             for (let i = 0; i < bData.length; i++) {
                 children.push(<Option key = {i} value = {bData[i].id}>{bData[i].faultname}</Option>);
@@ -156,6 +152,7 @@ class AddEventCategory extends Component{
                     </Button>,
                 ]}
             >
+            <LocaleProvider locale={zhCN}>
                 <Form onSubmit={this.handleSubmit}>
                     <FormItem
                         {...formItemLayout}
@@ -220,6 +217,7 @@ class AddEventCategory extends Component{
                     </FormItem>
                    
                 </Form>
+                </LocaleProvider>
             </Modal>
         )     
     }

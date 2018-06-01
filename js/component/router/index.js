@@ -5,7 +5,7 @@ import Home from '../home';
 import System from '../system';
 import Census from '../census';
 import UserManager from '../system/userManager';
-import RoleManage from '../system/roleManage';
+import RoleManager from '../system/roleManage';
 import DataDictionary from '../system/dataDictionary';
 import AppUseTeacher from '../system/appManager/appUseTeacher';
 import AppUseEngineer from '../system/appManager/appUseEngineer';
@@ -32,20 +32,33 @@ import Remind from '../system/dataDictionary/remind';
 import DictionaryAll from '../system/dataDictionary/dictionaryAll';
 import DictionaryDetail from '../system/dataDictionary/dictionaryDetail';
 import Operation from "../operation"
+import KnowledgeManageMent from "../operation/knowledgeManageMent"
 import Sla from "../operation/sla"
-import Assets from "../assets"
+import AnnounceManage from "../operation/announceManage";
+import PerformanceManage from "../operation/performanceManage";
+import ReportManage from "../operation/reportManage";
+import TaskManage from "../operation/eventManage/taskManage";
+import WatchDutyManage from "../operation/watchDuty/watchDutyManage";
+import DutyCalendarManage from "../operation/watchDuty/dutyCalendarManage";
+import ComplaintManage from "../operation/eventManage/complaintManage";
+import ResearchManage from "../operation/eventManage/researchManage";
+import DutyTable from '../operation/dutyManage/dutyTable';
+import DutyCalendar from '../operation/dutyManage/dutyCalendar';
+import Assets from "../assets";
 // import HardWareAssets from "../assets/hardWareAssets"
-import HardCount from "../assets/hardWareAssets/hardCount"
+import HardCount from "../assets/hardWareAssets/hardCount";
 // import SpareAssets from "../assets/spareAssets"
-import SpareCount from "../assets/spareAssets/spareCount"
+import SpareCount from "../assets/spareAssets/spareCount";
+import WorkOrder from "../operation/eventManage/workOrder";
+import SystemConfiguration from "../system/systemConfiguration";
+import LicenseManager from "../system/licenseManager";
 
 const AuthRoute = (props) => {
     const isLogin = sessionStorage.getItem('isLogin') === 'true';
-    return isLogin ? <Route {...props} /> : <Redirect to={
+    return isLogin ? <Route {...props} /> :location.href.indexOf('/login')==21?111:<Redirect to={//判断当前地址是否为登录,如果是,拦截redriect
       {
         pathname: '/login',
         state: {
-          // eslint-disable-next-line
           from: props.location,
         }
       }
@@ -68,8 +81,7 @@ class SiteRouter extends Component{
                 <AuthRoute path='/Census'component={Census} />
                 {/* 系统-用户管理 */}
                 <AuthRoute path='/System/UserManager' component={UserManager} />
-                {/* 系统-角色管理 */}
-                <AuthRoute path='/System/RoleManager' component={RoleManage} />
+                <AuthRoute path='/System/RoleManager' component={RoleManager} />
                 {/* 系统-数据字典 */}
                 <AuthRoute path='/System/DataDictionary' component={DataDictionary} />
                 {/* 系统-数据字典-片区管理 */}
@@ -122,8 +134,36 @@ class SiteRouter extends Component{
                 <AuthRoute path='/System/DataDictionary/remind' component={Remind} />
                 {/* 运维 */}
                 <AuthRoute path='/Operation' component={Operation} />
+                {/* 运维-知识库管理 */}
+                <AuthRoute path='/Operation/knowledgeManageMent' component={KnowledgeManageMent} />
+                {/* license管理 */}
+                <AuthRoute path='/System/licenseManager' component={LicenseManager} />
+                {/* 系统配置 */}
+                <AuthRoute path='/System/systemConfiguration' component={SystemConfiguration} />
                 {/* 运维-SLA管理 */}
                 <AuthRoute path='/Operation/SLA' component={Sla} />
+                {/* 运维-公告管理 */}
+                <AuthRoute path='/Operation/AnnounceManageMent' component={AnnounceManage} />
+                {/* 运维-绩效管理 */}
+                <AuthRoute path='/Operation/PerformanceManageMent' component={PerformanceManage} />
+                {/* 运维-报表管理 */}
+                <AuthRoute path='/Operation/ReportManageMent' component={ReportManage} />
+                {/* 运维-值班表管理*/}
+                <AuthRoute path='/Operation/WatchDutyManageMent' component={WatchDutyManage} />
+                {/* 运维-值班表管理*/}
+                <AuthRoute path='/Operation/DutyCalendarManageMent' component={DutyCalendarManage} />
+                {/* 运维-故障管理 */}
+                <AuthRoute path='/Operation/WorkOrder' component={WorkOrder} />
+                {/* 运维-任务管理 */}
+                <AuthRoute path='/Operation/TaskManagement' component={TaskManage} />
+                {/* 运维-投诉管理 */}
+                <AuthRoute path='/Operation/ComplaintManagement' component={ComplaintManage} />
+                {/* 运维-调研管理 */}
+                <AuthRoute path='/Operation/ResearchManagement' component={ResearchManage} />
+                {/* 运维-值班表管理 */}
+                <AuthRoute path='/Operation/dutyTable' component={DutyTable} />
+                {/* 运维-值班日历管理 */}
+                <AuthRoute path='/Operation/dutyCalendar' component={DutyCalendar} />
                 {/* 资产 */}
                 <AuthRoute path='/Assets' component={Assets} />
                 {/* 资产-硬件资产管理 */}

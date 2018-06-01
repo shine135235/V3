@@ -4,6 +4,7 @@ import { Button,Input,Table,LocaleProvider,Modal} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import AddEventCategory from "./addDictionaryAll";
 import EditDictionaryAll from "./editDictionaryAll";
+import config from '../../../../config';
 
 // import './projectAdministration.less';
 const Search = Input.Search;
@@ -20,7 +21,7 @@ export default class ChildArea extends Component{
             record:[],
             pageSize:10,
             pageNum:1,
-            tatalRecord:0
+            totalRecord:0
         }
     }
     columns = [{
@@ -54,10 +55,12 @@ export default class ChildArea extends Component{
         this.setState({record,editVisible:true});
     }
     getParentListData = ({pageNum=1,pageSize=10}) => {
-        axios.get(`http://172.16.6.11:9090/sys/dict/queryall?pageNum=${pageNum}&pageSize=${pageSize}`).then((res) =>{
+        axios.get(`${config.api_server}/sys/dict/queryall?pageNum=${pageNum}&pageSize=${pageSize}`).then((res) =>{
             if(res.data.page.datas){
                 this.setState({data:res.data.page.datas})
-                this.setState({tatalRecord:res.data.page.datas.tatalRecord})
+                //eslint-disable-next-line
+                console.log("ssssss",res.data.page);
+                this.setState({totalRecord:res.data.page.totalRecord})
             }
         })
     }
@@ -91,7 +94,7 @@ export default class ChildArea extends Component{
             okType: 'danger',
             cancelText: '否',
             onOk:() => {
-              axios.get(`http://172.16.6.11:9090/sys/dict/delete?id=${records}`).then(res =>{
+              axios.get(`${config.api_server}/sys/dict/delete?id=${records}`).then(res =>{
                     let datas = res.data.success;
                     if(datas == true){
                         this.getParentListData({});
@@ -127,10 +130,10 @@ export default class ChildArea extends Component{
         let pageNum = 1;
         let pageSize = 10;
         let searchValue = value;
-        axios.get(`http://172.16.6.11:9090/sys/dict/query/fuzzy?pageNum=${pageNum}&pageSize=${pageSize}&param=${searchValue}`).then((res) =>{
+        axios.get(`${config.api_server}/sys/dict/query/fuzzy?pageNum=${pageNum}&pageSize=${pageSize}&param=${searchValue}`).then((res) =>{
             if(res.data.page.datas){
                 this.setState({data:res.data.page.datas})
-                this.setState({tatalRecord:res.data.page.datas.tatalRecord})
+                this.setState({totalRecord:res.data.page.totalRecord})
             }
         })
 
@@ -140,14 +143,14 @@ export default class ChildArea extends Component{
             showQuickJumper:true,
             onShowSizeChange:this.onShowSizeChange,
             onChange:this.onChange,
-            total:this.state.tatalRecord,
+            total:this.state.totalRecord,
             showTotal:this.showTotal,
             showSizeChanger:true,
             size:"small",
         }
         return (
-            <div className='data-class-over'>
-                <div className = 'eventTitle'>
+            <div className='data-class-overKnow'>
+                {/* <div className = 'eventTitle'>
                     <span className="titleLeft"></span>
                     <span>自定义父类型管理</span> 
                     <div className = "eventTitleSearch">
@@ -155,6 +158,13 @@ export default class ChildArea extends Component{
                         <Button  onClick = {this.refresh}>刷新</Button>
                         <AddEventCategory getParentListData = {this.getParentListData} dataList = {this.state.data}/>
                     </div>
+                </div> */}
+                <div className = 'eventTitle'>
+                        <AddEventCategory getParentListData = {this.getParentListData} dataList = {this.state.data}/>
+                        <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}>刷新</Button>
+                        <div className = "eventTitleSearch"  style={{ width: "20%" }}>
+                            <Search placeholder="搜索"  style={{ width: "100%" }} onSearch={this.onSearch}/>                          
+                        </div>
                 </div>
                 <div>
                     <LocaleProvider locale = {zhCN}>

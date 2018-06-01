@@ -1,9 +1,10 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Input,Table,LocaleProvider,message,Modal} from 'antd';
+import { Button,Input,Table,LocaleProvider,message,Modal, Pagination} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import AddSysProject from "./addSysProject";
 import EditSysProject from "./editSysProject";
+import config from '../../../../config';
 import './index.less';
 
 const Search = Input.Search;
@@ -28,6 +29,9 @@ export default class SysProject extends Component{
             users:[],
             vendorDataJL:[],
             vendorDataJF:[],
+            pageNum:1,
+            pageSize:10,
+            searchVal:"",
         }
     }
     columns = [{
@@ -116,7 +120,7 @@ export default class SysProject extends Component{
         this.delSysProjectData(rowIds);
     }
     delSysProjectData = (idString) => {
-        $axios.put(`http://172.16.6.9:9090/pro/project/${idString}`).then((json) => {
+        $axios.put(`${config.api_server}/pro/project/${idString}`).then((json) => {
             if(json.data.success == true){
                 this.success("删除成功");
                 this.getListData({});
@@ -126,7 +130,7 @@ export default class SysProject extends Component{
         })
       }
       editSysProjectShow = (rowId) => {
-        $axios.get(`http://172.16.6.9:9090/pro/project?id=${rowId}`).then((json) => {
+        $axios.get(`${config.api_server}/pro/project?id=${rowId}`).then((json) => {
             //eslint-disable-next-line
             console.log("editSysProjectShow",json);
             // let row = json.data.data;
@@ -165,8 +169,8 @@ export default class SysProject extends Component{
     error = (info) => {
         message.error(info);
     };
-      getListData = ({pageNum = 1,pageSize = 10,searchVal = ""}) => {
-        $axios.get(`http://172.16.6.9:9090/pro/projectList?pageNum=${pageNum}&pageSize=${pageSize}&mohu=${searchVal}`).then((json) => {
+      getListData = ({pageNum = this.state.pageNum,pageSize = this.state.pageSize,searchVal = this.state.searchVal}) => {
+        $axios.get(`${config.api_server}/pro/projectList?pageNum=${pageNum}&pageSize=${pageSize}&mohu=${searchVal}`).then((json) => {
             //eslint-disable-next-line
             console.log("列表数据",json);
             let data = json.data.page.datas;
@@ -179,7 +183,7 @@ export default class SysProject extends Component{
       }
       getUserJfData = () => {
         // let userId = sessionStorage.getItem("user").id;
-        $axios.post(`http://172.16.6.5:9090/sys/user/selectlist`,{
+        $axios.post(`${config.api_server}/sys/user/selectlist`,{
             // "unitid":userId,
             "unitcode":3,
             "unittype":"JSDW"
@@ -194,7 +198,7 @@ export default class SysProject extends Component{
     }
     getUserJLData = () => {
         // let userId = sessionStorage.getItem("user").id;
-        $axios.post(`http://172.16.6.5:9090/sys/user/selectlist`,{
+        $axios.post(`${config.api_server}/sys/user/selectlist`,{
             // "unitid":userId,
             "unitcode":1,
             "unittype":"JLDW"
@@ -223,15 +227,24 @@ export default class SysProject extends Component{
         })
     }
     onChange = (page, pageSize) => {
+        this.setState({
+            pageNum:page,pageSize:pageSize
+        })
         this.getListData({pageNum:page,pageSize:pageSize});
     }
     onShowSizeChange = (current, size) =>{
+        this.setState({
+            pageNum:current,pageSize:size
+        })
         this.getListData({pageNum:current,pageSize:size});
     }
     searchFunc = (value) => {
         //eslint-disable-next-line
         console.log(value);
-        this.getListData({searchVal:value});
+        this.setState({
+            searchVal:value
+        })
+        this.getListData({});
     }
     refreshData = () => {
         this.getListData({})
@@ -247,15 +260,6 @@ export default class SysProject extends Component{
                 supervisor,
                 first_party,
                 users} = this.state;
-        const pagination = {
-            showQuickJumper:true,
-            total:totalRecord,
-            showTotal:this.showTotal,
-            showSizeChanger:true,
-            size:"small",
-            onChange:this.onChange,
-            onShowSizeChange:this.onShowSizeChange,
-        }
         return (
             <div className='data-class-over'>
                 <div className = 'sysProjectTitle'>
@@ -267,9 +271,22 @@ export default class SysProject extends Component{
                         <AddSysProject getListData={this.getListData}/>
                     </div>
                 </div>
-                <div>
+                <div  style={{"height":"86%","overflowY":"auto"}}>
                     <LocaleProvider locale = {zhCN}>
-                        <Table dataSource={data}  pagination = {pagination} columns={this.columns} />          
+                        <Table dataSource={data}  pagination = {false} columns={this.columns} />          
+                    </LocaleProvider>
+                </div>
+                <div style={{"position":"absolute","right":"1.25%","marginTop":"12px"}}>
+                    <LocaleProvider locale = {zhCN}>
+                        <Pagination 
+                            showQuickJumper={true}
+                            total={totalRecord}
+                            showTotal={this.showTotal}
+                            showSizeChanger={true}
+                            size="small"
+                            onChange={this.onChange}
+                            onShowSizeChange={this.onShowSizeChange}
+                        />          
                     </LocaleProvider>
                 </div>
                 <EditSysProject getListData={this.getListData} visibleEdit={visibleEdit} changeVisibleEdit = {this.changeVisibleEdit} name={Name} quality={quality} CodeName={CodeName} fphone={fphone} sphone={sphone} supervisor={supervisor} first_party={first_party} users={users} rowId={rowId}/>
