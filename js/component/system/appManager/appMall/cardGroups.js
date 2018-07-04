@@ -52,11 +52,11 @@ export default class CardGroups extends Component {
     render(){
         const { listData } = this.props;
         let listDataArray = [];
-        if(listData.listData !== 0){
+        if(listData.length !== 0){
             for( let i = 0;i<listData.length;i++){
                 let item = listData[i];
                 let imgUrl = item.resource;
-                if(imgUrl !== null)imgUrl = imgUrl.split(",")[0];
+                if(imgUrl !== null)imgUrl = `${config.api_server}/`+imgUrl.split(",")[0];
                 let title = item.name;
                 let topTitle = '';
                 let topContent = '';
@@ -68,7 +68,7 @@ export default class CardGroups extends Component {
                     topContent = '已发布';
                 }
                 listDataArray.push(
-                    <Card style={{ width: '20%' }} key={item.id} bodyStyle={{ padding: 0 }}>
+                    <Card style={{ width: '20%' }} key={i} bodyStyle={{ padding: 0 }}>
                         <div className="appMall_Card_image">
                             <div className={topTitle}>{topContent}</div>
                             <img alt="example" width="100%" src={imgUrl} />
@@ -84,6 +84,10 @@ export default class CardGroups extends Component {
                     </Card>
                 )
             }
+        }else{
+            listDataArray.push(
+                <div style={{"position":"absolute","top":"50%","transform":"translate(-50%,-50%)","left":"50%"}}>暂无数据</div>
+            )
         }
         return(
             <div className='appMall_Card_Groups'>

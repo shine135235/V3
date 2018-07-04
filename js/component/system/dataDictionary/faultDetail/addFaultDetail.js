@@ -35,14 +35,17 @@ class AddEventCategory extends Component{
     //操作完成提示弹框
     success = () => {
         // success('操作成功!');
-        message.success("添加字故障细类成功")
+        message.success("添加事件细类成功")
     };
-    error = () => {
-        message.error("添加字故障细类失败")
+    error = (error) => {
+        message.error(error)
     }
     addHandleOk = (e) => {
          e.preventDefault();
         this.props.form.validateFieldsAndScroll((err,values) => {
+            if(err) {
+                return ;
+            }
             let arr = [];
             let option = values.projects;
             for(let i = 0;i<option.length;i++){
@@ -67,7 +70,7 @@ class AddEventCategory extends Component{
             }).then((res) => {
                 let datas = res.data.success;
                 if(datas){
-                    this.props.getParentListData({});
+                    this.props.getParentListData({pageNum:1,pageSize:10,search:""})
                     setTimeout(() => {
                         this.setState({ addLoading: false, addVisible: false});
                     }, 1000);
@@ -76,8 +79,15 @@ class AddEventCategory extends Component{
                     }, 1000);
                 }else{
                     this.setState({ addLoading: false});
+                    let error = ""
+                   // console.log("1111111111111111",res.data.message);
+                    if(res.data.message && res.data.message != ""){
+                        error = res.data.message
+                    }else{
+                        error = "添加事件细类失败"
+                    }
                     setTimeout(() => {
-                        this.error();
+                            this.error(error);
                     }, 1000);
                 }
            })
@@ -117,10 +127,13 @@ class AddEventCategory extends Component{
     onFieldsChange = () =>{
         
     }
-     handleChange = (value) => {
+    handleChange = (value) => {
          //eslint-disable-next-line
         console.log(`selected ${value}`);
-      }
+    }
+    onSelect = () => {
+       
+    }
     render(){
         const { getFieldDecorator } = this.props.form;
         // let option =[];
@@ -148,7 +161,7 @@ class AddEventCategory extends Component{
                 <Button type="primary" onClick = {this.AddNews} icon="plus">新建</Button>
                 <Modal
                     visible={this.state.addVisible}
-                    title="添加故障细类"
+                    title="添加事件细类"
                     onOk={this.addHandleOk}
                     onCancel={this.addHandleCancel}
                     onFieldsChange = {this.onFieldsChange}
@@ -167,18 +180,21 @@ class AddEventCategory extends Component{
                         {...formItemLayout}
                         label={(
                             <span>
-                            故障大类名称&nbsp;
+                            事件大类名称&nbsp;
                             </span>
                         )}
                         hasFeedback
                         >
                             {getFieldDecorator('faultName', {
-                                rules: [{ required: true, message: '请输入故障大类名称', whitespace: true}],
+                                rules: [{ required: true, message: '请选择事件大类名称', whitespace: true}],
                             })(
                                 <Select
                                     style={{ width: '100%' }}
-                                    placeholder="Please select"
-                                    onChange={this.handleChange}
+                                    showSearch
+                                    optionFilterProp="children"
+                                    placeholder=""
+                                    onSelect={this.onSelect}
+                                    filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
                                 >
                                     {children}
                                 </Select>
@@ -190,15 +206,15 @@ class AddEventCategory extends Component{
                         {...formItemLayout}
                         label={(
                             <span>
-                            故障细类名称&nbsp;
+                            事件细类名称&nbsp;
                             </span>
                         )}
                         hasFeedback
                         >
                             {getFieldDecorator('projects', {
-                                rules: [{ required: true, message: '请输入故障细类名称!',  whitespace: true }],
+                                rules: [{ required: true, message: '请输入事件细类名称!',  whitespace: true }],
                             })(
-                                <Input placeholder = "请输入故障细类名称"/>
+                                <Input placeholder = "请输入事件细类名称"/>
                             )}
                         </FormItem>
                     </Form>

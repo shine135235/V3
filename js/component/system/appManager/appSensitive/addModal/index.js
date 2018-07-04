@@ -34,13 +34,29 @@ class AddSensitiveModal extends Component {
     handleOk = (e) => {
         e.preventDefault();
         this.setState({ loading: true });
-        this.props.form.validateFields((err, values) => {
+        this.props.form.validateFields({ force: true },(err, values) => {
             if (err) {
                 this.setState({ loading: false });
                 return;
             }
             // eslint-disable-next-line
             console.log('Received values of form: ', values);
+            let val = values.sensitiveName;
+            let listData = this.props.listdata;
+            // eslint-disable-next-line
+            console.log('listData: ', listData);
+            for(let i = 0;i<listData.length;i++){
+                if(val == listData[i].name){
+                    this.props.form.setFields({
+                        sensitiveName:{
+                            value:val,
+                            errors:[new Error("该敏感词已存在，请重新填写！")]
+                        }
+                    })
+                    this.setState({ loading: false });
+                    return;
+                }
+            }
             this.addSensitiveData(values.sensitiveName)
             this.setState({ loading: false, visible: false });
         });

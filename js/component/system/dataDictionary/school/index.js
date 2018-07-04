@@ -1,29 +1,14 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Input,Table,LocaleProvider,Modal,Icon} from 'antd';
+import { Button,Input,Table,LocaleProvider,Modal,Icon,message} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
+import AuthPower from '../../../authpower';
 import AddSchool from "./addSchool";
 import EditSchool from "./editSchool";
 import config from '../../../../config';
 
-// import './index.less';
-
 const Search = Input.Search;
 const confirm = Modal.confirm;
-// const confirm = Modal.confirm;
-// const data = [
-//     {
-//     key: '1',
-//     CNAME:"信息教育中心",
-//     PNAME:"教育单位",
-//     FNAME:"断线",
-//     Addr:"朝阳信息中心",
-//     Addrs:"朝阳中心附近",
-//     pname:"韩梅梅",
-//     phone:"18888888888"
-//     }
-// ];
-
 export default class ChildArea extends Component{
     constructor(props){
         super(props)
@@ -32,7 +17,6 @@ export default class ChildArea extends Component{
             // editVisible: false,
             // addVisible:false,
             // addLoading:false,
-            // parentID:this.props,
             record:[],
             dataList:[],
             pageSize:10,
@@ -45,9 +29,12 @@ export default class ChildArea extends Component{
             address:"",
             recordId:"",
             area:"",
+            lat:"",
+            lng:"",
             totalRecord:0,
             selectedRowKeys:[],
-            showBetchDel:"none"
+            showBetchDel:"none",
+            param:""
         }
     }
     columns = [{
@@ -79,20 +66,20 @@ export default class ChildArea extends Component{
         key:"action",
         render:(text, record) => (
             <span>
-                <a href="#" onClick= {this.showModal.bind(this,record.id)}>编辑</a>
+                <AuthPower>
+                    <a href="#" god = "ny-schoolEdit" onClick= {this.showModal.bind(this,record.id)}>编辑</a>
+                </AuthPower>
                 <span className="ant-divider" />
-                <a href="#"onClick={this.delData.bind(this,record.id)}>删除</a>
+                <AuthPower>
+                    <a href="#" god = "ny-schoolDelet" onClick={this.delData.bind(this,record.id)}>删除</a>
+                </AuthPower>
             </span>
         ), 
     }];
     getEditData = (record) =>{
-         //eslint-disable-next-line
-         console.log("recordrecordrecordrecord",record)
         $axios.get(`${config.api_server}/sys/unit/query/userunit/id?id=${record}`).then((res) =>{
             //eslint-disable-next-line
-            //console.log("recordrecordrecordrecord",record)
-            //eslint-disable-next-line
-             console.log("aboutall",res)
+            console.log("resresresresresresres",res)
             if(res.data.data){
                 this.setState({
                     record,
@@ -104,13 +91,19 @@ export default class ChildArea extends Component{
                     unitType : res.data.data.unitType,
                     address  : res.data.data.address,
                     area  : res.data.data.areaId,
-                    recordId : record
+                    recordId : record,
+                    lat: res.data.data.lat,
+                    lng: res.data.data.lng,
                 })
-                //  this.setState({totalRecord:res.data.page.datas.totalRecord})
             }
-            //eslint-disable-next-line
-            // console.log("aboutall",res.data.data)
+            sessionStorage.setItem('selectValue',res.data.data.unitType)
         })
+    }
+    success = (success) => {
+        message.success(success)
+    };
+    error = (error) => {
+        message.error(error)
     }
     delData = (record,e) => {
         e.stopPropagation();
@@ -132,12 +125,9 @@ export default class ChildArea extends Component{
         });
     }
     setDelet = (pid) =>{
-        
         let ids = pid.split(",");
-        // eslint-disable-next-line
-        console.log("eeeeeeeeeeeeeeeeeeeeeeee",ids);
        $axios({
-           url:"http://172.16.6.11:9090/sys/unit",
+           url:`${config.api_server}/sys/unit`,
            method:'delete',
            headers: {
                'Content-type': 'application/json;charset=UTF-8'
@@ -149,26 +139,27 @@ export default class ChildArea extends Component{
                let datas = res.data.success;
                if(datas){
                    this.setState({selectedRowKeys:[],showBetchDel:"none"})
-                   this.getSchoolDataList({});
+                   this.getSchoolDataList({pageNum:1,pageSize:10,param:""});
                    
                    setTimeout(() => {
-                       let success = "批量删除成功"
+                       let success = "删除成功"
                        this.success(success);
                    }, 1000);
                }else{
-                   setTimeout(() => {
-                       let error = "批量删除失败"
-                       this.error(error);
-                   }, 1000);
+                    let error = ""
+                    if(res.data.message && res.data.message != ""){
+                        error = res.data.message
+                    }else{
+                        error = "删除失败"
+                    }
+                    setTimeout(() => {
+                            this.error(error);
+                    }, 1000);
                }
            })
    }
    onSelectedChange = (selectedRowKeys, selectedRows) => {
         let selectedRowIds = [];
-        //eslint-disable-next-line
-        //console.log('selectedRowKeysselectedRowKeys',selectedRowKeys);
-        //eslint-disable-next-line
-        //console.log('selectedRowsselectedRows',selectedRows);
         for( let i = 0;i<selectedRows.length;i++){
             let item = selectedRows[i];
             selectedRowIds.push(item.id);
@@ -192,43 +183,47 @@ export default class ChildArea extends Component{
     showModal = (record) =>{
             this.getEditData(record);
     }
-    getSchoolDataList =({pageNum=1,pageSize=10}) =>{
-            $axios.get(`${config.api_server}/sys/unit/userunit/list?pageNum=${pageNum}&pageSize=${pageSize}`).then(res =>{
-            //eslint-disable-next-line
-            console.log("dataListdataList",res)        
-            if(res.data.page.datas){
-                        //eslint-disable-next-line
-                        console.log("dataListdataList",res.data.page.datas)
-                        this.setState({dataList:res.data.page.datas,totalRecord:res.data.page.datas.totalRecord})
-                    }       
+    getSchoolDataList =({pageNum,pageSize,param}) =>{
+            $axios.get(`${config.api_server}/sys/unit/userunit/list?pageNum=${pageNum}&pageSize=${pageSize}&param=${param}`).then(res =>{      
+                if(res.data.page.datas){
+                    this.setState({dataList:res.data.page.datas,totalRecord:res.data.page.totalRecord,pageNum:pageNum})
+                }       
             })
     }
     componentDidMount(){
-            this.getSchoolDataList({});
+            this.getSchoolDataList({pageNum:1,pageSize:10,param:""});
     }
     refresh = () =>{
-            this.getSchoolDataList({});
+            this.getSchoolDataList({pageNum:1,pageSize:10,param:""});
     }  
     onShowSizeChange = (current, size) =>{
-        this.getSchoolDataList({pageNum:current,pageSize:size})
+        this.getSchoolDataList({pageNum:current,pageSize:size,param:this.state.param})
     } 
     onChange = (page, pageSize) =>{
-        this.getSchoolDataList({pageNum :page,pageSize:pageSize})
+        this.getSchoolDataList({pageNum :page,pageSize:pageSize,param:this.state.param})
     }
-    showTotal = (total, range) => {
-        return `共 ${total} 条记录 第${range[0]}-${range[1]}条 `
+    showTotal = (total) => {
+        return `共 ${total} 条记录 `
     }
     changeT = ({editVisible=false}) =>{
         this.setState({editVisible})
     } 
+    onSearch = (value) =>{
+        let pageNum = 1;
+        let pageSize = 10;
+        let param = value;
+        this.setState({param:value})
+        this.getSchoolDataList({pageNum,pageSize,param});
+    } 
     render(){
         const pagination = {
+            current:this.state.pageNum,
             showQuickJumper:true,
             onShowSizeChange:this.onShowSizeChange,
             onChange:this.onChange,
             total:this.state.totalRecord,
-            showTotal:this.showTotal,
-            showSizeChanger:true,
+             showTotal:this.showTotal,
+            // showSizeChanger:true,
             size:"small",
         }
         const { selectedRowKeys } = this.state;
@@ -238,18 +233,11 @@ export default class ChildArea extends Component{
         }
         return (
             <div className='data-class-overKnow'>
-                {/* <div className = 'eventTitle'>
-                    <span className="titleLeft"></span>
-                    <span>用户单位 管理</span> 
-                    <div className = "eventTitleSearch">
-                        <Search placeholder="搜索"  style={{ width: 200 }}/>
-                        <Button onClick = {this.refresh}>刷新</Button>
-                        <AddSchool getSchoolDataList = {this.getSchoolDataList} dataList = {this.state.data} />
-                    </div>
-                </div> */}
                 <div className = 'eventTitle'>
-                        <AddSchool getSchoolDataList = {this.getSchoolDataList} dataList = {this.state.data} /> 
-                        <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}>刷新</Button>
+                    <AuthPower>
+                        <AddSchool god = "ny-shcoolAdd" getSchoolDataList = {this.getSchoolDataList} dataList = {this.state.data} /> 
+                        </AuthPower>
+                    <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}><Icon type="reload"/></Button>
                         <div className = "eventTitleSearch"  style={{ width: "20%" }}>
                             <Search placeholder="搜索"  style={{ width: "100%" }} onSearch={this.onSearch}/>                          
                         </div>
@@ -277,6 +265,8 @@ export default class ChildArea extends Component{
                     unitType={ this.state.unitType} 
                     address={ this.state.address} 
                     changeT = {this.changeT}
+                    lat = {this.state.lat}
+                    lng = {this.state.lng}
                 />
             </div>
         )

@@ -20,35 +20,20 @@ class AddEventCategory extends Component{
       }
       
     componentDidMount(){
-        // $axios.get('http://172.16.6.11:9090/sys/dict/query/list').then((res) =>{
-        //     if(res.data.data){
-        //         if(res.data.data.length != 0){
-        //             this.setState({data:res.data.data})
-        //         }
-        //         //eslint-disable-next-line
-        //         console.log("啊啊啊啊啊啊啊啊啊啊啊啊啊",res)
-        //     } 
-        // })
     }
     componentDidUpdate(){
        
     }
     handleSubmit = (e) => {
         e.preventDefault();
-        // this.props.form.validateFieldsAndScroll((err, values) => {
-        //   if (!err) {
-        //       //eslint-disable-next-line
-        //     console.log('Received values of form: ', values);
-        //   }
-        // });
     }
     //操作完成提示弹框
     success = () => {
         // success('操作成功!');
-        message.success("操作成功")
+        message.success("添加服务单位成功")
     };
-    error = () => {
-        message.error("操作失败")
+    error = (error) => {
+        message.error(error)
     }
     addHandleOk = (e) => {
          e.preventDefault();
@@ -77,11 +62,6 @@ class AddEventCategory extends Component{
                 "unitType":sessionStorage.getItem('selectValue'),
                 "unitCode":"1",
             }
-            //eslint-disable-next-line
-           //console.log('valuesvaluesvaluesvalues ', values);
-            //eslint-disable-next-line
-          // console.log('selectValueselectValueselectValue ', sessionStorage.getItem('selectValue'));
-        //    values.categoryCode = sessionStorage.getItem('selectValue');
         if (err) {
             return ;
         }
@@ -96,7 +76,7 @@ class AddEventCategory extends Component{
             }).then((res) => {
                 let datas = res.data.success;
                 if(datas){
-                    this.props.getDataList({});
+                    this.props.getDataList({pageNum:1,pageSize:10,param:""});
                     setTimeout(() => {
                         this.setState({ addLoading: false, addVisible: false});
                     }, 1000);
@@ -105,8 +85,14 @@ class AddEventCategory extends Component{
                     }, 1000);
                 }else{
                     this.setState({ addLoading: false});
+                    let error = ""
+                    if(res.data.message && res.data.message != ""){
+                        error = res.data.message
+                    }else{
+                        error = "添加服务单位失败"
+                    }
                     setTimeout(() => {
-                        this.error();
+                            this.error(error);
                     }, 1000);
                 }
            })
@@ -136,22 +122,21 @@ class AddEventCategory extends Component{
         
 
     }
-    // setSelectChange = ({datdas= ""}) =>{
-    //      //eslint-disable-next-line
-    //      console.log("fatvalue",datdas)
-    //     this.setState({datdas})
-    // }
     afterClose = () => {
         sessionStorage.removeItem('selectValue');
     }
     onFieldsChange = () =>{
         
     }
+    checkPhone=(rule, value, callback) =>{
+        if(!(/^1(3|4|5|7|8)\d{9}$/.test(value)) && !(/^(\d3,4|\d{3,4}-)?\d{7,8}$/).test(value)){
+            callback("手机号码有误，请重填");
+        }else{
+            callback();
+        }
+    }
     render(){
-        //eslint-disable-next-line
-        // console.log("wwwwwwwwwwwww",selectdata)
         const { getFieldDecorator } = this.props.form;
-        // let option =[];
         const formItemLayout = {
             labelCol: {
                 xs: { span: 24 },
@@ -178,7 +163,7 @@ class AddEventCategory extends Component{
                 <Button type="primary" onClick = {this.AddNews} icon="plus">新建</Button>
                 <Modal
                     visible={this.state.addVisible}
-                    title="添加单位"
+                    title="添加服务单位"
                     onOk={this.addHandleOk}
                     onCancel={this.addHandleCancel}
                     onFieldsChange = {this.onFieldsChange}
@@ -198,17 +183,17 @@ class AddEventCategory extends Component{
                             {...formItemLayout}
                             label={(
                                 <span>
-                                名称&nbsp;
+                                单位名称&nbsp;
                                 </span>
                             )}
                             hasFeedback
                             >
                                 {getFieldDecorator('name', {
-                                    rules: [{ required: true, message: '请输名称', whitespace: true }, {
+                                    rules: [{ required: true, message: '请输入单位名称', whitespace: true }, {
                                         validator: this.eventName,
                                     }],
                                 })(
-                                    <Input placeholder = "请输名称"/>
+                                    <Input placeholder = "请输入单位名称"/>
                                 )}
                             </FormItem>
                             <FormItem
@@ -222,7 +207,7 @@ class AddEventCategory extends Component{
                             >
                                 {getFieldDecorator('categoryCode', {
                                     //   initialValue:"",
-                                    rules: [{ required: true, message: '请输入单位类型', whitespace: true }, {
+                                    rules: [{ required: true, message: '请选择单位类型', whitespace: true }, {
                                         validator: this.eventName,
                                     }],
                                 })(
@@ -243,11 +228,11 @@ class AddEventCategory extends Component{
                                     hasFeedback
                                     >
                                         {getFieldDecorator('pepole', {
-                                            rules: [{ required: true, message: '请输负责人', whitespace: true }, {
+                                            rules: [{ required: true, message: '请输入负责人', whitespace: true }, {
                                                 validator: this.eventName,
                                             }],
                                         })(
-                                            <Input placeholder = "请输名称"/>
+                                            <Input placeholder = "请输入负责人"/>
                                         )}
                                     </FormItem>
                                 </Col>
@@ -263,11 +248,11 @@ class AddEventCategory extends Component{
                                     hasFeedback
                                     >
                                         {getFieldDecorator('phone', {
-                                            rules: [{ required: true, message: '请输联系电话', whitespace: true }, {
-                                                validator: this.eventName,
+                                            rules: [{ required: true, message: '请输入联系电话', whitespace: true }, {
+                                                validator: this.checkPhone,
                                             }],
                                         })(
-                                            <Input placeholder = "请输名称"/>
+                                            <Input placeholder = "请输入联系电话"/>
                                         )}
                                     </FormItem>
                                 </Col>
@@ -283,11 +268,11 @@ class AddEventCategory extends Component{
                             hasFeedback
                             >
                                 {getFieldDecorator('adds', {
-                                    rules: [{ required: true, message: '请输名称', whitespace: true }, {
+                                    rules: [{ required: true, message: '请输入详细地址', whitespace: true }, {
                                         validator: this.eventName,
                                     }],
                                 })(
-                                    <Input placeholder = "请输名称"/>
+                                    <Input placeholder = "请输入详细地址"/>
                                 )}
                             </FormItem>
                             <FormItem
@@ -300,7 +285,7 @@ class AddEventCategory extends Component{
                             hasFeedback
                             >
                                 {getFieldDecorator('describeCode', {
-                                    rules: [{ required: false, message: '请输入区域描述!', whitespace: true }],
+                                    rules: [{ required: false, message: '请输入备注信息!', whitespace: true }],
                                 })(
                                     <TextArea rows={4} />
                                 )}

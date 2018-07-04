@@ -22,7 +22,6 @@ export class UserRoleList extends Component{
         sp:[]
     }
     componentDidMount(){
-        console.log(this.props.uid)
         axios.get(`${config.api_server}/sys/role/selectlist`,{
                 unitId:this.props.uid?this.props.uid:''
         }).then(res =>{
@@ -37,9 +36,10 @@ export class UserRoleList extends Component{
     render(){
        if(this.state.sp!=null){
            return (
-               <Select key='role' defaultValue={this.props.selectValue} style={{width:"100%"}} mode={this.props.mode} onChange={this.handleChange}  placeholder="请为该人员设置角色">
+               <Select key='role' disabled={this.props.self?this.props.self:false} defaultValue={this.props.selectValue} style={{width:"100%"}} mode={this.props.mode} onChange={this.handleChange}  placeholder="请为该人员设置角色">
                    {
                      this.state.sp.map((item,i) =>{
+                         console.log(item.id,item.name)
                          return (
                              <Option key={`role${i}`} value={item.id}>{item.name}</Option>
                          )
@@ -48,11 +48,7 @@ export class UserRoleList extends Component{
                </Select>
            )
        }else{
-           return (
-               <Select>
-                   <Option>111</Option>
-               </Select>
-           )
+           return null
        }
     }
 }

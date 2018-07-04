@@ -1,13 +1,11 @@
 import React,{Component} from 'react';
-import {Menu,Icon,Avatar,Dropdown} from 'antd';
+import {Menu,Icon,Dropdown} from 'antd';
 import axios from 'axios';
 import 'antd/dist/antd.css';
 import {Link} from 'react-router-dom';
 import config from '../../config';
 
 import './header.less'
-
-axios.defaults.withCredentials=true;
 
 const outLogin=() =>{
     console.log(JSON.parse(sessionStorage.getItem('user')))
@@ -35,6 +33,7 @@ class SetNav extends Component{
         super(props);
         this.state={
             theme:'dark',
+            disable:false,
             selectedKeys:this.props.selectedKeys?this.props.selectedKeys:sessionStorage.getItem('selectedKeys')===null?['5109AE81528211E8A4FB02004C4F4F51']:sessionStorage.getItem('selectedKeys'),
             userData:JSON.parse(sessionStorage.getItem('user'))
         }
@@ -49,20 +48,24 @@ class SetNav extends Component{
             window.close();
         }
     }
-    handleClick=(v) =>{
-       sessionStorage.setItem('selectedKeys',v.keyPath)
-       sessionStorage.setItem('pid',v.key)
+    componentDidMount(){
     }
-   
+    handleClick=(v) =>{
+            sessionStorage.setItem('selectedKeys',v.keyPath)
+            sessionStorage.setItem('pid',v.key)
+    }
     render(){
             return(
                 <div className='header'>
-                <div className='v3-logo' onClick={this.crazyClick}></div>
+                <div className='v3-logo' onClick={this.crazyClick}>
+                <div className='logo'><img src={config.api_server+sessionStorage.getItem('logo')} /></div>
+                <div className='name'>{sessionStorage.getItem('name')}</div>
+                </div>
                 <Menu theme={this.state.theme} onClick={this.handleClick} selectedKeys={[this.state.selectedKeys]}>
                     {
                         this.props.menu.map(item =>(
                                 <Menu.Item key={item.id}>
-                                    <Link to={{
+                                    <Link disabled={item.id==this.state.selectedKeys?true:false} to={{
                                         pathname:`${item.pathname}`,
                                         state:{
                                             id:`${item.id}`
@@ -75,10 +78,9 @@ class SetNav extends Component{
                     }
                 </Menu>
                 <div className='user-role'>
-                <Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />　
                 <Dropdown overlay={menus} trigger={['click']}>
                     <a className="ant-dropdown-link big-line" href="#">
-                    11111<Icon type="down" />
+                    {JSON.parse(sessionStorage.getItem('user')).userName}<Icon style={{marginLeft:'8px'}} type="down" />
                     </a>
                 </Dropdown>
                 </div>

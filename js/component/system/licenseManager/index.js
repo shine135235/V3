@@ -7,11 +7,24 @@ import config from '../../../config';
 import "./index.less"
 
 const FormItem = Form.Item;
+const outLogin=() =>{
+    console.log(JSON.parse(sessionStorage.getItem('user')))
+    $axios.post(`${config.api_server}/sys/user/logout`,{
+        id:JSON.parse(sessionStorage.getItem('user')).id,
+        loginId:JSON.parse(sessionStorage.getItem('user')).loginId
+    }).then(res =>{
+        if(res.data.flag==='success'){
+            sessionStorage.clear();
+            location.href='/';
+        }
+    })
+}
 class SystemConfiguration extends Component{
     state = {
         previewVisible: false,
         previewImage: '',
         fileList: [],
+        
         startTime:"",
         endTime:"",
         remain:"",
@@ -58,36 +71,46 @@ class SystemConfiguration extends Component{
         }
     }
     beforeUpload = (file) => {
-        //eslint-disable-next-line
-        console.log('file.typefile.type ', file);
-        const type = file.type === 'application/x-x509-ca-cert';
-        if (!type) {
-            message.error('文件类型不对，请上传后缀为.cer的证书文件!');
+         const tName = file.name;
+        if(tName === "license.lic"){
+            return true;
+        }else{
+            message.error('文件名不对，请重新上传!');
+            return false;
         }
-          return type;
     }
     handleCancel = () => this.setState({ previewVisible: false })
-
     handlePreview = (file) => {
       this.setState({
         previewImage: file.url || file.thumbUrl,
         previewVisible: true,
       });
     }
-    // handleChange = ({ fileList }) => this.setState({ fileList })
     handleChange = (info) => {
         let fileList = info.fileList;
-        //eslint-disable-next-line
-        console.log('fileListfileListfileList ', fileList);
-        // 3. filter successfully uploaded files according to response from server
         fileList = fileList.filter((file) => {
-          if (file.type) {
-            return file.type === 'application/x-x509-ca-cert';
-          }
-          return true;
+            if (file.response) {
+                if(file.response.flag){
+                    message.success('文件上传成功!,请重新登录');
+                    setTimeout(() =>{
+                        outLogin()
+                    },2000)
+                    return true
+                }else{
+                    message.error(file.response.message);
+                    return false
+                }     
+              }
+              return true;    
         });
-    
-        this.setState({ fileList });
+        if(info.file.name === "license.lic"){
+            this.setState({ fileList });
+            return true;
+        }else{
+            this.setState({ fileList:[] });
+            //message.error('文件名不对，请重新上传!');
+            return false;
+        }
       }
     render(){
         const { getFieldDecorator } = this.props.form;
@@ -103,7 +126,7 @@ class SystemConfiguration extends Component{
         const formItemLayout = {
             labelCol: {
                 xs: { span: 24 },
-                sm: { span: 3 },
+                sm: { span: 4},
             },
             wrapperCol: {
                 xs: { span: 24 },
@@ -113,7 +136,7 @@ class SystemConfiguration extends Component{
         const formItemLayoutCol = {
             labelCol: {
                 xs: { span: 24 },
-                sm: { span: 3 },
+                sm: { span: 2 },
             },
             wrapperCol: {
                 xs: { span: 24 },
@@ -123,7 +146,7 @@ class SystemConfiguration extends Component{
         const formItemLayoutWithOutLabel = {
             labelCol: {
                 xs: { span: 24 },
-                sm: { span: 4 },
+                sm: { span: 4  },
             },
             wrapperCol: {
               xs: { span: 24 },
@@ -143,13 +166,14 @@ class SystemConfiguration extends Component{
                 <LocaleProvider locale={zhCN}>
                 <Form >
                     <Row style = {{"marginBottom":"15px"}}>
-                        <Col span = {4}>
-                            <div>
-                            <Progress type="circle" percent={this.state.percent} format={() => `${this.state.remain} 天`}  style = {{"fontSize":"18px"}}/>
+                        <Col span = {3} style = {{"width":"160px","height":"160px","marginRight":"16px"}}>
+                            <div style= {{"heigh":"160px","fontSize":"14px"}}>
+                            <Progress type="circle" strokeWidth = {8} width = {150}  percent={this.state.percent} format={() => `剩余:${this.state.remain}天`}  style = {{"fontSize":"14px"}}/>
                             </div>
                         </Col>
-                        <Col span= {18}>
+                        <Col span= {18} style = {{"marginTop":"3%"}}>
                             <FormItem
+                            style = {{"marginBottom":"0px"}}
                                 { ...formItemLayoutCol}
                                 label={(
                                     <span>
@@ -183,7 +207,7 @@ class SystemConfiguration extends Component{
                         </Col>
                     </Row>
                     <Row>
-                            <Col span = {18} key = {1}  >
+                            <Col span = {10} key = {1}  >
                                 <FormItem
                                 {...formItemLayoutWithOutLabel}
                                 label={(
@@ -206,48 +230,52 @@ class SystemConfiguration extends Component{
                                 </FormItem>
                             </Col>
                             <Col span = {2} key = {11} style = {{"paddingTop":"4px","marginLeft":"2px"}}>
-                                    <Icon type="copy" className = "iconCopy" style={{ fontSize: 20, color: '#08c'}} onClick = {this.copyCode}/>
+                                    <Icon type="copy" className = "iconCopy" style={{ fontSize: 20, color: '#08c'}} onClick = {this.copyCode} title = "复制序列号"/>
                             </Col>
                         </Row>
                         <Row>
-                            <FormItem
-                                { ...formItemLayout}
-                                label={(
-                                    <span>
-                                    更新license&nbsp;
-                                    </span>
-                                )}
-                            >   
-                                {getFieldDecorator("updateFile",{
-                                    initialValue:"",
-                                    rules: [{ required: false, message: '', whitespace: true }],
-                                })(
-                                    <div>
-                                        <div style = {{width:"100%"}}>
-                                            <Upload
-                                            action="http://172.16.6.5:9090/sys/license/upload"
-                                            listType="picture-card"
-                                            fileList={fileList}
-                                            onPreview={this.handlePreview}
-                                            beforeUpload={this.beforeUpload}
-                                            onChange={this.handleChange}
-                                            >
-                                            {fileList.length >= 1 ? null : uploadButton}
-                                            </Upload>
-                                            <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
-                                                <span>{datdas}</span>
-                                            </Modal>
+                            <Col span = {10} key = {1}  >
+                                <FormItem
+                                style = {{"marginBottom":"0px"}}
+                                    { ...formItemLayout}
+                                    label={(
+                                        <span>
+                                        更新license&nbsp;
+                                        </span>
+                                    )}
+                                >   
+                                    {getFieldDecorator("updateFile",{
+                                        initialValue:"",
+                                        rules: [{ required: false, message: '', whitespace: true }],
+                                    })(
+                                        <div style = {{"paddingLeft":"0"}}>
+                                            <div style = {{width:"100%"}}>
+                                                <Upload
+                                                action={`${config.api_server}/sys/license/upload`}
+                                                listType="picture-card"
+                                                fileList={fileList}
+                                                onPreview={this.handlePreview}
+                                                beforeUpload={this.beforeUpload}
+                                                onChange={this.handleChange}
+                                                >
+                                                {fileList.length >= 1 ? null : uploadButton}
+                                                </Upload>
+                                                <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
+                                                    <span>{datdas}</span>
+                                                </Modal>
+                                            </div>
+                                            
                                         </div>
-                                        
-                                    </div>
-                                )}
-
-                            </FormItem>
+                                    )}
+                                </FormItem>
+                            </Col>
                         </Row>
                         <FormItem
-                        wrapperCol={{ offset: 3}}
+                        // wrapperCol={{ offset: 2}}
                         >
-                            <div style = {{width:"100%"}}>此文件从开发商处获取，如有疑问请致电技术支持电话：010-85988334</div>
+                            <Col span = {16} key = {1}  >
+                                <div style = {{width:"100%","paddingLeft":"10.3%"}}>此文件从开发商处获取，如有疑问请致电技术支持电话：010-85988334</div>
+                            </Col>
                         </FormItem>
                     </Form>
                     </LocaleProvider>

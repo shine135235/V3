@@ -3,5 +3,7 @@
 runtime/* 
 /node_modules
 webpack.config.production.js
-js/component/testCom/index.js
 js/config.js
+.gitignore
+webpack.config.pro.js
+webpack.config.dev.js

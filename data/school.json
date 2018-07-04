@@ -1,0 +1,11 @@
+{
+    "center":{
+        "longitude": 116.931945, 
+        "latitude": 40.009624
+    },
+    "makers":[
+        {"lgt":116.405285,"lat":39.904989,"name":"变所学校","level":"serious"},
+        {"lgt": 116.387738, "lat": 39.926279,"name":"又变所学校","level":"important"},
+        {"lgt": 116.371297, "lat": 39.922327,"name":"还变所学校","level":"normal"}
+    ]
+}

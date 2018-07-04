@@ -20,12 +20,16 @@ export default class RoleAndCompany extends Component{
         addmask:false,
         selectedKeys:[],
         defaultOpenKeys:[],
-        activeKey:'member'
+        activeKey:'member',
+        self:false,
+        ok:'',
+        total:20
     }
     componentDidMount(){
         this.getUnitList()
     }
-    getUnitList=() =>{
+    getUnitList=(pn,uid,rid,cod) =>{
+        console.log(sessionStorage.getItem('addUser'))
         axios.post(`${config.api_server}/sys/user/unitrole`,{
             params:{
                 userID:'001'
@@ -33,13 +37,14 @@ export default class RoleAndCompany extends Component{
         }).then(res =>{
             this.setState({
                 deptData:res.data,
-                selectedKeys:[`${res.data[0].unitRole[0].id}-${res.data[0].id}`],
+                selectedKeys:sessionStorage.getItem('addUser')?[sessionStorage.getItem('addUser')]:[`${res.data[0].unitRole[0].id}-${res.data[0].id}`],
+                ok:`${res.data[0].id}`,
                 defaultOpenKeys:[`${res.data[0].id}-${res.data[0].code}`],
-                uid:res.data[0].id,
-                rid:res.data[0].unitRole[0].id,
-                code:res.data[0].code
+                uid:this.state.uid==undefined?res.data[0].id:this.state.uid,
+                rid:this.state.rid==undefined?res.data[0].unitRole[0].id:this.state.rid,
+                code:this.state.code==undefined?res.data[0].code:this.state.code,
             })
-            this.getUserList(1,res.data[0].id,res.data[0].unitRole[0].id,res.data[0].code);
+            this.getUserList(pn?pn:1,uid?uid:res.data[0].id,rid?rid:res.data[0].unitRole[0].id,cod?cod:res.data[0].code);
         })
     }
     getUserList=(pn,uid,rid,cod) =>{
@@ -56,7 +61,8 @@ export default class RoleAndCompany extends Component{
             }
         }).then(res =>{
             this.setState({
-                data:res.data.page.datas
+                data:res.data.page.datas,
+                total:res.data.page.totalRecord
             })
             axios.get(`${config.api_server}/sys/user`,{
             params:{
@@ -75,14 +81,21 @@ export default class RoleAndCompany extends Component{
         })
     }
     handleClick =(e) =>{
-        this.getUserList(1,e.keyPath[1].split('-')[0],e.key.split('-')[0],e.keyPath[1].split('-')[1])
-        this.setState({
-            rid:e.key.split('-')[0],
-            code:e.keyPath[1].split('-')[1]
-        })
+        if(e.key.split('-')[1]==this.state.ok && e.key.split('-')[0]==this.state.rid){
+              console.log('不要重复操作!')
+        }else{
+            this.getUserList(1,e.keyPath[1].split('-')[0],e.key.split('-')[0],e.keyPath[1].split('-')[1])
+                this.setState({
+                    ok:e.key.split('-')[1],
+                    rid:e.key.split('-')[0],
+                    uid:e.keyPath[1].split('-')[0],
+                    code:e.keyPath[1].split('-')[1]
+            })
+        }
     }
     showSet=(record) =>{
         this.setState({
+            self:false,
             setUser:true,
             userID:record.id,
             Name:record.username,
@@ -91,21 +104,30 @@ export default class RoleAndCompany extends Component{
             role:record.roleID,
             job:record.positionname,
         })
+        if(record.id==JSON.parse(sessionStorage.getItem('user')).id){
+            this.setState({
+                self:true,
+            })
+        }        
     }
     delConfirm=(record) => {
-        axios.delete(`${config.api_server}/sys/user`,{
-            data:{
-                id:record.id
-            } 
-        }).then(res =>{
-            if(res.data.success){
-                message.success('用户删除成功!');
-                this.getUserList(1,this.state.uid,this.state.rid,this.state.code);
-                this.getForbidUser(1,this.state.uid,this.state.rid,this.state.code)
-            }else{
-                message.error(res.data.message)
-            }
-        })
+        if(record.id!=JSON.parse(sessionStorage.getItem('user')).id){
+            axios.delete(`${config.api_server}/sys/user`,{
+                data:{
+                    id:record.id
+                } 
+            }).then(res =>{
+                if(res.data.success){
+                    message.success('用户删除成功!');
+                    this.getUserList(1,this.state.uid,this.state.rid,this.state.code);
+                    this.getForbidUser(1,this.state.uid,this.state.rid,this.state.code)
+                }else{
+                    message.error(res.data.message)
+                }
+            })
+        }else{
+            message.error('不能删除当前登录用户!')
+        }
     }
     shwoAdd=(e) =>{
         e.stopPropagation();
@@ -127,6 +149,20 @@ export default class RoleAndCompany extends Component{
             activeKey:e
         })
     }
+    pageChange=(v) =>{
+        this.getUserList(v,this.state.uid,this.state.rid,this.state.code)
+    }
+    resetPwd=(record) =>{
+         axios.post(`${config.api_server}/sys/user/resetpwd`,{
+            loginId:record.loginid
+         }).then(res =>{
+             if(res.data.success){
+                 message.success(`${record.loginid}的密码已被重置为:123456`)
+             }else{
+                message.error('服务器错误!') 
+             }
+         })
+    }
     userColumns=[
         {
         title:"姓名",
@@ -143,10 +179,16 @@ export default class RoleAndCompany extends Component{
         key:"id",
         render:(text,record) =>(
             <span>
-             <AuthPower><a href="javascript:void(0)" god='bjcy' onClick={this.showSet.bind(this,record)}>设置</a></AuthPower>
+            <AuthPower>
+             <Popconfirm god='czmm' title="确定将用户密码重置为123456?" placement='bottom' onConfirm={this.resetPwd.bind(this,record)} okText="确定" cancelText="取消">
+             <a href="javascript:void(0)">重置密码</a>
+             </Popconfirm>
+             </AuthPower>
+             <Divider type="vertical" />
+             <AuthPower><a href="javascript:void(0)" god='bjcy' onClick={this.showSet.bind(this,record)}>编辑</a></AuthPower>
              <Divider type="vertical" />
              <AuthPower>
-             <Popconfirm god='sccy' title="删除后已禁用账户里打开此账户,确定删除吗?" placement='bottom' onConfirm={this.delConfirm.bind(this,record)} okText="删除" cancelText="取消">
+             <Popconfirm god='sccy' title="删除后在已禁用账户里打开此账户,确定删除吗?" placement='bottom' onConfirm={this.delConfirm.bind(this,record)} okText="删除" cancelText="取消">
              <a href="javascript:void(0)">删除</a>
             </Popconfirm>
             </AuthPower>
@@ -155,6 +197,10 @@ export default class RoleAndCompany extends Component{
         }
     ];
     render(){
+        const pagination = {
+            total:this.state.total,
+            onChange:this.pageChange
+        }
         if(this.state.deptData.length>0){
             return(
                 <div className='role-content'>
@@ -172,11 +218,11 @@ export default class RoleAndCompany extends Component{
                         {
                             this.state.deptData.map(item =>{
                                 return(
-                                <SubMenu key={item.id===null?`-${item.code}`:`${item.id}-${item.code}`} title={<span><AuthPower><Icon type="plus-circle-o" id={item.id} onClick={this.shwoAdd} god='xzcy' /></AuthPower>{item.name}</span>}>
+                                <SubMenu key={item.id===null?`-${item.code}`:`${item.id}-${item.code}`} title={item.code==2?<span>{item.name}</span>:<span><AuthPower><Icon type="plus-circle-o" id={item.id} onClick={this.shwoAdd} god='xzcy' /></AuthPower>{item.name}</span>}>
                                     {
                                         item.unitRole.map(list =>{
                                             return(
-                                                <Menu.Item key={`${list.id==''?111:list.id}-${item.id}`} id={`${list.id===null?list.code:list.id}`}>{list.name}</Menu.Item>
+                                                <Menu.Item title={list.name} key={`${list.id==''?111:list.id}-${item.id}`} id={`${list.id===null?list.code:list.id}`}>{list.name}</Menu.Item>
                                             )
                                         })
                                     }
@@ -191,12 +237,12 @@ export default class RoleAndCompany extends Component{
                         <TabPane tab="成员管理" key='member'>
                         <div className="user-list">
                         <div className='user-data-aide'>
-                        <AuthPower><Button god='drcy'><Icon type="upload" /> 导入</Button></AuthPower>
+                        <AuthPower><Button god='drcy'><Icon type="upload" /> 导入</Button></AuthPower>　
                         <AuthPower><Button god='dccy'><Icon type="download" /> 导出</Button></AuthPower>
                         </div>
-                            <Table style={{width:'100%',float:'left'}} pagination={{ pageSize: 20 }} columns={this.userColumns} dataSource={this.state.data} />
+                            <Table style={{width:'100%',float:'left'}} pagination={pagination} columns={this.userColumns} dataSource={this.state.data} />
                             <Adduser cannel={this.handleCancel} reloadData={this.getUnitList} show={this.state.addmask} role={this.state.rid} unit={this.state.uid} code={this.state.code} />
-                            <SetUserMsg cannel={this.handleCancel} reloadData={this.getUnitList} showMask={this.state.setUser} userid={this.state.userID}  name={this.state.Name} loginid={this.state.loginid} phone={this.state.phone} role={this.state.rid} unit={this.state.uid} code={this.state.code} job={this.state.job} />
+                            <SetUserMsg cannel={this.handleCancel} reloadData={this.getUnitList} showMask={this.state.setUser} userid={this.state.userID}  name={this.state.Name} loginid={this.state.loginid} phone={this.state.phone} role={this.state.rid} unit={this.state.uid} code={this.state.code} job={this.state.job} myself={this.state.self} />
                         </div>
                         </TabPane>
                         <TabPane tab="已禁用帐号" key='disabled'>

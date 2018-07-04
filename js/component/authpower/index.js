@@ -10,8 +10,8 @@ export default class AuthPower extends Component{
     state={
         pagePower:[],
     }
-    componentDidMount(){
-       ajaxNum++
+    componentWillMount(){
+        ajaxNum++
         if(ajaxNum<=1){
             axios.get(`${config.api_server}/sys/resource/opsresource`,{
                 params:{
@@ -20,7 +20,7 @@ export default class AuthPower extends Component{
                 }
                 }).then(res =>{
                     pageData=res.data
-                
+                    ajaxNum=0;
             })
             return false
         }
@@ -37,12 +37,12 @@ export default class AuthPower extends Component{
                 )
                }else{
                    return(
-                    <span>2333</span>
+                    <span></span>
                    )
                }
            }else{
             return(
-                <span>3332</span>
+                <span></span>
                )
            }
        

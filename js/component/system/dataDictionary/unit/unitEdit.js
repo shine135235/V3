@@ -27,28 +27,37 @@ class AddEventCategory extends Component{
     //操作完成提示弹框
     success = () => {
         // success('操作成功!');
-        message.success("操作成功")
+        message.success("编辑服务单位成功")
     };
-    error = () => {
-        message.error("操作失败")
+    error = (error) => {
+        message.error(error)
     }
       editHandleOk = (e) => {
+          console.log(this.props.unitType);
          e.preventDefault();
         this.props.form.validateFieldsAndScroll(['name','pepole','phone','adds','describeCode'],(err) => {
+            let unitType = ""
+            // if(!sessionStorage.getItem('selectValue')){
+            //     unitType = this.props.unitType;
+            //     this.props.form.setFields({
+            //         categoryCode:{
+            //             value:"",
+            //             errors: [new Error('请选择单位类型')],
+            //         }
+            //     })
+            // }else{
+            //     this.props.form.setFields({
+            //         categoryCode:{
+            //             value:"",
+            //         }
+            //     })
+            // }
             if(!sessionStorage.getItem('selectValue')){
-                this.props.form.setFields({
-                    categoryCode:{
-                        value:"",
-                        errors: [new Error('请选择单位类型')],
-                    }
-                })
+                unitType = this.props.unitType;
             }else{
-                this.props.form.setFields({
-                    categoryCode:{
-                        value:"",
-                    }
-                })
+                unitType = sessionStorage.getItem('selectValue')
             }
+
 
             let values = {
                 "name":this.props.form.getFieldValue("name"),
@@ -56,14 +65,9 @@ class AddEventCategory extends Component{
                 "principalPhone":this.props.form.getFieldValue("principalPhone"),
                 "address":this.props.form.getFieldValue("address"),
                 "note":this.props.form.getFieldValue("note"),
-                "unitType":sessionStorage.getItem('selectValue'),
+                "unitType":unitType,
                 "id":this.props.recordId
             }
-            //eslint-disable-next-line
-           console.log('valuesvaluesvaluesvalues ', values);
-            //eslint-disable-next-line
-           console.log('selectValueselectValueselectValue ', sessionStorage.getItem('selectValue'));
-        //    values.categoryCode = sessionStorage.getItem('selectValue');
             if (err) {
                 return ;
             }
@@ -78,7 +82,7 @@ class AddEventCategory extends Component{
             }).then((res) => {
                 let datas = res.data.success;
                 if(datas){
-                    this.props.getDataList({})
+                    this.props.getDataList({pageNum:1,pageSize:10,param:""})
                     setTimeout(() => {
                         this.props.changeT({editLoading: false, editVisible: false})  
                         this.setState({ editLoading: false, editVisible: false});
@@ -87,10 +91,15 @@ class AddEventCategory extends Component{
                         this.success();
                     }, 3000);
                 }else{
+                    let error = ""
+                    if(res.data.message && res.data.message != ""){
+                        error = res.data.message
+                    }else{
+                    error = "编辑服务单位失败"
+                    }
                     setTimeout(() => {
-                        this.setState({ editLoading: false});
-                        this.error();
-                    }, 3000);
+                            this.error(error);
+                    }, 1000);
                 }
            })
         });
@@ -118,6 +127,13 @@ class AddEventCategory extends Component{
     afterClose = () => {
         sessionStorage.removeItem('selectValue');
     }
+    checkPhone=(rule, value, callback) =>{
+        if(!(/^1(3|4|5|7|8)\d{9}$/.test(value)) && !(/^(\d3,4|\d{3,4}-)?\d{7,8}$/).test(value)){
+            callback("手机号码有误，请重填");
+        }else{
+            callback();
+        }
+    }
     render(){
         const { getFieldDecorator } = this.props.form;
         // let option =[];
@@ -141,21 +157,6 @@ class AddEventCategory extends Component{
               sm: { span: 13 },
             },
           };
-        //   let nameValue = "";
-        //  let principalPhone = "";
-        //  let principal = "";
-        //  let note = "";
-        //  let address = "";
-        //  let unitType = "";
-        //  let editData = this.props.editData;
-        //  if(editData.id){
-        //     nameValue = editData.name;
-        //     principalPhone = editData.principalPhone;
-        //     principal = editData.principal;
-        //     note = editData.note;
-        //     unitType = editData.unitType;
-        //     address  = editData.address;
-        // }
         return (
             <span>
                 <Modal
@@ -208,14 +209,6 @@ class AddEventCategory extends Component{
                                     validator: this.eventName,
                                 }],
                             })(
-                                // <Select
-                                //     showSearch
-                                //     onChange={this.handleChange}
-                                //     onFocus={this.handleFocus}
-                                //     onBlur={this.handleBlur}
-                                // >
-                                //     {option}
-                                // </Select>
                                 <SelectOne rowCode = {this.state.rowCode} values = {this.props.unitType}/>
                             )}
                         </FormItem>
@@ -255,7 +248,7 @@ class AddEventCategory extends Component{
                                     {getFieldDecorator('principalPhone', {
                                         initialValue:this.props.principalPhone,
                                         rules: [{ required: true, message: '请输联系电话', whitespace: true }, {
-                                            validator: this.eventName,
+                                            validator: this.checkPhone,
                                         }],
                                     })(
                                         <Input placeholder = "请输名称"/>

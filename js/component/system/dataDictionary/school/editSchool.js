@@ -3,6 +3,7 @@ import $axios from 'axios';
 import { Button,Modal,Form,Input,Row,Col,Select,message,LocaleProvider} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import SelectOne from "../../../publicSub/selectOne";
+import SchoolMap from "./schoolMap";
 import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
 import './index.less';
@@ -16,7 +17,9 @@ class AddEventCategory extends Component{
         editLoading:false,
         rowCode:["BXXZ"],
         areaCode:["SSPQ"],
-        data:[]
+        data:[],
+        prentsData:"",
+        getChPoint:"",
       }
     componentDidMount(){
         $axios.get(`${config.api_server}/sys/area/arealist`).then((res) =>{
@@ -43,15 +46,18 @@ class AddEventCategory extends Component{
     //操作完成提示弹框
     success = () => {
         // success('操作成功!');
-        message.success("添加用户单位成功")
+        message.success("编辑用户单位成功")
     };
-    error = () => {
-        message.error("添加用户单位失败")
+    error = (error) => {
+        message.error(error)
     }
     addHandleOk = (e) => {
         this.setState({ editLoading: true});
         e.preventDefault();
         this.props.form.validateFieldsAndScroll(['name','area','pepole','phone','adds','describeCode'],(err) => {
+            if (err) {
+                return ;
+            }
             if(!sessionStorage.getItem('selectValue')){
                 this.props.form.setFields({
                     categoryCode:{
@@ -67,7 +73,17 @@ class AddEventCategory extends Component{
                 })
             }
             //eslint-disable-next-line
-            console.log('this.props.form.getFieldValue("area")', this.props.form.getFieldValue("area"));
+             console.log('addressaddressaddressaddress', this.props.form.getFieldValue("adds"));
+           let addValue = this.state.prentsData;
+           let lng = "";
+           let lat = "";
+            if(addValue.lat){
+                lng = addValue.lng;
+                lat = addValue.lat;
+            }else{
+                lng = this.props.lng;
+                lat = this.props.lat;
+            }
             let values = {
                 "name":this.props.form.getFieldValue("name"),
                 "areaId":this.props.form.getFieldValue("area"),
@@ -76,14 +92,12 @@ class AddEventCategory extends Component{
                 "principalPhone":this.props.form.getFieldValue("phone"),
                 "note":this.props.form.getFieldValue("describeCode"),
                 "unitType":sessionStorage.getItem('selectValue'),
-                "lng":"116.472181",
-                "lat":"39.92603",
+                "lng":lng,
+                "lat":lat,
                 "id":this.props.recordId
             }
-            if (err) {
-                return ;
-            }
             this.setState({ editLoading: true});
+            console.log("valuesvalues",values)
             $axios({
                 url:`${config.api_server}/sys/unit/update/userunit`,
                 method:'post',
@@ -94,18 +108,25 @@ class AddEventCategory extends Component{
             }).then((res) => {
                 let datas = res.data.success;
                 if(datas){
-                    this.props.getSchoolDataList({})
+                    this.props.getSchoolDataList({pageNum:1,pageSize:10,param:""})
                     setTimeout(() => {
                         this.props.changeT({editLoading: false, editVisible: false})  
                         this.setState({ editLoading: false, editVisible: false});
                     }, 1000);
                     setTimeout(() => {
+                        this.setState({ editLoading: false});
                         this.success();
                     }, 1000);
                 }else{
+                    let error = ""
+                    if(res.data.message && res.data.message != ""){
+                        error = res.data.message
+                    }else{
+                    error = "编辑用户单位失败"
+                    }
                     setTimeout(() => {
-                        this.error();
-                    }, 3000);
+                            this.error(error);
+                    }, 1000);
                 }
            })
         });
@@ -122,33 +143,79 @@ class AddEventCategory extends Component{
             editVisible: true,
         });
     }
-    handleChange = () => {
-        
-    }
-    handleBlur = () => {
-       
-        
-    }
-    handleFocus = () => {
-        
-
-    }
     afterClose = () => {
         sessionStorage.removeItem('selectValue');
+    }
+    addrMassage = () =>{
+        let searchdata = this.props.form.getFieldValue("adds");
+        //eslint-disable-next-line
+        //console.log("wwwwwwwwwwwwwwwwwwwwww",searchdata)
+        if(searchdata != ""){
+            this.setState({searchData:searchdata,mapVisible:true})
+        }else{
+            this.setState({searchData:this.props.form.getFieldValue("name"),mapVisible:true})
+        }       
+    }
+    prentsData = (value) =>{
+        //eslint-disable-next-line
+        //console.log("prentsDataprentsDataprentsData",value)
+        if(value && value != "" ){
+            let arr = value.split(",")
+            let obj = {}
+            obj.lng = arr[0]
+            obj.lat = arr[1]
+            //console.log("prentsDataprentsDataprentsData",obj)
+            this.setState({prentsData:obj})
+            // this.props.form.setFields({
+            //     ""
+            // })
+        }else{
+            message.success("没有选择地理位置")
+        }
+        
+    }
+    getChPoint = (value) =>{
+        //eslint-disable-next-line
+        //console.log("valuevaluevaluevaluevalue",value)
+        if(value != ""){
+            this.setState({getChPoint:value})
+            this.props.form.setFields({
+                adds:{
+                    value:value
+                }
+            })
+        }  
+    }
+    checkPhone=(rule, value, callback) =>{
+        if(!(/^1(3|4|5|7|8)\d{9}$/.test(value)) && !(/^(\d3,4|\d{3,4}-)?\d{7,8}$/).test(value)){
+            callback("手机号码有误，请重填");
+        }else{
+            callback();
+        }
     }
     render(){
         const { getFieldDecorator } = this.props.form;
         // let option =[];
         let option =[];
         let bData = this.state.data;
+        let initialSlect = this.props.area;
         if(bData.length > 0){
-                    //eslint-disable-next-line
-            // console.log('1111111111111111111111 ', this.props.area);
             option =  bData.map((item,k)=>{
                 return(
                     <Option key = {k} value={item.areaId}>{item.areaName}</Option>
                 ) 
-            })     
+            }) 
+            if(initialSlect != ""){
+                for(let i = 0;i<bData.length;i++){
+                    if(bData[i].areaId == initialSlect){
+                        break;
+                    }else{
+                        if(i == bData.length - 1){
+                            initialSlect = ""
+                        }
+                    }
+                }
+            }    
         }
         const formItemLayout = {
             labelCol: {
@@ -160,16 +227,16 @@ class AddEventCategory extends Component{
                 sm: { span: 18 },
             },
         };
-        // const formItemLayoutWithOutLabel = {
-        //     labelCol: {
-        //         xs: { span: 24 },
-        //         sm: { span: 11 },
-        //     },
-        //     wrapperCol: {
-        //       xs: { span: 24 },
-        //       sm: { span: 13 },
-        //     },
-        //   };
+        const formItemLayoutWithOutLabel = {
+            labelCol: {
+                xs: { span: 24 },
+                sm: { span: 4 },
+            },
+            wrapperCol: {
+              xs: { span: 24 },
+              sm: { span: 20 },
+            },
+          };
           const formItemLayoutWithOutLabel1 = {
             labelCol: {
                 xs: { span: 24 },
@@ -184,10 +251,11 @@ class AddEventCategory extends Component{
             <span>
                 <Modal
                     visible={this.props.editVisible}
-                    title="添加用户单位"
+                    title="编辑用户单位"
                     onOk={this.addHandleOk}
                     onCancel={this.addHandleCancel}
-                    width = {700}
+                    width = {650}
+                    afterClose = {this.afterClose}
                     destroyOnClose={true}
                     footer={[
                         // <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;类别编码格式统一为拼音首字母大写</span>,
@@ -199,6 +267,7 @@ class AddEventCategory extends Component{
                 >
                 <LocaleProvider locale={zhCN}>
                     <Form onSubmit={this.handleSubmit}>
+                    <Row>
                         <FormItem
                         {...formItemLayout}
                         label={(
@@ -210,15 +279,16 @@ class AddEventCategory extends Component{
                         >
                             {getFieldDecorator('name', {
                                 initialValue:this.props.nameValue,
-                                rules: [{ required: true, message: '请输名称', whitespace: true }, {
+                                rules: [{ required: true, message: '请输入名称', whitespace: true }, {
                                     validator: this.eventName,
                                 }],
                             })(
-                                <Input placeholder = "请输名称"/>
+                                <Input placeholder = "请输入名称"/>
                             )}
                         </FormItem>
-                        <Row gutter={24}>
-                            <Col span = {10} key = {1} offset = {1}>
+                        </Row >
+                        <Row >
+                            <Col span = {10} key = {1}  style = {{"marginLeft":"2.8%"}}>
                             <FormItem
                                 {...formItemLayoutWithOutLabel1}
                                 label={(
@@ -230,7 +300,7 @@ class AddEventCategory extends Component{
                                 >
                                     {getFieldDecorator('categoryCode', {
                                         initialValue:this.props.unitType,
-                                        rules: [{ required: true, message: '请单位性质', whitespace: true }, {
+                                        rules: [{ required: true, message: '请选择单位性质', whitespace: true }, {
                                             validator: this.eventName,
                                         }],
                                     })(
@@ -238,7 +308,7 @@ class AddEventCategory extends Component{
                                     )}
                                 </FormItem>
                             </Col>
-                            <Col span = {11} key = {2} >
+                            <Col span = {11} key = {2} style = {{"marginLeft":"1.4%"}}>
                                 <FormItem
                                 {...formItemLayoutWithOutLabel1}
                                 label={(
@@ -249,16 +319,15 @@ class AddEventCategory extends Component{
                                 hasFeedback
                                 >
                                     {getFieldDecorator('area', {
-                                        initialValue:this.props.area,
+                                        initialValue:initialSlect,
                                         rules: [{ required: true, message: '请选择片区', whitespace: true }, {
                                             validator: this.eventName,
                                         }],
                                     })(
                                         <Select
                                         showSearch
-                                        onChange={this.handleChange}
-                                        onFocus={this.handleFocus}
-                                        onBlur={this.handleBlur}
+                                        optionFilterProp="children"
+                                        filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
                                     >
                                         {option}   
                                     </Select>
@@ -266,8 +335,8 @@ class AddEventCategory extends Component{
                                 </FormItem>
                             </Col>
                         </Row>
-                        <Row gutter={24}>
-                            <Col span = {10} key = {1}  offset = {1}>
+                        <Row >
+                            <Col span = {10} key = {1}   style = {{"marginLeft":"2.8%"}}>
                                 <FormItem
                                 {...formItemLayoutWithOutLabel1}
                                 label={(
@@ -279,15 +348,15 @@ class AddEventCategory extends Component{
                                 >
                                     {getFieldDecorator('pepole', {
                                         initialValue:this.props.principal,
-                                        rules: [{ required: true, message: '请输负责人', whitespace: true }, {
+                                        rules: [{ required: true, message: '请输入负责人', whitespace: true }, {
                                             validator: this.eventName,
                                         }],
                                     })(
-                                        <Input placeholder = "请输负责人"/>
+                                        <Input placeholder = "请输入负责人"/>
                                     )}
                                 </FormItem>
                             </Col>
-                            <Col span = {11} key = {2}  >
+                            <Col span = {11} key = {2} style = {{"marginLeft":"1.4%"}} >
                                 <FormItem
                                 {...formItemLayoutWithOutLabel1}
                                 label={(
@@ -299,33 +368,43 @@ class AddEventCategory extends Component{
                                 >
                                     {getFieldDecorator('phone', {
                                         initialValue:this.props.principalPhone,
-                                        rules: [{ required: true, message: '请输联系电话', whitespace: true }, {
-                                            validator: this.eventName,
+                                        rules: [{ required: true, message: '请输入联系电话', whitespace: true }, {
+                                            validator: this.checkPhone,
                                         }],
                                     })(
-                                        <Input placeholder = "请输联系电话"/>
+                                        <Input placeholder = "请输入联系电话"/>
                                     )}
                                 </FormItem>
                             </Col>
                         </Row>
-                        <FormItem
-                        {...formItemLayout}
-                        label={(
-                            <span>
-                            详细地址&nbsp;
-                            </span>
-                        )}
-                        hasFeedback
-                        >
-                            {getFieldDecorator('adds', {
-                                initialValue:this.props.address,
-                                rules: [{ required: true, message: '请输名称', whitespace: true }, {
-                                    validator: this.eventName,
-                                }],
-                            })(
-                                <Input placeholder = "请输名称"/>
-                            )}
-                        </FormItem>
+                        <Row>
+                            <Col span = {20} key = {1}  style = {{"marginLeft":"2.8%"}}>
+                                <FormItem
+                                {...formItemLayoutWithOutLabel}
+                                label={(
+                                    <span>
+                                    详细地址&nbsp;
+                                    </span>
+                                )}
+                                hasFeedback
+                                >
+                                    {getFieldDecorator('adds', {
+                                        initialValue:this.props.address,
+                                        rules: [{ required: true, message: '请输入详细地址', whitespace: true }, {
+                                            validator: this.eventName,
+                                        }],
+                                    })(
+                                        <Input placeholder = "请输入详细地址" onBlur = {this.addOnBlur}/>
+                                    )}{
+                                        
+                                    }
+                                </FormItem>
+                            </Col>
+                            <Col span = {2} key = {11} >
+                            
+                                <SchoolMap  mapVisible = {this.state.mapVisible} mapChange = {this.mapChange} searchData = {this.state.searchData} addrMassage = {this.addrMassage} prentsData={this.prentsData}  prentssetLat={this.prentssetLat} getChPoint = {this.getChPoint}/>
+                            </Col>
+                        </Row>
                         <FormItem
                         {...formItemLayout}
                         label={(

@@ -8,7 +8,8 @@ class EditRoleFrom extends Component{
     constructor(props){
         super(props)
         this.state = { 
-            visible:false
+            visible:false,
+            loading:false
         }
     }
     componentWillReceiveProps(){
@@ -17,18 +18,31 @@ class EditRoleFrom extends Component{
         })
     }
     handleOk = () => {
-        axios.put(`${config.api_server}/sys/role`,{
-            id:this.props.id,
-            name:this.props.form.getFieldValue('role'),
-            isOpen:this.props.public
-        }).then(res =>{
-        if(res.data.success){
-            message.success('角色修改成功');
-            this.props.hide();
-            this.props.reloadData();
-        }else{
-            message.error(res.data.message)
-        }
+        this.props.form.validateFields((err,values) =>{
+            if(!err){
+                this.setState({
+                    loading:true
+                })
+                axios.put(`${config.api_server}/sys/role`,{
+                    id:this.props.id[0],
+                    name:values.role,
+                    isOpen:this.props.public
+                }).then(res =>{
+                if(res.data.success){
+                    message.success('角色修改成功');
+                    this.props.hide();
+                    this.props.reloadData();
+                    this.setState({
+                        loading:false
+                    })
+                }else{
+                    message.error(res.data.message);
+                    this.setState({
+                        loading:false
+                    })
+                }
+                })
+            }
         })
     }
     handleCancel = () => {

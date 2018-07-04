@@ -33,7 +33,7 @@ export default class TestMap extends Component {
                 if (point) {
                     map.centerAndZoom(point, 16);
                      //eslint-disable-next-line
-                    console.log("addOverlayaddOverlayaddOverlay",point);
+                    //console.log("addOverlayaddOverlayaddOverlay",point);
                     let arr = [];
                     arr.push(point.lng)
                     arr.push(point.lat)
@@ -70,7 +70,7 @@ export default class TestMap extends Component {
                     //eslint-disable-next-line
                     console.log("clickclickclickclick",str);
                    document.getElementById("noInputLat").value = str;
-                   document.getElementById("noInputCh").value = massage;
+                   document.getElementById("noInputCh").innerText = massage;
                    // alert(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber);
                 });   
             });      
@@ -100,7 +100,7 @@ export default class TestMap extends Component {
                 <div style = {{width:"100%",height:40,"marginBotton":"10px"}}>
                 <Search placeholder="搜索"  style={{ width: 350,float:"right" }} onSearch={this.onSearch} id = "mapSearch" />
                 <input   id = "noInputLat"  value="" style = {{display:"none"}}/>
-                <span  id = "noInputCh"  value="" style = {{display:"none"}}></span>
+                <span  id = "noInputCh"   style = {{display:"none"}}></span>
                 </div>
                     <div style={{width:"100%",height:560}} id='schoolMap'>
                 </div>

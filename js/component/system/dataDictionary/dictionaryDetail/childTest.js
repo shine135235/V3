@@ -7,13 +7,13 @@ let uuid = 0;
 class DynamicFieldSet extends Component {
   remove = (k) => {
     //eslint-disable-next-line
-    console.log('remove item' + k);
+    //console.log('remove item' + k);
     const { form } = this.props;
     // can use data-binding to get
     const keys = form.getFieldValue('keys');
     const keys2 = keys.filter(key => key !== k);
     //eslint-disable-next-line
-    console.log(keys2);
+    //console.log(keys2);
     const childData = [];
     for (let index = 0; index < keys2.length; index++) {
         // const element = array[index];
@@ -25,7 +25,7 @@ class DynamicFieldSet extends Component {
         childData.push(obj)
     }
     //eslint-disable-next-line
-    console.log("sssssssssss",childData);
+   // console.log("sssssssssss",childData);
     this.props.changeChilc(childData);
     // We need at least one passenger
     if (keys.length === 1) {
@@ -48,8 +48,10 @@ class DynamicFieldSet extends Component {
     // can use data-binding to get
     const keys = form.getFieldValue('keys');
     const nextKeys = keys.concat(uuid);
+    console.log("11111111111",nextKeys);
     // can use data-binding to set
     // important! notify form to detect changes
+    this.props.childKey(nextKeys)
     form.setFieldsValue({
       keys: nextKeys,
     });
@@ -73,54 +75,34 @@ class DynamicFieldSet extends Component {
     console.log(keys);
     const childData = [];
     for (let index = 0; index < keys.length; index++) {
-        // const element = array[index];
        const  obj = {};
         obj.itemKey = form.getFieldValue('dicName' + keys[index]);
         obj.itemValue = form.getFieldValue('dicName' + keys[index] + '2');
-        //eslint-disable-next-line
-       // console.log("" + val1 + "," + val2);
         childData.push(obj)
     }
-    //eslint-disable-next-line
     console.log("sssssssssss",childData);
     this.props.changeChilc(childData);
-
-    // e.preventDefault();
-    // this.props.form.validateFields((err, values) => {
-    //   if (!err) {
-    //        //eslint-disable-next-line
-    //     console.log('changeDatachangeDatachangeData', values);
-    //        //eslint-disable-next-line
-    //     console.log('changeDatachangeDatachangeData', values.keys);
-
-    //     this.props.changeChilc(values)
-    //   }
-    //   else{
-    //         //eslint-disable-next-line
-    //       console.log('exist err');
-    //   }
-    // });
   }
-  entryValue = (rule, value, callback) =>{
-    const bValue =  value;
-    if(bValue){
-        if(/^[A-Z]+$/.test(bValue)){
-            callback("请输入大写首字母")
-        }
-    }else{
-        callback("请输入条目")
-    }
-  }
-  eventName = (rule, value, callback) =>{
-    const bValue =  value;
-    if(bValue){
-      if(/^[A-Z]+$/.test(bValue)){
-        callback("请输入大写首字母")
-      }
-    }else{
-      callback("请输入名称")
-    }
-  }
+  // entryValue = (rule, value, callback) =>{
+  //   const bValue =  value;
+  //   if(bValue){
+  //       if(/^[A-Z]+$/.test(bValue)){
+  //           callback("请输入大写首字母")
+  //       }
+  //   }else{
+  //       callback("请输入条目")
+  //   }
+  // }
+  // eventName = (rule, value, callback) =>{
+  //   const bValue =  value;
+  //   if(bValue){
+  //     if(/^[A-Z]+$/.test(bValue)){
+  //       callback("请输入大写首字母")
+  //     }
+  //   }else{
+  //     callback("请输入条目")
+  //   }
+  // }
   render() {
     const { getFieldDecorator, getFieldValue } = this.props.form;
     const formItemLayout = {
@@ -136,13 +118,13 @@ class DynamicFieldSet extends Component {
     const formItemLayoutWithOutLabel = {
       wrapperCol: {
         xs: { span: 24, offset: 0 },
-        sm: { span: 20, offset: 4 },
+        sm: { span: 20, offset: 6 },
       },
     };
     getFieldDecorator('keys', { initialValue: [] });
     const keys = getFieldValue('keys');
     //eslint-disable-next-line
-    console.log("新建lebel下标",keys);
+    //console.log("新建lebel下标",keys);
     const formItems = keys.map((k) => {
       return (
         <FormItem
@@ -169,7 +151,9 @@ class DynamicFieldSet extends Component {
                     <Col span={11}>
                         <FormItem >
                             {getFieldDecorator(`dicName${k}`, {
-                                    rules: [{ required: true, message: '请输入条目', whitespace: true }],
+                                    rules: [{ required: true, message: '请输入条目', whitespace: true }, {
+                                      validator: this.eventName,
+                                  }],
                                 })(
                                     <Input placeholder="条目" />
                                 )

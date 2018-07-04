@@ -16,7 +16,6 @@ class EditSla extends Component {
             }
             // eslint-disable-next-line
             console.log("sla",values);
-            this.setState({ loading: true });
             let slaBadResponseHour = Number(values.slaBadResponseHourEdit);
             let slaBadResponseMin = Number(values.slaBadResponseMinEdit);
             let slaBadSolutionHour = Number(values.slaBadSolutionHourEdit);
@@ -30,6 +29,49 @@ class EditSla extends Component {
             let slaGreatSolutionHour = Number(values.slaGreatSolutionHourEdit);
             let slaGreatSolutionMin = Number(values.slaGreatSolutionMinEdit);
 
+            let tet = /^\+?[1-9][0-9]*$/;
+            if(!tet.test(slaBadResponseHour) && !tet.test(slaBadResponseMin) && !tet.test(slaBadSolutionHour) && !tet.test(slaBadSolutionMin) && !tet.test(slaCommonResponseHour) && !tet.test(slaCommonResponseMin) && !tet.test(slaCommonSolutionHour) && !tet.test(slaCommonSolutionMin) && !tet.test(slaGreatResponseHour) && !tet.test(slaGreatResponseMin)&& !tet.test(slaGreatSolutionHour) && !tet.test(slaGreatSolutionMin)){
+                message.error("请填写故障级别时间")
+                return;
+            }
+            
+            if(tet.test(slaCommonResponseHour) || tet.test(slaCommonResponseMin)){
+                if(!tet.test(slaCommonSolutionHour) && !tet.test(slaCommonSolutionMin)){
+                    message.error("一般故障响应时间需要对应的解决时间")
+                    return;
+                }
+            }
+            if(tet.test(slaCommonSolutionHour) || tet.test(slaCommonSolutionMin)){
+                if(!tet.test(slaCommonResponseHour) && !tet.test(slaCommonResponseMin)){
+                    message.error("一般故障解决时间需要对应的响应时间")
+                    return;
+                }
+            }
+            if(tet.test(slaBadResponseHour) || tet.test(slaBadResponseMin)){
+                if(!tet.test(slaBadSolutionHour) && !tet.test(slaBadSolutionMin)){
+                    message.error("严重故障响应时间需要对应的解决时间")
+                    return;
+                }
+            }
+            if(tet.test(slaBadSolutionHour) || tet.test(slaBadSolutionMin)){
+                if(!tet.test(slaBadResponseHour) && !tet.test(slaBadResponseMin)){
+                    message.error("严重故障解决时间需要对应的响应时间")
+                    return;
+                }
+            }
+            if(tet.test(slaGreatResponseHour) || tet.test(slaGreatResponseMin)){
+                if(!tet.test(slaGreatSolutionHour) && !tet.test(slaGreatSolutionMin)){
+                    message.error("重大故障响应时间需要对应的解决时间")
+                    return;
+                }
+            }
+            if(tet.test(slaGreatSolutionHour) || tet.test(slaGreatSolutionMin)){
+                if(!tet.test(slaGreatResponseHour) && !tet.test(slaGreatResponseMin)){
+                    message.error("重大故障解决时间需要对应的响应时间")
+                    return;
+                }
+            }
+            this.setState({ loading: true });
             let badResponseTime = slaBadResponseHour*60+slaBadResponseMin;
             let badSolutionTime = slaBadSolutionHour*60+slaBadSolutionMin;
             let commonResponseTime = slaCommonResponseHour*60+slaCommonResponseMin;
@@ -74,7 +116,14 @@ class EditSla extends Component {
                 this.success("编辑成功！");
                 this.props.changeVisibleType({ visibleEdit: false });
             }else{
-                this.error("编辑失败！");
+                this.setState({ loading: false });
+                let error = ""
+                if(json.data.message && json.data.message != ""){
+                    error = json.data.message
+                }else{
+                    error = "添加失败！"
+                }
+                this.error(error); 
             }
             this.props.getListData({});
         })

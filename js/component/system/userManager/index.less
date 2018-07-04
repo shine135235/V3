@@ -1,25 +1,11 @@
 @import '~antd/dist/antd.css';
-.ant-table-thead{
-    tr{
-        th{
-            text-align: center!important;
-            font-weight: bold;
-        }
-    }
-}
-.ant-table-tbody{
-    tr{
-        td{
-            text-align: center!important; 
-        }
-    }
-}
+ 
     .role-and-power{
-        width:85%;
+        width:88%;
         height:100%;
         float:left;
-        margin-left:15%;
-        margin-top:52px;
+        margin-left:12%;
+        margin-top:62px;
         .page-title{
             width:100%;
             height:5%;
@@ -39,12 +25,13 @@
         }
         .role-content{
             width:100%;
-            height:87%;
+            height:90%;
             float:left;
             margin-top:1%;
+            overflow: auto;
             .department{
                 width:15%;
-                height:100%;
+                height:98%;
                 float:left;
                 .department-search{
                     width:100%;
@@ -55,6 +42,13 @@
                 .role-aide{
                     width:100%;
                     text-align: center;
+                }
+                .role-scroll{
+                    width:100%;
+                    height: 100%;
+                    float:left;
+                    margin-top:1%;
+                    overflow: auto;
                 }
             }
             .user-group{
@@ -70,13 +64,15 @@
                 .user-data-aide{
                     width:100%;
                     float:left;
+                    margin-bottom: 16px;
                 }
             }
             .power-list{
                 width:84%;
-                height:100%;
+                height:95%;
                 float:left;
                 margin-left:1%;
+                overflow: auto;
                 .power-group{
                     width:100%;
                     float:left;

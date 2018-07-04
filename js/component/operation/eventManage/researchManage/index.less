@@ -1,18 +1,95 @@
 .researchManage{
     float:left;
-    width:85%;
+    width:88%;
     height:95%;
     position: relative;
     padding:1.25%;
-    margin-left: 15%;
+    margin-left: 12%;
     margin-top: 52px;
-    .researchManage_iframe{
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        iframe{
-            // margin-left: -21%;
-            margin-top: -5%
-        }
+    // .researchManage_iframe{
+    //     width: 100%;
+    //     height: 100%;
+    //     overflow: hidden;
+    //     iframe{
+    //         // margin-left: -21%;
+    //         margin-top: -5%
+    //     }
+    // }
+    // .ant-btn-primary{
+    //   position: relative;
+    // }
+    // .ant-input{
+    //   position: absolute;
+    //   right: 1.25%;
+    // }
+    .eventTitle{
+      width: 100%;
+      height: "40px";
+      line-height: 40px;
+      margin: 0 10px;
+      .eventTitleSearch{
+        float: right;
+        margin-right: 1.07%;
+      }
     }
+}
+
+.dynamic-delete-button {
+    cursor: pointer;
+    position: relative;
+    top: 4px;
+    left:10px;
+    font-size: 24px;
+    color: #999;
+    transition: all .3s;
+  }
+  .dynamic-delete-button:hover {
+    color: #777;
+  }
+  .dynamic-delete-button[disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+.dynamic-deleteSchool-button {
+    cursor: pointer;
+    position: relative;
+    left:10px;
+    font-size: 24px;
+    color: #999;
+    transition: all .3s;
+  }
+  .dynamic-deleteSchool-button:hover {
+    color: #777;
+  }
+  .dynamic-deleteSchool-button[disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  .ant-form-item{
+     margin-bottom: 2%;
+  }
+
+
+
+  .ant-advanced-search-form {
+    padding: 24px;
+    background: #fbfbfb;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    // width: 800px;
+  }
+  
+  .ant-advanced-search-form .ant-form-item {
+    display: flex;
+  }
+.no-padding{padding:0 0 0 0!important;height: 54px;}
+.bigspan{display:inline-block;width:100%;height:100%;line-height: 54px;}
+.gary{color:#d9d9d9}
+.gary:hover{color:#d9d9d9}
+.table-data{width:100%;height:auto;float:left;margin-bottom: 20px;}
+.table-data th,.table-data td{border-collapse:collapse;border:1px solid #ccc;height:42px;text-align: center;}
+.data-class-overKnow{
+  .ant-upload-list{
+    width:50%;
+  }
 }

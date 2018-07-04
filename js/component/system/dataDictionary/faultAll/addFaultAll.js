@@ -19,10 +19,11 @@ class AddEventCategory extends Component{
       }
       
       getSelectList = () =>{
-        $axios.get(`${config.api_server}/pro/pList`).then((res) =>{
-            if(res.data.page){
-                if(res.data.page.datas.length != 0){
-                    this.setState({data:res.data.page.datas})
+        $axios.get(`${config.api_server}/pro/prolist?unitId=${sessionStorage.getItem('deskUnitId')}`).then((res) =>{
+            if(res.data.data){
+                if(res.data.data.length != 0){
+                    console.log("get selecetList",res.data.data);
+                    this.setState({data:res.data.data})
                 }  
             } 
         })
@@ -34,16 +35,16 @@ class AddEventCategory extends Component{
        
     }
     success = () => {
-        message.success("编辑故障大类成功")
+        message.success("新建事件大类成功")
     };
-    error = () => {
-        message.error("编辑故障大类失败")
+    error = (error) => {
+        message.error(error)
     }
     addHandleOk = (e) => {
          e.preventDefault();
         this.props.form.validateFieldsAndScroll((err,values) => {
             //eslint-disable-next-line
-            console.log("valuesvaluesvalues",values)
+            //console.log("valuesvaluesvalues",values)
             let arr = [];
             let option = values.projects;
             for(let i = 0;i<option.length;i++){
@@ -68,7 +69,9 @@ class AddEventCategory extends Component{
             }).then((res) => {
                 let datas = res.data.success;
                 if(datas){
-                    this.props.getParentListData({});
+                    let pageNum = 1;
+                    let pageSize = 10;
+                    this.props.getParentListData({pageNum,pageSize,search:""})
                     setTimeout(() => {
                         this.setState({ addLoading: false, addVisible: false});
                     }, 1000);
@@ -77,8 +80,14 @@ class AddEventCategory extends Component{
                     }, 1000);
                 }else{
                     this.setState({ addLoading: false});
+                    let error = ""
+                    if(res.data.message && res.data.message != ""){
+                        error = res.data.message
+                    }else{
+                        error = "新建事件大类失败"
+                    }
                     setTimeout(() => {
-                        this.error();
+                            this.error(error);
                     }, 1000);
                 }
            })
@@ -96,21 +105,28 @@ class AddEventCategory extends Component{
            addVisible: true,
           });
     }
-    handleChange = () => {
-        
-    }
     handleBlur = () => {
             
     }
-    handleFocus = () => {
-        
+    handleFocus = (value) => {
+        console.log("2222222222222",value);
     }
     onFieldsChange = () =>{
         
     }
-     handleChange = (value) => {
-         //eslint-disable-next-line
-        console.log(`selected ${value}`);
+    onSelect = (value) => {
+        console.log("11111111111111",value);
+        let bData = this.state.data;
+        console.log(bData)
+        if(bData.length > 0){
+            for (let i = 0; i < bData.length; i++) {
+                if(value == bData[i].proId){
+                    this.props.form.setFieldsValue({
+                        projects:bData[i].proName
+                    })
+                }
+           }
+        }
       }
     render(){
         const { getFieldDecorator } = this.props.form;
@@ -127,9 +143,10 @@ class AddEventCategory extends Component{
         }; 
         const children = [];
         let bData = this.state.data;
+        // console.log(bData)
         if(bData.length > 0){
             for (let i = 0; i < bData.length; i++) {
-                children.push(<Option key = {i} value = {bData[i].id}>{bData[i].name}</Option>);
+                children.push(<Option key = {i} value = {bData[i].proId}>{bData[i].proName}</Option>);
            }
         }
         
@@ -139,7 +156,7 @@ class AddEventCategory extends Component{
                 <Button type="primary" onClick = {this.AddNews} icon="plus">新建</Button>
                 <Modal
                     visible={this.state.addVisible}
-                    title="添加故障大类"
+                    title="添加事件大类"
                     onOk={this.addHandleOk}
                     onCancel={this.addHandleCancel}
                     onFieldsChange = {this.onFieldsChange}
@@ -159,17 +176,17 @@ class AddEventCategory extends Component{
                         {...formItemLayout}
                         label={(
                             <span>
-                            大类名称&nbsp;
+                            事件大类名称&nbsp;
                             </span>
                         )}
                         hasFeedback
                         >
                             {getFieldDecorator('faultName', {
-                                rules: [{ required: true, message: '请输名称', whitespace: true }, {
+                                rules: [{ required: true, message: '请输入事件大类名称', whitespace: true }, {
                                     validator: this.eventName,
                                 }],
                             })(
-                                <Input placeholder = "请输名称"/>
+                                <Input placeholder = "请输入事件大类名称"/>
                             )}
                         </FormItem>
                        
@@ -183,13 +200,16 @@ class AddEventCategory extends Component{
                         hasFeedback
                         >
                             {getFieldDecorator('projects', {
-                                rules: [{ required: true, message: '请输入区域描述!', whitespace: true,type:"array" }],
+                                rules: [{ required: true, message: '请选择关联项目!', whitespace: true,type:"array" }],
                             })(
                                 <Select
                                     mode="multiple"
+                                    showSearch
+                                    optionFilterProp="children"
                                     style={{ width: '100%' }}
-                                    placeholder="Please select"
-                                    onChange={this.handleChange}
+                                    placeholder=""
+                                    onSelect={this.onSelect}
+                                    filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
                                 >
                                     {children}
                                 </Select>

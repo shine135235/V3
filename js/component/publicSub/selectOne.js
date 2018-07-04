@@ -23,11 +23,12 @@ class DynamicFieldSet extends Component {
                      this.setState({selectData:res.data.data})
                  }
                 // eslint-disable-next-line
-                 console.log("get单位类型",res)
+                // console.log("get单位类型",res)
              } 
          })
     }
     handleChange = (value) =>{
+       // console.log("sssssssssssssssssssssssss",value)
         sessionStorage.setItem('selectValue',value)
     }
     handleFocus = () =>{
@@ -37,20 +38,30 @@ class DynamicFieldSet extends Component {
         
         // let option = [];
          let realOj = this.state.selectData;
-        // if(realOj.length != 0){
-        //     option =  realOj.map((item,k)=>{
-        //         return(
-        //             <Option key = {k} value={item.itemKey}>{item.itemValue}</Option>
-        //         ) 
-        //     })
-        // }
+         let initialSlect = this.props.values;
+        if(realOj.length != 0){
+            if(initialSlect != ""){
+                for(let i = 0;i<realOj.length;i++){
+                    if(realOj[i].dictItemId == initialSlect){
+                        break;
+                    }else{
+                        if(i == realOj.length - 1){
+                            initialSlect = ""
+                        }
+                    }
+                }
+            }
+        }
         return (
              <Select
             showSearch
             onChange={this.handleChange}
             onFocus={this.handleFocus}
             onBlur={this.handleBlur} 
-            defaultValue = {this.props.values}
+            defaultValue = {initialSlect}
+            optionFilterProp="children"
+            onSelect={this.onSelect}
+            filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
             >
                 {/* {option} */}
                 {

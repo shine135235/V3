@@ -17,8 +17,8 @@ class UpdatePwd extends Component{
             if(!err){
                 axios.post(`${config.api_server}/sys/user/setpwd`,{
                     loginId:values.userName,
-                    oldPwd:values.oldPassword,
-                    newPwd:values.confirm
+                    oldPwd:btoa(values.oldPassword),
+                    newPwd:btoa(values.confirm)
                 }).then(res =>{
                     if(res.data.success){
                         message.success('密码修改成功,请重新登录!');
@@ -37,7 +37,7 @@ class UpdatePwd extends Component{
     checkPassword = (rule, value, callback) => {
         const form = this.props.form;
         if (value && value !== form.getFieldValue('password')) {
-            callback('或两次输入密码不一致!');
+            callback('两次输入密码不一致!');
         } else {
             callback();
         }
@@ -76,7 +76,7 @@ class UpdatePwd extends Component{
                 },
                 sm: {
                 span: 14,
-                offset: 6,
+                offset: 4,
                 },
             },
         };

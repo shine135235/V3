@@ -1,5 +1,6 @@
 import React,{Component} from "react";
-import {Button, Form, Modal, Input,Select,message,Row,Col} from "antd";
+import {Button, Form, Modal, Input,Select,message,Row,Col,LocaleProvider} from "antd";
+import zhCN from 'antd/lib/locale-provider/zh_CN';
 import $axios from 'axios';
 import config from '../../../../../config';
 import './index.less'
@@ -249,6 +250,7 @@ class AddSysProject extends Component {
                       <Button key="submit" type="primary" htmlType="submit" loading={loading} onClick={this.handleOk}>保存</Button>,
                     ]}
                 >
+                <LocaleProvider locale = {zhCN}>
                     <Form>
                         <FormItem
                             {...formItemLayout}
@@ -391,12 +393,13 @@ class AddSysProject extends Component {
                                     type:"array"
                                 }]
                             })(
-                                <Select  mode="multiple" placeholder="请选择参与单位...">
+                                <Select  mode="multiple" placeholder="请选择参与人...">
                                     {vendorArr}
                                 </Select>
                             )}
                         </FormItem>
                     </Form>
+                    </LocaleProvider> 
                 </Modal>
             </div>
         )

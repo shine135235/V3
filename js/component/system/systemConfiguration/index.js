@@ -8,13 +8,27 @@ import "./index.less"
 
 const FormItem = Form.Item;
 const Option = Select.Option;
+const outLogin=() =>{
+    console.log(JSON.parse(sessionStorage.getItem('user')))
+    $axios.post(`${config.api_server}/sys/user/logout`,{
+        id:JSON.parse(sessionStorage.getItem('user')).id,
+        loginId:JSON.parse(sessionStorage.getItem('user')).loginId
+    }).then(res =>{
+        if(res.data.flag==='success'){
+            sessionStorage.clear();
+            location.href='/';
+        }
+    })
+}
 class SystemConfiguration extends Component{
     state = {
         confirmDirty: false,
         previewVisible: false,
+        icoPreviewVisible: false,
         previewImage: '',
-        fileList:[
-        ],
+        icoPreviewImage: '',
+        fileList:[],
+        fileLists:[],
         constructionUnit:"",
         deployArea:"",
         serviceDeskUnit:"",
@@ -29,14 +43,15 @@ class SystemConfiguration extends Component{
         // upParam:{
         //     type:1
         // },
-        pathss:""
+        pathss:"",
+        icoPathss:""
     };
     getAllAreaList = () =>{ 
         $axios.get(`${config.api_server}/sys/dictitem/query/id?code=${this.state.gzdq}`).then((res) =>{
            if(res.data){
                this.setState({bsdqData:res.data.data})
                 //eslint-disable-next-line
-                //console.log('ssssssssssssssssssssssssss', res.data.data);
+                // console.log('ssssssssssssssssssssssssss', res.data.data);
            }
        })
     }
@@ -44,18 +59,13 @@ class SystemConfiguration extends Component{
         $axios.get(`${config.api_server}/sys/unit/serviceunit`).then((res) =>{
            if(res.data){
                this.setState({servicerListData:res.data.data})
-                //eslint-disable-next-line
-                //console.log('ssssssssssssssssssssssssss', res.data.data);
            }
        })
     }
     getInnitialList = () =>{
         $axios.get(`${config.api_server}/sys/systemconfig`).then((res) =>{
-            //eslint-disable-next-line
-            //console.log('resresresresresres', res.data.logoPath);
             let newUrl = res.data.logoPath.replace(/\\/g,"/")
-                //eslint-disable-next-line
-            //console.log('resresresresresres', newUrl);
+            let icoNewUrl = res.data.icon.replace(/\\/g,"/")
             let obj = {}
             obj.uid = 1
             obj.name = ""
@@ -63,6 +73,15 @@ class SystemConfiguration extends Component{
             obj.url = `${config.api_server}${newUrl}`
             let newList = this.state.fileList
             newList.push(obj)
+
+            let icoObj = {}
+            icoObj.uid = 1
+            icoObj.name = ""
+            icoObj.status = "done"
+            icoObj.url = `${config.api_server}${icoNewUrl}`
+            let icoNewList = this.state.fileLists
+            icoNewList.push(icoObj)
+            // console.log("222222222222222",icoObj);
             if(res.data){
                 this.setState({
                 constructionUnitName:res.data.constructionUnitName,
@@ -74,7 +93,9 @@ class SystemConfiguration extends Component{
                  canDistributionToEngineer:res.data.canDistributionToEngineer,
                  innitalId: res.data.id,
                  pathss:res.data.logoPath,
-                 fileList:newList
+                 icoPathss:res.data.icon,
+                 fileList:newList,
+                 fileLists:icoNewList,
                 })
             }
         })
@@ -88,8 +109,8 @@ class SystemConfiguration extends Component{
         // success('操作成功!');
         message.success("操作成功")
     };
-    error = () => {
-        message.error("操作失败")
+    error = (error) => {
+        message.error(error)
     }
     handleSubmit = (e) => {
         e.preventDefault();
@@ -97,20 +118,12 @@ class SystemConfiguration extends Component{
 
             if (err) {
                 return;
-            // console.log('Received values of form: ', values);
             }
             let bValue = values;
             bValue.id = this.state.innitalId;
             bValue.type = "shanxiaojun";
-            //eslint-disable-next-line
-            //console.log('11111111111111111111', bValue.logoPath);
             bValue.logoPath = this.state.pathss
-
-            // if(this.props.form.getFieldValue("logoPath") == "undefined"){
-            //     bValue.logoPath = this.state.pathss
-            // } 
-             //eslint-disable-next-line
-            //console.log('2222222222222222222', bValue);
+            bValue.icon = this.state.icoPathss
             $axios({
             url:`${config.api_server}/sys/systemconfig`,
             method:'post',
@@ -121,29 +134,36 @@ class SystemConfiguration extends Component{
             }).then((res) => {
                 let datas = res.data.success;
                 if(datas){
-                    // this.props.getDataList({});
+                    message.success("操作成功,请重新登录")
                     setTimeout(() => {
-                        this.setState({ addLoading: false, addVisible: false});
-                    }, 1000);
-                    setTimeout(() => {
-                        this.success();
-                    }, 1000);
+                        outLogin()
+                    }, 2000);
                 }else{
-                    this.setState({ addLoading: false});
+                    let error = ""
+                    if(res.data.message && res.data.message != ""){
+                        error = res.data.message
+                    }else{
+                        error = "操作失败"
+                    }
                     setTimeout(() => {
-                        this.error();
+                            this.error(error);
                     }, 1000);
                 }
             })
         });
       }
     handleCancel = () => this.setState({ previewVisible: false })
+    icoHandleCancel = () => this.setState({ icoPreviewVisible: false })
     handlePreview = (file) => {
-        //eslint-disable-next-line
-           // console.log('filefilefilefilefile', file);
         this.setState({
           previewImage: file.url || file.thumbUrl,
           previewVisible: true,
+        });
+      }
+    icoHandlePreview = (file) => {
+        this.setState({
+            icoPreviewImage: file.url || file.thumbUrl,
+          icoPreviewVisible: true,
         });
       }
     beforeUpload = (file) =>{
@@ -153,26 +173,19 @@ class SystemConfiguration extends Component{
         }
         
     }
+    icoBeforeUpload = (file) =>{
+        if(file.name != "favicon.ico"){
+            message.error('上传图片为favicon.ico!');
+        }
+    }
     handleChange = (info) => {
         let fileList = info.fileList;
-        //eslint-disable-next-line
-       //console.log('handleChangefileList ', fileList);
         if(fileList.length >0){
             if(fileList[0].response){
                 this.setState({pathss:fileList[0].response.path})
-    //             // 图片地址 后面加时间戳是为了避免缓存
-    //             var img_url = `${fileList[0].response.path}?`+Date.parse(new Date());
-    //             // 创建对象
-    //             var img = new Image();
-    //             // 改变图片的src
-    //             img.src = img_url;
-    //             // 加载完成执行
-    //             img.onload = function(){
-    //             // 打印
-    //             //eslint-disable-next-line
-    //                 console.log('width:'+img.width+',height:'+img.height);
-    //             };
             }
+        }else{
+            this.setState({pathss:""}) 
         }
         fileList = fileList.filter((file) => {
           if (file.type) {
@@ -181,11 +194,32 @@ class SystemConfiguration extends Component{
           return true;
         });
         this.setState({ fileList });
-      }
-      listData = (file) =>{
-        //eslint-disable-next-line
-        console.log('filefilefilefilefilefilefile ', file);
-      }
+    }
+
+    icoChange = (info) => {
+        let fileLists = info.fileList;
+        if(fileLists.length >0){
+            if(fileLists[0].response){
+                this.setState({icoPathss:fileLists[0].response.path})
+            }
+        }else{
+            this.setState({icoPathss:""}) 
+        }
+        fileLists = fileLists.filter((file) => {
+          if (file.type) {
+            return file.type === 'image/x-icon';
+          }
+          return true;
+        });
+        this.setState({ fileLists });
+    }
+    checkPhone=(rule, value, callback) =>{
+        if(!(/^1(3|4|5|7|8)\d{9}$/.test(value)) && !(/^(\d3,4|\d{3,4}-)?\d{7,8}$/).test(value)){
+            callback("手机号码有误，请重填");
+        }else{
+            callback();
+        }
+    }
     render(){
         const { getFieldDecorator } = this.props.form;
         const formItemLayout = {
@@ -198,8 +232,14 @@ class SystemConfiguration extends Component{
                 sm: { span: 14 },
             },
         };
-        const { previewVisible, previewImage, fileList } = this.state;
+        const { previewVisible,icoPreviewVisible, previewImage,icoPreviewImage, fileList,fileLists } = this.state;
         const uploadButton = (
+        <div>
+            <Icon type="plus" />
+            <div className="ant-upload-text">上传图片</div>
+        </div>
+        );
+        const icoUploadButton = (
         <div>
             <Icon type="plus" />
             <div className="ant-upload-text">上传图片</div>
@@ -207,20 +247,32 @@ class SystemConfiguration extends Component{
         );
 
         let bsda = [];
-        let bsdqData = this.state.bsdqData;
+        let bsdqData = this.state.bsdqData; 
         if(bsdqData.length > 0){
             for(let i = 0;i<bsdqData.length;i++){
                 bsda.push( <Option  key = {bsdqData[i].dictItemId} value={bsdqData[i].dictItemId}>{bsdqData[i].itemValue}</Option>)
             }
             
         }
+
         let servicerList = [];
+        let serviceDeskUnit = this.state.serviceDeskUnit;
         let servicerListData = this.state.servicerListData;
         if(servicerListData.length > 0){
             for(let i = 0;i<servicerListData.length;i++){
                 servicerList.push( <Option  key = {servicerListData[i].unitId} value={servicerListData[i].unitId}>{servicerListData[i].unitName}</Option>)
             }
-            
+            if(serviceDeskUnit != ""){
+                for(let i = 0;i<servicerListData.length;i++){
+                    if(servicerListData[i].unitId == serviceDeskUnit){
+                        break;
+                    }else{
+                        if(i == servicerListData.length - 1){
+                            serviceDeskUnit = ""
+                        }
+                    }
+                }
+            }  
         }
         return (
             <div className='systemConfig'>
@@ -276,15 +328,15 @@ class SystemConfiguration extends Component{
                         })(
                             <div>
                                 <Upload
-                                action="http://172.16.6.5:9090/upload/resource/logo"
+                                action={`${config.api_server}/upload/resource/logo`}
                                 listType="picture-card"
                                 fileList={fileList}
                                 onPreview={this.handlePreview}
                                 beforeUpload={this.beforeUpload}
                                 onChange={this.handleChange}
-                                data={{
-                                   "type":"shanyejun"
-                                }}
+                                // data={{
+                                //    "type":"logo"
+                                // }}
                             >
                                 {fileList.length >= 1 ? null : uploadButton}
                             </Upload>
@@ -300,13 +352,47 @@ class SystemConfiguration extends Component{
                         { ...formItemLayout}
                         label={(
                             <span>
+                            平台ICO图标&nbsp;
+                            </span>
+                        )}
+                    >   
+                        {getFieldDecorator("icologoPath",{
+                            rules: [{ required: false, message: '', whitespace: true }],
+                        })(
+                            <div>
+                                <Upload
+                                action={`${config.api_server}/upload/resource/logo`}
+                                listType="picture-card"
+                                fileList={fileLists}
+                                onPreview={this.icoHandlePreview}
+                                beforeUpload={this.icoBeforeUpload}
+                                onChange={this.icoChange}
+                                // data={{
+                                //    "type":"ico"
+                                // }}
+                            >
+                                {fileLists.length >= 1 ? null : icoUploadButton}
+                            </Upload>
+                            <Modal visible={icoPreviewVisible} footer={null} onCancel={this.icoHandleCancel}>
+                                <img alt="example" style={{ width: '100%' }} src={icoPreviewImage} />
+                            </Modal>
+                            <span>建议尺寸：长*宽大小为32*32，图片支持的格式:ico</span>
+                        </div>
+                        )}
+
+                    </FormItem>
+                    <FormItem
+                        { ...formItemLayout}
+                        label={(
+                            <span>
                             总服务台单位&nbsp;
                             </span>
                         )}
                         hasFeedback
                     >   
                         {getFieldDecorator("serviceDeskUnit",{
-                            initialValue:this.state.serviceDeskUnit,
+                            initialValue:serviceDeskUnit,
+                            // initialValue:"",
                             rules: [{ required: false, message: '', whitespace: true }],
                         })(
                             <Select >
@@ -315,27 +401,6 @@ class SystemConfiguration extends Component{
                         )}
 
                     </FormItem>
-                    {/* <FormItem
-                        { ...formItemLayout}
-                        label={(
-                            <span>
-                            总服务台角色&nbsp;
-                            </span>
-                        )}
-                        hasFeedback
-                    >   
-                        {getFieldDecorator("peploe",{
-                            initialValue:"",
-                            rules: [{ required: false, message: '', whitespace: true }],
-                        })(
-                            <Select >
-                                <Option value="1">服务台一号</Option>
-                                <Option value="2">服务台二号</Option>
-                                <Option value="3">服务台三号</Option>
-                            </Select>
-                        )}
-
-                    </FormItem> */}
                     <FormItem
                         { ...formItemLayout}
                         label={(
@@ -378,7 +443,9 @@ class SystemConfiguration extends Component{
                     >   
                         {getFieldDecorator("serviceDeskPhone",{
                             initialValue:this.state.serviceDeskPhone,
-                            rules: [{ required: false, message: '', whitespace: true }],
+                            rules: [{ required: false, message: '', whitespace: true }, {
+                                validator: this.checkPhone,
+                            }],
                         })(
                             <Input />
                         )}
@@ -395,7 +462,9 @@ class SystemConfiguration extends Component{
                     >   
                         {getFieldDecorator("technicalSupportPhone",{
                             initialValue:this.state.technicalSupportPhone,
-                            rules: [{ required: false, message: '', whitespace: true }],
+                            rules: [{ required: false, message: '', whitespace: true }, {
+                                validator: this.checkPhone,
+                            }],
                         })(
                             <Input />
                         )}

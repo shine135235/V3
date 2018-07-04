@@ -1,7 +1,8 @@
 import React,{Component} from 'react';
 import axios from 'axios';
-import { Button,Input,Table,LocaleProvider,Modal} from 'antd';
+import { Button,Input,Table,LocaleProvider,Modal,message,Icon} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
+import AuthPower from '../../../authpower';
 import AddFaultDetail from "./addFaultDetail";
 import EditFaultDetail from "./editFaultDetail";
 import config from '../../../../config';
@@ -19,17 +20,18 @@ export default class ChildArea extends Component{
             addLoading:false,
             pageSize:10,
             pageNum:1,
-            tatalRecord:0,
+            totalRecord:0,
             record:{},
-            data:[]
+            data:[],
+            search:""
         }
     }
     columns = [{
-        title:"故障细类名称",
+        title:"事件细类名称",
         dataIndex:"faultname",
         key:"faultname"
       },{
-        title:"故障大类名称",
+        title:"事件大类名称",
         dataIndex:"fname",
         key:"fname"
       },{
@@ -37,98 +39,154 @@ export default class ChildArea extends Component{
         key:"action",
         render:(text, record) => (
             <span>
-                <a href="#" onClick= {this.showModal.bind(this,record)}>编辑</a>
+                <AuthPower>
+                    <a href="#" god = "ny-faultDetailEdit" onClick= {this.showModal.bind(this,record)}>编辑</a>
+                </AuthPower>
                 <span className="ant-divider" />
-                <a href="#"  onClick= {this.Delet.bind(this,record)}>删除</a>
+                <AuthPower>
+                    <a href="#" god = "ny-faultDetailDelet"  onClick= {this.Delet.bind(this,record.id)}>删除</a>
+                </AuthPower>
             </span>
         ), 
     }];
     showModal = (record) =>{
         this.setState({record,editVisible:true});
     }
-    getParentListData = ({pageNum=1,pageSize=10,search = ""}) => {
+    getParentListData = ({pageNum,pageSize,search}) => {
         axios.get(`${config.api_server}/sys/faultcategory/sublist?pageNum=${pageNum}&pageSize=${pageSize}&search=${search}`).then((res) =>{
             if(res.data.page){
-                this.setState({data:res.data.page.datas})
-                this.setState({tatalRecord:res.data.page.totalRecord})
+                this.setState({data:res.data.page.datas,totalRecord:res.data.page.totalRecord,pageNum:pageNum})
             }
         })
     }
     componentDidMount(){
-        this.getParentListData({});
+        let pageNum = this.state.pageNum;
+        let pageSize = this.state.pageSize;
+        this.getParentListData({pageNum,pageSize,search:""});
     }
+    success = (success) => {
+        message.success(success)
+    };
+    error = (error) => {
+        message.error(error)
+    }
+    // Delet = (record) => {
+    //     let childs = "";
+    //     axios({
+    //         url:`${config.api_server}/sys/faulttype/list`,
+    //         method:'get',
+    //         headers: {
+    //             'Content-type': 'application/json;charset=UTF-8'
+    //         },
+    //         data:{
+    //             "parentId":record
+    //         }
+    //     }).then((res) => {
+    //             if(res.data.page.datas.length > 0){
+    //             childs = "该细类存在故障类型信息，确定要删除吗?"
+    //             }else{
+    //             childs = "确定要删除吗?" 
+    //             }
+    //             confirm({
+    //             title: "删除操作",
+    //             content: childs,
+    //             okText: '是',
+    //             okType: 'danger',
+    //             cancelText: '否',
+    //             onOk:() => {
+    //                     this.setDelet(record)
+    //             },
+    //             onCancel:() => {
+    //             },
+    //         });
+    //     })  
+    // }
     Delet = (record) => {
-        //eslint-disable-next-line
-        console.log(record);
         confirm({
-            title: '确定要删除此条信息吗?',
-            content: '删除的内容？',
+            title: '删除操作',
+            content: '确定要删除吗？',
             okText: '是',
             okType: 'danger',
             cancelText: '否',
             onOk:() => {
-                axios({
-                    url:`${config.api_server}/sys/faultcategory`,
-                    method:'delete',
-                    headers: {
-                        'Content-type': 'application/json;charset=UTF-8'
-                    },
-                    data:{
-                        "id":record.id
-                    }
-                }).then((res) => {
-                    let datas = res.data.success;
-                    if(datas){
-                        this.getParentListData({});
-                        setTimeout(() => {
-                            this.setState({ editLoading: false, editVisible: false});
-                        }, 1000);
-                        setTimeout(() => {
-                            this.success();
-                        }, 1000);
-                    }else{
-                        this.setState({ editLoading: false});
-                        setTimeout(() => {
-                            this.error();
-                        }, 1000);
-                    }
-                })
+                this.setDelet(record)
             },
             onCancel:() => {
                  //eslint-disable-next-line
               console.log('Cancel');
             },
           });
-    }  
+    } 
+    setDelet = (record) =>{
+        let ids = record.split(",");
+        axios({
+            url:`${config.api_server}/sys/faultcategory`,
+            method:'delete',
+            headers: {
+                'Content-type': 'application/json;charset=UTF-8'
+            },
+            data:{
+                "id":ids
+            }
+        }).then((res) => {
+            let datas = res.data.success;
+            if(datas){
+                let pageNum = 1;
+                let pageSize = this.state.pageSize;
+                this.getParentListData({pageNum,pageSize,search:""});
+                setTimeout(() => {
+                    this.setState({ editLoading: false, editVisible: false});
+                }, 1000);
+                setTimeout(() => {
+                    let success = "删除事件细类成功"
+                    this.success(success);
+                }, 1000);
+            }else{
+                this.setState({ editLoading: false});
+                let error = ""
+                if(res.data.message && res.data.message != ""){
+                    error = res.data.message      
+                }else{
+                    error = "删除事件细类失败"
+                }
+                setTimeout(() => {
+                        this.error(error);
+                }, 1000);
+            }
+        })
+    }
     onShowSizeChange = (current, size) =>{
-        this.getParentListDatas({pageNum:current,pageSize:size})
+        // this.setState({pageNum:current})
+        this.getParentListData({pageNum:current,pageSize:size,search:this.state.search})
     } 
     onChange = (page, pageSize) =>{
-        this.getParentListDatas({pageNum :page,pageSize:pageSize})
+        this.getParentListData({pageNum :page,pageSize:pageSize,search:this.state.search})
     }
-    showTotal = (total, range) => {
-        return `共 ${total} 条记录 第${range[0]}-${range[1]}条 `
+    showTotal = (total) => {
+        return `共 ${total} 条记录`
     }
     changeT = ({editVisible=false}) =>{
         this.setState({editVisible})
     }  
     refresh = () =>{
-        this.getParentListDatas({});
+        this.getParentListData({pageNum :1,pageSize:this.state.pageSize,search:""});
     } 
     onSearch = (value) =>{
         let pageNum = 1;
         let pageSize = 10;
         let search = value;
+        this.setState({search:value})
         this.getParentListData({pageNum,pageSize,search});
     }  
     render(){
         const pagination = {
+            current:this.state.pageNum,
             showQuickJumper:true,
             onShowSizeChange:this.onShowSizeChange,
             onChange:this.onChange,
-            total:this.state.tatalRecord,
+            total:this.state.totalRecord,
             showTotal:this.showTotal,
-            showSizeChanger:true,
+            // showSizeChanger:true,
             size:"small",
         }
         return (
@@ -143,8 +201,10 @@ export default class ChildArea extends Component{
                     </div>
                 </div> */}
                 <div className = 'eventTitle'>
-                        <AddFaultDetail getParentListData = {this.getParentListData} /> 
-                        <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}>刷新</Button>
+                    <AuthPower>
+                        <AddFaultDetail god = "ny-faultDetailAdd" getParentListData = {this.getParentListData} /> 
+                    </AuthPower>
+                        <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}><Icon type="reload"/></Button>
                         <div className = "eventTitleSearch"  style={{ width: "20%" }}>
                             <Search placeholder="搜索"  style={{ width: "100%" }} onSearch={this.onSearch}/>                          
                         </div>
@@ -157,7 +217,7 @@ export default class ChildArea extends Component{
                 <EditFaultDetail 
                     editVisible = {this.state.editVisible} 
                     changeT = {this.changeT}
-                    getParentListDatas = {this.getParentListDatas }
+                    getParentListData = {this.getParentListData }
                      record={ this.state.record}
                 />
             </div>

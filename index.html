@@ -3,19 +3,18 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <title>test</title>
+    <title><%= htmlWebpackPlugin.options.title%></title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- Polyfills -->
     <!--[if lt IE 10]>
     <script src="https://as.alipayobjects.com/g/component/??console-polyfill/0.2.2/index.js,es5-shim/4.5.7/es5-shim.min.js,es5-shim/4.5.7/es5-sham.min.js,es6-shim/0.35.1/es6-sham.min.js,es6-shim/0.35.1/es6-shim.min.js,html5shiv/3.7.2/html5shiv.min.js,media-match/2.0.2/media.match.min.js"></script>
     <![endif]-->
-    <script src="https://as.alipayobjects.com/g/component/??es6-shim/0.35.1/es6-sham.min.js,es6-shim/0.35.1/es6-shim.min.js"></script>
     <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&amp;ak=gasAub7IZrGFF6y1w3uM3h8o2uQp8a6M"></script>
 </head>
 <body>
     <div id="root"></div>
 </body>
 </html>
-<script>
-    window.BMap = BMap;
+<script >
+    window.BMap = BMap
 </script>

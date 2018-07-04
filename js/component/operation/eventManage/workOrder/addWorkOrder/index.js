@@ -2,10 +2,12 @@ import React,{Component} from 'react';
 import { Button, Form, Select, Input,  Row, Col, Upload, Icon, Modal, DatePicker, 
     LocaleProvider, message
 } from 'antd';
+import moment from 'moment';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
-import $axios from 'axios'
-import config from '../../../../../config'
+import $axios from 'axios';
+import config from '../../../../../config';
 import './index.less'
+
 
 const FormItem = Form.Item;
 const Option = Select.Option;
@@ -32,6 +34,9 @@ class AddWorkOrder extends Component {
         showList:"none",
         isRequired:false,
         gzdlID:'',
+        unitDisable:false,
+        defaultUnitValue:'',
+        nowPro:''
     }
     goBack = () => { 
         this.props.changeShowType('list')
@@ -55,13 +60,12 @@ class AddWorkOrder extends Component {
             let faultType = "";  //故障类型
             let slaId = "";    //sla 协议
             let slaTimeLevelId = "";    //sla 等级
-            let appointmentTime = "";  //预约时间
+            let appointmentTime =values.faultTime?values.faultTime.format('YYYY-MM-DD HH:mm:ss'):'';  //预约时间
             let currentHandle = "";//处理人
             let faultPicture = [];// 保存的图片路径
             let status = "2";  //状态
             let relevantPeople = "";// 需要通知的相关人
             if(this.state.isRequired){
-                appointmentTime = values.faultTime.format('YYYY-MM-DD HH:mm:ss');
                 projectId = values.faultProject;
                 faultCategoryId = values.faultCategory;
                 faultCategoryDetailId = values.faultItem;
@@ -113,6 +117,7 @@ class AddWorkOrder extends Component {
             if(json.data.success){
                 this.success("添加成功！");
                 this.props.changeShowType('list');
+                this.props.refreshData(1);
             }else{
                 this.error("添加失败！");
             }
@@ -127,18 +132,8 @@ class AddWorkOrder extends Component {
             previewVisible: true,
         });
     }
-
-    handleChange = ({ fileList }) => {
-        // eslint-disable-next-line
-        console.log("fileList",fileList);
-        // if(this.state.UploadFlg){
-        //     return;
-        // }
-        this.setState({ fileList })
-    };
-    componentDidMount () {
+    componentWillMount(){
         this.getOrderSouse();
-        
         this.getServiceUnit();
         this.getUserUnit();
         this.getSlaList();
@@ -146,7 +141,9 @@ class AddWorkOrder extends Component {
         if(isOpen == "true"){
             this.setState({
                 showList:"block",
-                isRequired:true
+                isRequired:true,
+                unitDisable:true,
+                defaultUnitValue:sessionStorage.getItem('deskUnitId')
             })
         }else{
             this.setState({
@@ -155,10 +152,16 @@ class AddWorkOrder extends Component {
             })
         }
     }
+    componentDidMount () {
+        if(this.state.defaultUnitValue!=''){
+            this.getProject(this.state.defaultUnitValue)
+        }
+    }
     addThemeValue = (value) => {
         let isDeskUnit = sessionStorage.getItem("isDeskUnit");
         let deskUnitId = sessionStorage.getItem("deskUnitId");
         let isOpen = sessionStorage.getItem("isOpen");
+        console.log(value==deskUnitId)
         if(isOpen == "true"){
             this.setState({
                 showList:"block",
@@ -196,9 +199,9 @@ class AddWorkOrder extends Component {
             faultService:{
                 value:undefined,
             },
-            faultTime:{
-                value:undefined,
-            },
+            // faultTime:{
+            //     value:undefined,
+            // },
             faultServiceLevel:{
                 value:undefined,
             },
@@ -212,8 +215,6 @@ class AddWorkOrder extends Component {
     }
     getOrderSouse = () => {
         $axios.get(`${config.api_server}/sys/dictitem/query/id`).then((json) => {
-            // eslint-disable-next-line
-            console.log(json)
             let resouseData = json.data.data;
             this.setState({resouseData})
         })
@@ -239,16 +240,12 @@ class AddWorkOrder extends Component {
     }
     getUserUnit = () => {
         $axios.get(`${config.api_server}/sys/unit/userunit`).then((json) => {
-            // eslint-disable-next-line
-            console.log("getUserUnit",json)
             let userUnitdata = json.data.data;
             this.setState({userUnitdata})
         })
     }
     getSlaList = () => {
         $axios.get(`${config.api_server}/ops/sla/slalist`).then((json) => {
-            // eslint-disable-next-line
-            console.log("getSlaList",json)
             let slaListdata = json.data.data;
             this.setState({slaListdata})
         })
@@ -329,7 +326,7 @@ class AddWorkOrder extends Component {
             this.props.form.setFields({
                 faultCategory:{
                     value:undefined,
-                    errors:[new Error("请选择故障大类")]
+                    errors:[new Error("请选择事件大类")]
                 }
             })
         }
@@ -340,7 +337,7 @@ class AddWorkOrder extends Component {
             this.props.form.setFields({
                 faultItem:{
                     value:undefined,
-                    errors:[new Error("请选择故障细类")]
+                    errors:[new Error("请选择事件细类")]
                 }
             })
         }
@@ -449,6 +446,7 @@ class AddWorkOrder extends Component {
 
     }
     getHandlerAndTZ = (value) => {
+        this.props.form.resetFields(['faultCategory','faultItem','faultType'])    
         let faultUnit = this.props.form.getFieldValue("faultUnit");
         // let faultProject = this.props.form.getFieldValue("faultProject");
         $axios.get(`${config.api_server}/sys/user/workuserlist`,{
@@ -458,8 +456,6 @@ class AddWorkOrder extends Component {
                 type:'handler'
             }
         }).then((json) => {
-            // eslint-disable-next-line
-            console.log("workuserlisthandler",json);
             let handlerData = json.data;
             this.setState({handlerData})
         });
@@ -470,29 +466,31 @@ class AddWorkOrder extends Component {
                 unitId:faultUnit
             }
         }).then((json) => {
-            // eslint-disable-next-line
-            console.log("workuserlist",json);
             let handlerDataTZ = json.data;
             this.setState({handlerDataTZ})
         });
     }
-    // beforeUpload=(file) => {
-    //     let fileSize = file.size/1024;
-    //     if(fileSize > 1024){
-    //         this.error("图片过大，请重新上传！");
-    //         // return false;
-    //         this.setState({UploadFlg:true});
-    //         return;
-    //     }else{
-    //         this.setState({UploadFlg:false})
-    //     }
-    //     // eslint-disable-next-line
-    //     console.log(fileSize);
-    //     // eslint-disable-next-line
-    //     console.log(1024);
-    //     // eslint-disable-next-line
-    //     console.log(fileSize > 5*1024);
-    // }
+    handleChange = (info) => {
+        console.log(info)
+        if(info.file.type==='image/jpeg' || info.file.type==='image/png'){
+            this.setState({ fileList:info.fileList })
+            
+        }else{
+            message.error('上传图片格式有误,请重新上传!')
+            return ;
+        }
+    };
+    beforeUpload=(file) => {
+        console.log(file)
+        let fileSize = file.size/1024;
+        if(fileSize > 5125){
+            this.error("图片过大，请重新上传！");
+            this.setState({UploadFlg:true});
+            return;
+        }else{
+            this.setState({UploadFlg:false})
+        }
+    }
     error = (con) => {
         message.error(con)
     }
@@ -656,9 +654,11 @@ class AddWorkOrder extends Component {
                                         required: true,
                                         message: '请选择流转单位',
                                     }],
+                                    initialValue:this.state.defaultUnitValue
                                 })(
                                     <Select placeholder="请选择流转单位..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} 
                                     onSelect={this.addThemeValue}
+                                    disabled={this.state.unitDisable}
                                     >
                                         {
                                             serviceUnitdata.map((item,index) => {
@@ -669,6 +669,24 @@ class AddWorkOrder extends Component {
                                 )}
                             </FormItem>
                             
+                        </Col>
+                    </Row>
+                    <Row>
+                    <Col span={12}>
+                                <FormItem
+                                        {...formItemLayoutTime}
+                                        label="预约时间"
+                                    >
+                                        {getFieldDecorator('faultTime', {
+                                            rules: [{
+                                                required: this.state.isRequired,
+                                                message: '请选择预约时间',
+                                            }],
+                                            initialValue:moment(new Date())
+                                        })(
+                                                <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" style={{"width":"100%"}}/>
+                                        )}
+                                </FormItem>
                         </Col>
                     </Row>
                     <Row style={{"display":this.state.showList}}>
@@ -683,7 +701,7 @@ class AddWorkOrder extends Component {
                                         message: '请选择项目名称',
                                     }],
                                 })(
-                                    <Select placeholder="请选择项目名称..." onFocus={this.checkUnitValue} showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} onSelect = {this.getHandlerAndTZ}>
+                                    <Select placeholder="请选择项目名称..." onFocus={this.checkUnitValue} showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} onChange = {this.getHandlerAndTZ}>
                                         {
                                             projectdata.map((item,index) => {
                                                 return <Option key={index} value={item.proId}>{item.proName}</Option>
@@ -697,15 +715,15 @@ class AddWorkOrder extends Component {
                         <Col span={12}>
                         <FormItem
                                 {...formItemLayout1}
-                                label="故障大类"
+                                label="事件大类"
                             >
                                 {getFieldDecorator('faultCategory', {
                                     rules: [{
                                         required: this.state.isRequired,
-                                        message: '请选择故障大类',
+                                        message: '请选择事件大类',
                                     }],
                                 })(
-                                    <Select placeholder="请选择故障大类..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} onFocus={this.checkProjectValue} onSelect = {this.getFaultItem}>
+                                    <Select placeholder="请选择事件大类..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} onFocus={this.checkProjectValue} onChange = {this.getFaultItem}>
                                         {
                                             faultCategoryData.map((item,index) => {
                                                 return <Option key={index} value={item.id}>{item.faultname}</Option>
@@ -721,15 +739,15 @@ class AddWorkOrder extends Component {
                         <Col span={12}>
                         <FormItem
                                 {...formItemLayout1}
-                                label="故障细类"
+                                label="事件细类"
                             >
                                 {getFieldDecorator('faultItem', {
                                     rules: [{
                                         required: this.state.isRequired,
-                                        message: '请选择故障细类',
+                                        message: '请选择事件细类',
                                     }],
                                 })(
-                                    <Select placeholder="请选择故障细类..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} onFocus={this.checkFaultCategoryValue} onSelect={this.getFaultType}>
+                                    <Select placeholder="请选择事件细类..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} onFocus={this.checkFaultCategoryValue} onChange={this.getFaultType}>
                                         {
                                             faultItemData.map((item,index) => {
                                                 return <Option key={index} value={item.id}>{item.faultname}</Option>
@@ -742,15 +760,15 @@ class AddWorkOrder extends Component {
                         <Col span={12}>
                         <FormItem
                                 {...formItemLayout1}
-                                label="故障类型"
+                                label="事件类型"
                             >
                                 {getFieldDecorator('faultType', {
                                     rules: [{
                                         required: this.state.isRequired,
-                                        message: '请选择故障类型',
+                                        message: '请选择事件类型',
                                     }],
                                 })(
-                                    <Select placeholder="请选择故障类型..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} onFocus={this.checkFaultItemValue} 
+                                    <Select placeholder="请选择事件类型..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} onFocus={this.checkFaultItemValue} 
                                     // onSelect={this.themeTypeV}
                                     >
                                         {
@@ -776,7 +794,7 @@ class AddWorkOrder extends Component {
                                         message: '请选择服务协议',
                                     }],
                                 })(
-                                    <Select placeholder="请选择服务协议..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} onSelect={this.getSlaLevel}>
+                                    <Select placeholder="请选择服务协议..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} onChange={this.getSlaLevel}>
                                         {
                                             slaListdata.map((item,index) => {
                                                 return <Option key={index} value={item.id}>{item.name}</Option>
@@ -787,24 +805,6 @@ class AddWorkOrder extends Component {
                             </FormItem>
                             
                         </Col>
-                        <Col span={12}>
-                                <FormItem
-                                        {...formItemLayoutTime}
-                                        label="预约时间"
-                                    >
-                                        {getFieldDecorator('faultTime', {
-                                            rules: [{
-                                                // type: 'object',
-                                                required: this.state.isRequired,
-                                                message: '请选择预约时间',
-                                            }],
-                                        })(
-                                                <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" style={{"width":"100%"}}/>
-                                        )}
-                                </FormItem>
-                        </Col>
-                    </Row>
-                    <Row style={{"display":this.state.showList}}>
                         <Col span={12}>
                         <FormItem
                                 {...formItemLayout1}
@@ -827,6 +827,9 @@ class AddWorkOrder extends Component {
                             </FormItem>
                             
                         </Col>
+                    </Row>
+                    <Row style={{"display":this.state.showList}}>
+                        
                         <Col span={12}>
                         <FormItem
                                 {...formItemLayout1}
@@ -841,7 +844,7 @@ class AddWorkOrder extends Component {
                                     <Select placeholder="请选择处理人..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} onFocus={this.getHandler}>
                                         {
                                             handlerData.map((item,index) => {
-                                                return <Option key={index} value={item.id}>{`${item.username}(${item.rolename})`}</Option>
+                                                return <Option key={index} value={item.loginId}>{`${item.username}(${item.rolename})`}</Option>
                                             })
                                         }
                                     </Select>
@@ -857,13 +860,14 @@ class AddWorkOrder extends Component {
                             <div className="clearfix">
                             {getFieldDecorator("faultPicture")(
                                 <Upload
+                                    accept="image/jpeg,image/png,image/gif,image/bmp"
                                     action={`${config.api_server}/upload/resource/commonupload`}
                                     listType="picture-card"
                                     fileList={fileList}
                                     onPreview={this.handlePreview}
                                     onChange={this.handleChange}
                                     data={{type:"workorder"}}
-                                    // beforeUpload={this.beforeUpload}
+                                    beforeUpload={this.beforeUpload}
                                 >
                                     {fileList.length >= 3 ? null : uploadButton}
                                 </Upload>
@@ -884,7 +888,7 @@ class AddWorkOrder extends Component {
                                 type:"array"
                             }]
                         })(
-                            <Select mode="multiple" placeholder="请选择相关人..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}>
+                            <Select onSelect={this.setTz} mode="multiple" placeholder="请选择相关人..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}>
                                 {
                                     handlerDataTZ.map((item,index) => {
                                         return <Option key={index} value={item.id}>{`${item.username}(${item.rolename})`}</Option>

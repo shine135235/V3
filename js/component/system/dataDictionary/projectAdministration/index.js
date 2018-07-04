@@ -1,6 +1,6 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Input,Table,LocaleProvider,message,Modal, Pagination} from 'antd';
+import { Button,Input,Table,LocaleProvider,message,Modal, Pagination,Icon} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import AddSysProject from "./addSysProject";
 import EditSysProject from "./editSysProject";
@@ -230,13 +230,13 @@ export default class SysProject extends Component{
         this.setState({
             pageNum:page,pageSize:pageSize
         })
-        this.getListData({pageNum:page,pageSize:pageSize});
+        this.getListData({pageNum:page,pageSize:pageSize,searchVal:this.state.searchVal});
     }
     onShowSizeChange = (current, size) =>{
         this.setState({
             pageNum:current,pageSize:size
         })
-        this.getListData({pageNum:current,pageSize:size});
+        this.getListData({pageNum:current,pageSize:size,searchVal:this.state.searchVal});
     }
     searchFunc = (value) => {
         //eslint-disable-next-line
@@ -244,11 +244,15 @@ export default class SysProject extends Component{
         this.setState({
             searchVal:value
         })
-        this.getListData({});
+        this.getListData({searchVal:value});
     }
     refreshData = () => {
         this.getListData({})
 
+    }
+    onSearch = (value) =>{
+        this.setState({searchVal:value,pageNum:1,pageSize:10})
+        this.getListData({pageNum:1,pageSize:10,searchVal:value});
     }
     render(){
         const {visibleEdit,totalRecord,data,rowId,
@@ -261,15 +265,20 @@ export default class SysProject extends Component{
                 first_party,
                 users} = this.state;
         return (
-            <div className='data-class-over'>
+            <div className='data-class-over1'>
                 <div className = 'sysProjectTitle'>
-                    <span className="sysProjectTitleLeft"></span>
+                        <AddSysProject getListData = { this.getListData}/>
+                        <Button onClick = {this.refreshData} style = {{"marginLeft":"10px"}}><Icon type="reload"/></Button>
+                        <div className = "sysProjectTitleSearch"  style={{ width: "20%" }}>
+                            <Search placeholder="搜索"  style={{ width: "100%" }} onSearch={this.onSearch}/>                          
+                        </div>
+                    {/* <span className="sysProjectTitleLeft"></span>
                     <span>项目管理</span> 
                     <div className = "sysProjectTitleSearch">
                         <Search placeholder="搜索"  style={{ width: 200 }} onSearch={this.searchFunc}/>
                         <Button onClick={this.refreshData}>刷新</Button>
                         <AddSysProject getListData={this.getListData}/>
-                    </div>
+                    </div> */}
                 </div>
                 <div  style={{"height":"86%","overflowY":"auto"}}>
                     <LocaleProvider locale = {zhCN}>
@@ -279,10 +288,11 @@ export default class SysProject extends Component{
                 <div style={{"position":"absolute","right":"1.25%","marginTop":"12px"}}>
                     <LocaleProvider locale = {zhCN}>
                         <Pagination 
+                            current={this.state.pageNum}
                             showQuickJumper={true}
                             total={totalRecord}
-                            showTotal={this.showTotal}
-                            showSizeChanger={true}
+                            // showTotal={this.showTotal}
+                            // showSizeChanger={true}
                             size="small"
                             onChange={this.onChange}
                             onShowSizeChange={this.onShowSizeChange}

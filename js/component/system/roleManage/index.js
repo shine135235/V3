@@ -12,12 +12,13 @@ export default class RoleManage extends Component{
     constructor(props){
         super(props)
         this.state = {
-            openKeys: ['public'],
-            selectKey:['4DD48590454811E8A4FB02004C4F4F32'],
+            openKeys: ['public','private'],
+            selectKey:[],
             checkedKeys:[],
             powerData:[],
             publicRole:[],
             privateRole:[],
+            defaultId:'',
             roleid:'4DD48590454811E8A4FB02004C4F4F32',
             rolename:'思维分服务台',
             roleType:true,
@@ -30,22 +31,42 @@ export default class RoleManage extends Component{
         this.getPowerData(this.state.roleid)
     }
     onSelect=(e) =>{
-        this.setState({
-            roleid:e.key,
-            rolename:e.item.props.children,
-            roleType:e.item.props.rt=='public'?true:false
-        })
         console.log(e)
-        this.getPowerData(e.key)
+        if(e.key!=this.state.selectKey[0]){
+            if(e.item.props.rt==='public'){
+                this.setState({
+                    openKeys:['public']
+                })
+            }else{
+                this.setState({
+                    openKeys:['private']
+                })
+            }
+            this.setState({
+                roleid:[e.key],
+                selectKey:[e.key],
+                rolename:e.item.props.children,
+                roleType:e.item.props.rt=='public'?true:false
+            })
+            this.getPowerData(e.key)
+        }else{
+            console.log('已屏蔽重复操作')
+        }
+        
     }
     //获取用户权限
     getPowerData=(key) =>{
+        this.setState({
+            treeDisabled:true
+        })
         axios.get(`${config.api_server}/sys/permission`,{
             params:{
                 roleid:key
             }
         }).then(res =>{
             this.setState({
+                treeDisabled:false,
+                //powerData:res.data.power.slice(1),
                 powerData:res.data.power,
                 checkedKeys:res.data.hasPower===null?[]:res.data.hasPower
             })
@@ -55,6 +76,10 @@ export default class RoleManage extends Component{
     getRoleData=() =>{
         axios.get(`${config.api_server}/sys/role/list`).then(res =>{
             this.setState({
+                rolename:res.data.public[0].name,
+                roleid:[res.data.public[0].id],
+                selectKey:[res.data.public[0].id],
+                defaultId:res.data.public[0].id,
                 publicRole:res.data.public,
                 privateRole:res.data.private
             })
@@ -62,7 +87,6 @@ export default class RoleManage extends Component{
     }
     openAdd=(e) =>{
         e.stopPropagation();
-        console.log(e.target.id)
         this.setState({
             addRole: true
         })
@@ -95,12 +119,13 @@ export default class RoleManage extends Component{
             onOk() {
                 axios.delete(`${config.api_server}/sys/role`,{
                     data:{
-                      id:_this.state.roleid
+                      id:_this.state.roleid[0]
                     }
                 }).then(res =>{
                     if(res.data.success){
                         message.success('角色删除成功');
                         _this.getRoleData()
+                        _this.getPowerData(_this.state.defaultId)
                     }else{
                         message.error(res.data.message)
                     }
@@ -125,7 +150,7 @@ export default class RoleManage extends Component{
         }).then(res =>{
             if(res.data.success){
                 message.success('权限修改成功!');
-                this.getPowerData(this.state.roleid);
+                this.getPowerData(this.state.roleid[0]);
                 this.setState({
                     treeDisabled:false
                 })
@@ -148,33 +173,31 @@ export default class RoleManage extends Component{
         });
       }
     render(){
+        console.log(this.state.powerData)
        if(this.state.powerData.length>0){
         return (
             <div className='role-and-power'>
-            <div className='page-title'>
-            <span>　<Icon type='solution' style={{ fontSize: 22 }} /> 角色管理</span>
-            <font>
-             
-            </font>
-            </div>
+ 
             <div className='role-content'>
             <div className='department'>
-            <div className='role-aide'><Button type="primary" onClick={this.editRole}>编辑角色</Button> <Button type="primary" onClick={this.deleteRole}>删除角色</Button></div>
+            <div className='role-aide'><Button type="primary" onClick={this.editRole} style={{float:'left',marginLeft:'12px'}}>编辑角色</Button><Button type="primary" style={{float:'right',marginRight:'12px'}} onClick={this.deleteRole}>删除角色</Button></div>
+            <div className='role-scroll'>
             <Menu
                 mode="inline"
-                onSelect={this.onSelect}
+                onClick={this.onSelect}
                 defaultOpenKeys={this.state.openKeys}
                 defaultSelectedKeys={this.state.selectKey}
                 onOpenChange={this.onOpenChange}
+                selectedKeys={this.state.selectKey}
             >
-                <SubMenu key="public" title={<span><Icon type="global" /><span>公有角色</span>　<Icon type="usergroup-add" id='public' onClick={(e)=>{this.openAdd(e)}} /></span>}>
+                <SubMenu key="public" title={<span><Icon type="plus-circle-o" id='public' onClick={(e)=>{this.openAdd(e)}} /><span>公有角色</span></span>}>
                     {
                         this.state.publicRole.map(item =>(
                             <Menu.Item key={item.id} rt='public'>{item.name}</Menu.Item>
                         ))
                     }
                 </SubMenu>
-                <SubMenu key="private" title={<span><Icon type="skin" /><span>私有角色</span>　<Icon type="usergroup-add" id='private' onClick={(e)=>{this.openAdd(e)}} /></span>}>
+                <SubMenu key="private" title={<span><Icon type="plus-circle-o" id='private' onClick={(e)=>{this.openAdd(e)}} /><span>私有角色</span></span>}>
                     {
                         this.state.privateRole.map(item =>(
                             <Menu.Item key={item.id}>{item.name}</Menu.Item>
@@ -182,6 +205,7 @@ export default class RoleManage extends Component{
                     }
                 </SubMenu>
             </Menu>
+            </div>
             </div>
             <div className='power-list'>
              <div className='power-group'>

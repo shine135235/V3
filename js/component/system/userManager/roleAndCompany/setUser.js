@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
 import {Form, Input, Button, Modal, Switch,message } from 'antd';
 import axios from 'axios';
+import AuthPower from '../../../authpower';
 import {UserRoleList} from '../../../public';
 import config from '../../../../config';
 
@@ -20,34 +21,45 @@ class SetUserMsgForm extends Component{
     }
     handleClick = () =>{
     }
+    checkPhone=(rule, value, callback) =>{
+        if(!(/^1(3|4|5|7|8)\d{9}$/.test(value))){
+            callback("手机号码有误，请重填");
+        }else{
+            callback();
+        }
+    }
     handleOk = () => {
-        this.setState({
-            loading:true
-        })
-        let usermsg=this.props.form.getFieldsValue();
-        axios.put(`${config.api_server}/sys/user`,{
-            id:this.props.userid,
-            userName:usermsg.name,
-            loginId:usermsg.username,
-            unitId:this.props.unit,
-            phone:usermsg.phone,
-            isForbid:this.state.status,
-            userRole:[
-                {
-                    id:sessionStorage.getItem('role')===null?this.props.role:sessionStorage.getItem('role')
-                }
-            ]
-        }).then(res =>{
-            if(res.data.success){
-                message.success('角色修改成功');
-                this.props.reloadData(1,this.props.unit,this.props.role,this.props.code)
-                this.props.cannel();
+        this.props.form.validateFields((err,values) =>{
+            if(!err){
                 this.setState({
-                    loading:false
+                    loading:true
                 })
-                sessionStorage.removeItem('role');
-            }else{
-                message.error(res.data.message)
+                axios.put(`${config.api_server}/sys/user`,{
+                    id:this.props.userid,
+                    userName:values.name,
+                    loginId:values.username,
+                    unitId:this.props.unit,
+                    phone:values.phone,
+                    positionName:values.job,
+                    isForbid:!this.state.status,
+                    userRole:[
+                        {
+                            id:sessionStorage.getItem('role')?sessionStorage.getItem('role'):this.props.role
+                        }
+                    ]
+                }).then(res =>{
+                    if(res.data.success){
+                        message.success('用户信息修改成功');
+                        this.props.reloadData(1,this.props.unit,this.props.role,this.props.code)
+                        this.props.cannel();
+                        this.setState({
+                            loading:false
+                        })
+                        sessionStorage.removeItem('role');
+                    }else{
+                        message.error(res.data.message)
+                    }
+                })
             }
         })
     }
@@ -75,6 +87,7 @@ class SetUserMsgForm extends Component{
               sm: { span: 14 },
             },
         };
+        console.log(this.props.role)
         return(
             <div>
             <Modal 
@@ -82,6 +95,7 @@ class SetUserMsgForm extends Component{
             wrapClassName="vertical-center-modal"
             visible={this.props.showMask}
             onCancel={this.handleCancel}
+            destroyOnClose={true}
             footer={[
                 <Button key="back" size="large" onClick={this.handleCancel}>取消</Button>,
                 <Button key="submit" type="primary" size="large" loading={this.state.loading} onClick={this.handleOk}>
@@ -118,7 +132,12 @@ class SetUserMsgForm extends Component{
                 {...formItemLayout}
                 label="手机号码"
                 >
-                {getFieldDecorator('phone',{
+                {getFieldDecorator('phone', {
+                    rules: [{
+                    required: true,whitespace:true, max:11,  message: '请输入手机号码!',
+                    },{
+                        validator:this.checkPhone
+                    }],
                     initialValue:this.props.phone
                 })(<Input />)}
                 </FormItem>
@@ -126,7 +145,7 @@ class SetUserMsgForm extends Component{
                 {...formItemLayout}
                 label="角色"
                 >
-                {getFieldDecorator('role')(<UserRoleList selectValue={this.props.role} uid={this.props.unit} />)}
+                {getFieldDecorator('role')(<UserRoleList selectValue={this.props.role} uid={this.props.unit} self={this.props.myself} />)}
                 </FormItem>
                 <FormItem
                 {...formItemLayout}
@@ -136,7 +155,9 @@ class SetUserMsgForm extends Component{
                     initialValue:this.props.job
                 })(<Input />)}
                 </FormItem>
+                <AuthPower>
                 <FormItem
+                 god='jyyh'
                 {...formItemLayout}
                 label="成员状态"
                 >
@@ -144,6 +165,7 @@ class SetUserMsgForm extends Component{
                     initialValue:true,
                 })(<Switch checkedChildren="启用" unCheckedChildren="禁用" defaultChecked onChange={this.switchChange} />)}
                 </FormItem>
+                </AuthPower>
                 </Form>
                 {/* </TabPane> */}
                 {/* <TabPane tab="修改成员密码" key="2">

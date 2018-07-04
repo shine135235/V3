@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
-import {Form, Input, Button, Modal, Switch, Select, message } from 'antd';
+import {Form, Input, Button, Modal, Switch, Select, message,Alert } from 'antd';
 import axios from 'axios';
+import AuthPower from '../../../authpower';
 import config from '../../../../config';
 
 const FormItem=Form.Item;
@@ -43,6 +44,7 @@ class AdduserForm extends Component{
     state={
         loading:false,
         status:true,
+        disabled:false,
         sp:[],
         roleValue:''
     }
@@ -60,13 +62,12 @@ class AdduserForm extends Component{
     }
     
     handleOk=() =>{
-        console.log(this.props.unit)
+        this.setState({
+            disabled:true,
+            loding:true
+        })
         this.props.form.validateFields((err,values)=>{
             if(!err){
-                this.setState({
-                    loding:true
-                })
-                console.log(values)
                 axios.post(`${config.api_server}/sys/user`,{
                     userName:values.name,
                     loginId:values.username,
@@ -81,13 +82,18 @@ class AdduserForm extends Component{
                 }).then(res =>{
                     if(res.data.success){
                         message.success('添加成功');
-                        this.props.reloadData(1,this.props.unit,this.props.role,this.props.code)
+                        this.props.reloadData(1,this.props.unit,sessionStorage.getItem('addUser').split(',')[1],this.props.code)
                         this.props.cannel();
                         this.setState({
+                            disabled:false,
                             loading:false
                         })
                     }else{
-                        message.error(res.data.message)
+                        message.error(res.data.message);
+                        this.setState({
+                            disabled:false,
+                            loding:false
+                        })
                     }
                 })
             }
@@ -102,6 +108,7 @@ class AdduserForm extends Component{
               value:value
             },
           });
+          sessionStorage.setItem('addUser',`${value}-${this.props.unit}`)
     }
     render(){
         const { getFieldDecorator } = this.props.form;
@@ -117,14 +124,14 @@ class AdduserForm extends Component{
         };
         return(
             <Modal
-            title="新增成员"
+            title="新增用户"
             wrapClassName="vertical-center-modal"
             visible={this.props.show}
             onCancel={this.handleCancel}
             destroyOnClose='true'
             footer={[
                 <Button key="back" size="large" onClick={this.handleCancel}>取消</Button>,
-                <Button key="submit" type="primary" size="large" loading={this.state.loading} onClick={this.handleOk}>
+                <Button key="submit" type="primary" size="large" loading={this.state.loading} disabled={this.state.disabled} onClick={this.handleOk}>
                   提交
                 </Button>
               ]}
@@ -159,7 +166,7 @@ class AdduserForm extends Component{
                 >
                 {getFieldDecorator('phone', {
                     rules: [{
-                    required: true,whitespace:true, max:11,  message: '请输入手机号码!',
+                    required: true,whitespace:true, max:11,  message: '请输入手机号码',
                     },{
                         validator:this.checkPhone
                     }]
@@ -183,13 +190,17 @@ class AdduserForm extends Component{
                 >
                 {getFieldDecorator('job')(<Input />)}
                 </FormItem>
+                <AuthPower>
                 <FormItem
+                 god='jyyh'
                 {...formItemLayout}
                 label="成员状态"
                 >
-                {getFieldDecorator('status')(<Switch checkedChildren="启用" unCheckedChildren="禁用" defaultChecked onChange={this.switchChange} />)}
+                {getFieldDecorator('status')(<Switch checkedChildren="启用" unCheckedChildren="禁用" defaultChecked={true} onChange={this.switchChange} />)}
                 </FormItem>
+                </AuthPower>
                 </Form>
+                <Alert message="新增用户默认密码为 123456" type="info" showIcon  />
             </Modal>
         )
     }

@@ -1,5 +1,9 @@
 import React,{Component} from 'react';
-import { Form, Button, Table, Input, Row, Col, Select, Upload, Icon, Modal,Switch } from 'antd';
+import { Form, Button, Table, Input, Row, Col, Select, Upload, Icon, Modal,Switch,message } from 'antd';
+import axios from 'axios';
+import AssetsMsg from './AssetsMsg'
+import config from '../../../../../config';
+import './index.less'
 
 const FormItem = Form.Item;
 const { TextArea } = Input;
@@ -7,79 +11,179 @@ const Option = Select.Option;
 // const RadioGroup = Radio.Group;
 class ProcessWorkOrder extends Component {
     state = {
-        data:[],
         previewVisible: false,
+        sfAssets:false,
         previewImage: '',
-        fileList: [{
-            uid: -1,
-            name: 'xxx.png',
-            status: 'done',
-            url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-        }],
+        fileList: [],
         showAssets:"none",
-        switchType:true,
+        switchType:1,
+        closeData:{},
+        assetsData:[],
+        selectedRowKeys:'',
+        disabled:false,
+        loading:false,
+        Assetsvisible:false,
+        faultPic:[]
     }
-    goBack = () => {
-        this.props.changeShowType({showType:"list"})
+    goBack = () => { 
+        this.props.changeShowType('list')
     }
     columns = [
         {
             title: '单号',
-            dataIndex: 'count',
+            dataIndex: 'FILECODE',
         },{
             title: '经办人',
-            dataIndex: 'handler',
+            dataIndex: 'MANAGER',
         },{
             title: '经办时间',
-            dataIndex: 'assetsTime',
+            dataIndex: 'MANAGERTIME',
         },{
             title: '出库类型',
-            dataIndex: 'assetsType',
+            dataIndex: 'STORAGETYPE',
         },{
             title: '状态',
-            dataIndex: 'assetsStatus',
+            dataIndex: 'REVIEWNAME',
         },{
             title: '操作',
             key: 'action',
-            render: () => {
+            render: (text,record) => {
                 return(
-                    <span>
-                        <a href="javascript:void 0">删除</a>
-                    </span>
+                    this.props.only==0?<span>
+                    <a href="javascript:void 0" onClick={this.deleteAeets.bind(this,record)}>删除</a>
+                </span>:null
                 )
             }
         }
       ]
+      deleteAeets=(record) =>{
+          let deleteItem='';
+          if(this.state.selectedRowKeys.length>0){
+            this.state.selectedRowKeys.map(item =>{
+                deleteItem+=item+','
+            })
+          }else{
+             deleteItem=record.PROCESSID
+          }
+            axios.delete(`${config.api_server}/ops/workorder/removeProcess`,{
+                params:{
+                    DATAIDS:deleteItem
+                }
+              }).then(res =>{
+                  if(res.data.success){
+                      message.success('资产删除成功!');
+                      this.getOrderData();
+                  }
+              })
+      }
       onChange = (e) => {
-        console.log('radio checked', e.target.value);
         this.setState({
           value: e.target.value,
         });
       }
       handleCancel = () => this.setState({ previewVisible: false })
 
-    handlePreview = (file) => {
-        this.setState({
-            previewImage: file.url || file.thumbUrl,
-            previewVisible: true,
-        });
+    handlePreview = (e) => {
+        switch(e.target.parentNode.childNodes.length){
+            case 1:
+            this.setState({
+                previewVisible: true,
+                imgSrc:e.target.parentNode.parentNode.childNodes[0].currentSrc
+            })
+            break;
+            case 2:
+            this.setState({
+                previewVisible: true,
+                imgSrc:e.target.parentNode.childNodes[0].currentSrc
+            })
+            break;
+        }
     }
 
     handleChange = ({ fileList }) => this.setState({ fileList })
     showAssetsTable = () => {
-        let showAssets = this.state.showAssets=="none"?"block":"none";
-        this.setState({showAssets})
+        //let showAssets = this.state.showAssets=="none"?"block":"none";
+        //this.setState({showAssets})
+        this.setState({
+            Assetsvisible:true
+        })
     }
     onChangeSwitch = (checked) => {
-        // eslint-disable-next-line
-        console.log(`switch to ${checked}`);
-        // eslint-disable-next-line
-        console.log(`this state before ${this.state.switchType}`);
-        this.setState({switchType:checked});
-        setTimeout(() => {
-        // eslint-disable-next-line
-        console.log(`this state ${this.state.switchType}`);
-        }, 500);
+        this.setState({switchType:checked?1:0});
+    }
+    getOrderData=() =>{
+        axios.get(`${config.api_server}/ops/workorder/solveWorkOrderLog/${this.props.rowData}?view=${this.props.orderStatus>5?true:false}`).then(res =>{
+            this.setState({
+                closeData:res.data.data,
+                assetsData:res.data.data.assetsList!=""?JSON.parse(res.data.data.assetsList):[],
+                faultPic:res.data.data.faultHandlePicture
+            })
+            console.log(res.data.data.assetsList)
+            if(res.data.data.assetsList!=""){
+                this.setState({
+                    showAssets:'table'
+                })
+            }else{
+                this.setState({
+                    showAssets:'none'
+                })
+            }
+        })
+    }
+    componentWillMount(){
+        this.getOrderData()   
+    }
+    componentDidMount(){
+            if(this.props.orderStatus>5){
+                this.setState({
+                    disabled:true
+                })
+            }
+    }
+    submitFunc=() =>{
+        this.props.form.validateFields((err,values) =>{
+            if(!err){
+                this.setState({
+                    loading:true
+                })
+                let faultPicture=[]
+                let pic = this.state.fileList;
+                if(pic.length > 0){
+                    for(let i = 0;i<pic.length;i++){
+                        faultPicture.push(pic[i].response.path);
+                    }
+                }
+                axios.post(`${config.api_server}/ops/workorder/solve`,{
+                    id:this.props.rowData,
+                    status:this.props.orderStatus,
+                    isSolve:this.state.switchType,
+                    quality:values.quality,
+                    resultsDesc:values.processDesc,
+                    solution:values.processSolutionType,
+                    faultHandlePicture:faultPicture
+                }).then(res =>{
+                    if(res.data.success){
+                        message.success('工单处理成功!');
+                        this.props.changeShowType('list');
+                        this.props.refreshData(1);
+                        this.setState({
+                            loading:false
+                        })
+                    }else{
+                        message.error(res.data.message);
+                        this.setState({
+                            loading:false
+                        })
+                    }
+                })
+            }
+        })
+    }
+    handleCancel =() =>{
+        this.setState({
+            previewVisible:false,
+            Assetsvisible:false
+        })
     }
     render(){
         const { previewVisible, previewImage, fileList } = this.state;
@@ -102,18 +206,18 @@ class ProcessWorkOrder extends Component {
             // span:20
             },
         };
-        const formItemLayoutPeo = {
-            labelCol: {
-              xs: { span: 24 },
-              sm: { span: 4 },
-            // span:4,
-            },
-            wrapperCol: {
-              xs: { span: 24 },
-              sm: { span: 7 },
-            // span:20
-            },
-        };
+        // const formItemLayoutPeo = {
+        //     labelCol: {
+        //       xs: { span: 24 },
+        //       sm: { span: 4 },
+        //     // span:4,
+        //     },
+        //     wrapperCol: {
+        //       xs: { span: 24 },
+        //       sm: { span: 7 },
+        //     // span:20
+        //     },
+        // };
         const formItemLayout1 = {
             labelCol: {
               xs: { span: 24 },
@@ -138,25 +242,35 @@ class ProcessWorkOrder extends Component {
             // span:20
             },
         };
+        const rowSelection = {
+            onChange: (selectedRowKeys, selectedRows) => {
+                this.setState({
+                    selectedRowKeys
+                })
+              console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+            },
+            getCheckboxProps: record => ({
+                disabled:this.props.only==0?false:true,
+                name: record.name,
+              }),
+          };
         return(
             <div className='processWorkOrder'>
                 <Form>
                     <FormItem
                         wrapperCol={{ span: 19, offset: 2 }}
                     >
-                        <TextArea rows={4} disabled={true}/>
+                        <TextArea rows={4} disabled={true} value={this.state.closeData?this.state.closeData.faultDesc:''} />
                     </FormItem>  
                     <FormItem
                         wrapperCol={{ span: 20, offset: 1 }}
                     >
-                    <Button type='primary' style={{"marginLeft":"5%"}} onClick={this.showAssetsTable}>领取资产</Button>
+                    <Button type='primary' style={{"marginLeft":"5%"}} onClick={this.showAssetsTable} disabled={this.props.orderStatus=='5'?false:true}>领取资产</Button>
                         <div  className='processWorkOrder_table' style={{"marginLeft":"5%","display":this.state.showAssets}}>
-                            <span>领取资产信息</span>
-                            <Table columns={this.columns} dataSource={this.state.data} pagination={false} style={{"marginTop":"12px"}}/>
+                            <Table title={() => '资产领取信息'} rowKey='PROCESSID' rowSelection={rowSelection} bordered  columns={this.columns} dataSource={this.state.assetsData} pagination={false} style={{width:'100%',"marginTop":"12px"}}/>
                         </div>
+                        <AssetsMsg cannel={this.handleCancel} show={this.state.Assetsvisible} reloadData={this.getOrderData} orderId={this.props.rowData} />
                     </FormItem>
-                    
-                    
                     <Row style={{"marginTop":"12px"}}>
                         <Col span={10} style={{"marginLeft":"6%"}}>
                             <FormItem
@@ -168,6 +282,7 @@ class ProcessWorkOrder extends Component {
                                         // required: true,
                                         // message: '请选择报障单位',
                                     }],
+                                    initialValue:this.state.closeData.fromName
                                 })(
                                     <Input disabled={true}/>
                                 )}
@@ -184,6 +299,7 @@ class ProcessWorkOrder extends Component {
                                         // required: true,
                                         // message: '请填写报障人',
                                     }],
+                                    initialValue:JSON.parse(sessionStorage.getItem('user')).userName
                                 })(
                                     <Input disabled={true}/>
                                 )}
@@ -195,13 +311,14 @@ class ProcessWorkOrder extends Component {
                         <Col span={10} style={{"marginLeft":"6%"}}>
                             <FormItem
                                 {...formItemLayout1}
-                                label="上级派工时间"
+                                label="派工时间"
                             >
                                 {getFieldDecorator('processUpTime', {
                                     rules: [{
                                         // required: true,
                                         // message: '请选择报障单位',
                                     }],
+                                    initialValue:this.state.closeData.dispatchTime
                                 })(
                                     <Input disabled={true}/>
                                 )}
@@ -218,9 +335,11 @@ class ProcessWorkOrder extends Component {
                                         required: true,
                                         message: '请选择解决方式',
                                     }],
+                                    initialValue:this.state.closeData.solution
                                 })(
-                                    <Select placeholder="请选择解决方式...">
-                                        <Option key='1' value="22">22</Option>
+                                    <Select placeholder="请选择解决方式..." disabled={this.state.disabled}>
+                                        <Option key='1' value="远程解决">远程解决</Option>
+                                        <Option key='2' value="现场解决">现场解决</Option>
                                     </Select>
                                 )}
                             </FormItem>
@@ -237,11 +356,28 @@ class ProcessWorkOrder extends Component {
                                     required:false,
                                 },
                             ],
-                            // initialValue:1
                         })(
-                            <Switch defaultChecked onChange={this.onChangeSwitch} />
+                            <Switch defaultChecked={this.state.closeData.isSolve==0?false:true} checkedChildren={<Icon type="check" />} unCheckedChildren={<Icon type="cross" />} onChange={this.onChangeSwitch} disabled={this.state.disabled} />
                         )}
-
+                    </FormItem>
+                    <FormItem
+                        {...formItemLayout}
+                        label='质保期限'
+                    >
+                        {getFieldDecorator("quality",{
+                            rules:[
+                                {
+                                    required:false,
+                                },
+                            ],
+                            initialValue:`${this.state.closeData.quality}`
+                        })(
+                            <Select placeholder="请选择解决方式..." disabled={this.state.disabled}>
+                                        <Option key='0' value='0'>保内</Option>
+                                        <Option key='1' value='1'>保外</Option>
+                                        <Option key='2' value='2'>不确定</Option>
+                            </Select>
+                        )}
                     </FormItem>
                     <FormItem
                         {...formItemLayout}
@@ -251,13 +387,15 @@ class ProcessWorkOrder extends Component {
                             rules:[
                                 {
                                     required:true,
+                                    message:'请填写处理描述!'
                                 },
-                            ]
+                            ],
+                            initialValue:this.state.closeData.resultsDesc
                         })(
-                            <TextArea rows={4} placeholder='请填写处理描述...'/>
+                            <TextArea rows={4} disabled={this.state.disabled} placeholder='请填写处理描述...'/>
                         )}
                     </FormItem>
-                    <FormItem
+                    {/* <FormItem
                         {...formItemLayoutPeo}
                         label='人员流转'
                     >
@@ -273,7 +411,7 @@ class ProcessWorkOrder extends Component {
                                 <Option key='4' value="22ffew">22ffew</Option>
                             </Select>
                         )}
-                    </FormItem>
+                    </FormItem> */}
                     <FormItem
                         {...formItemLayout}
                         label='上传图片'
@@ -281,14 +419,28 @@ class ProcessWorkOrder extends Component {
                         {getFieldDecorator("faultPicture")(
                             <div className="clearfix">
                                 <Upload
-                                    action="//jsonplaceholder.typicode.com/posts/"
+                                    action={`${config.api_server}/upload/resource/commonupload`}
                                     listType="picture-card"
                                     fileList={fileList}
                                     onPreview={this.handlePreview}
                                     onChange={this.handleChange}
+                                    disabled={this.state.disabled}
+                                    data={{
+                                        type:'workorder'
+                                    }}
                                 >
                                     {fileList.length >= 3 ? null : uploadButton}
                                 </Upload>
+                                {
+                                this.state.faultPic.length>0?this.state.faultPic.split(',').map((item,key) =>(
+                                    <div key={key} className='ant-upload ant-upload-select ant-upload-select-picture-card imgshow' onClick={this.handlePreview}>
+                                        <span className='imgmask'>
+                                        <img src={config.api_server+item} />
+                                        <div className='maskview'><Icon type='eye' style={{fontSize:'22px'}} /></div>
+                                        </span>
+                                    </div>
+                                    )):null
+                                }
                                 <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
                                     <img alt="example" style={{ width: '100%' }} src={previewImage} />
                                 </Modal>
@@ -300,7 +452,7 @@ class ProcessWorkOrder extends Component {
                         wrapperCol={{ span: 20, offset: 4 }}
                     >
 
-                        <Button type="primary" htmlType="submit" onClick={this.submitFunc}>提交</Button>
+                        <Button type="primary" loading={this.state.loading} htmlType="submit" onClick={this.submitFunc} style={{display:this.state.disabled?'none':'inline-block'}}>提交</Button>
                         <Button onClick={this.goBack} style={{"marginLeft":"1%"}}>返回</Button>
                     </FormItem>
                 </Form>

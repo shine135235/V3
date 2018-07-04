@@ -34,16 +34,16 @@ class AddEventCategory extends Component{
      //操作完成提示弹框
      success = () => {
         // success('操作成功!');
-        message.success("添加用户单位成功")
+        message.success("编辑事件类型成功")
     };
-    error = () => {
-        message.error("添加用户单位失败")
+    error = (error) => {
+        message.error(error)
     }
     editHandleOk = (e) => {
          e.preventDefault();
         this.props.form.validateFieldsAndScroll((err, values) => {
             //eslint-disable-next-line
-           // console.log("valuesvaluesvalues",values)
+            console.log("valuesvaluesvalues",values)
             if (err) {
                 return ;
             }
@@ -63,7 +63,7 @@ class AddEventCategory extends Component{
             }).then((res) => {
                 let datas = res.data.success;
                 if(datas){
-                    this.props.getParentListData({});
+                    this.props.getParentListDatas({pageNum :1,pageSize:10,search:""});
                     setTimeout(() => {
                         this.props.changeT({editLoading: false, editVisible: false})
                         this.setState({ addLoading: false, addVisible: false});
@@ -73,8 +73,14 @@ class AddEventCategory extends Component{
                     }, 1000);
                 }else{
                     this.setState({ addLoading: false});
+                    let error = ""
+                    if(res.data.message && res.data.message != ""){
+                        error = res.data.message
+                    }else{
+                        error = "编辑事件类型失败"
+                    }
                     setTimeout(() => {
-                        this.error();
+                            this.error(error);
                     }, 1000);
                 }
            })
@@ -105,10 +111,21 @@ class AddEventCategory extends Component{
    }
    AllChange = (value) =>{
        this.props.setChildstate(value)
-   }
-   onSelectdetail = () =>{
 
    }
+
+   detailSelect = (value) =>{
+    let bData = this.state.dataDetail;
+    if(bData.length > 0){
+        for (let i = 0; i < bData.length; i++) {
+            if(value == bData[i].id){
+                this.props.form.setFieldsValue({
+                    projects:bData[i].faultname
+                })
+            }
+       }
+    }
+}
     render(){
         const { getFieldDecorator } = this.props.form;
         const formItemLayout = {
@@ -124,6 +141,8 @@ class AddEventCategory extends Component{
         const children = [];
         const childrenList = [];
         let bData = this.state.data;
+        let initialSlect = this.props.faultAllId;
+        let initialSlects = this.props.faultDetailId;
         let bDataList = this.props.faultDetailList;
         //eslint-disable-next-line
         //console.log('子类编辑下拉',bDataList);
@@ -131,16 +150,38 @@ class AddEventCategory extends Component{
             for (let i = 0; i < bData.length; i++) {
                 children.push(<Option key = {i} value = {bData[i].id}>{bData[i].faultname}</Option>);
            }
+            if(initialSlect != ""){
+                for(let i = 0;i<bData.length;i++){
+                    if(bData[i].id == initialSlect){
+                        break;
+                    }else{
+                        if(i == bData.length - 1){
+                            initialSlect = ""
+                        }
+                    }
+                }
+            }
         }
         if(bDataList.length > 0){
             for (let i = 0; i < bDataList.length; i++) {
                 childrenList.push(<Option key = {i} value = {bDataList[i].id}>{bDataList[i].faultname}</Option>);
            }
+           if(initialSlects != ""){
+                for(let i = 0;i<bDataList.length;i++){
+                    if(bDataList[i].id == initialSlects){
+                        break;
+                    }else{
+                        if(i == bDataList.length - 1){
+                            initialSlects = ""
+                        }
+                    }
+                }
+            }
         }
         return (
             <Modal
                 visible={this.props.editVisible}
-                title="故障类型编辑"
+                title="事件类型编辑"
                 onOk={this.addHandleOk}
                 onCancel={this.editHandleCancel}
                 destroyOnClose={true}
@@ -155,39 +196,26 @@ class AddEventCategory extends Component{
             <LocaleProvider locale={zhCN}>
                 <Form onSubmit={this.handleSubmit}>
                     <FormItem
-                        {...formItemLayout}
-                        label={(
-                            <span>
-                            故障类型名称&nbsp;
-                            </span>
-                        )}
-                        hasFeedback
-                        >
-                        {getFieldDecorator('faultName', {
-                            initialValue:this.props.faultname,
-                            rules: [{ required: true, message: '请输入故障类型名称'}],
-                        })(
-                            <Input placeholder = "请输入故障类型名称"/>
-                        )}
-                    </FormItem>
-                    <FormItem
                     {...formItemLayout}
                     label={(
                         <span>
-                        所属大类&nbsp;
+                        所属事件大类&nbsp;
                         </span>
                     )}
                     hasFeedback
                     >
                         {getFieldDecorator('faultAll', {
-                            initialValue:this.props.faultAllId,
-                            rules: [{ required: true, message: '请选择所属大类名称', whitespace: true }],
+                            initialValue:initialSlect,
+                            rules: [{ required: true, message: '请选择所属事件大类名称', whitespace: true }],
                         })(
                             <Select
                                 style={{ width: '100%' }}
-                                placeholder="请选择所属大类名称"
-                                onSelect={this.onSelect}
-                                onChange = {this.AllChange}
+                                showSearch
+                                optionFilterProp="children"
+                                placeholder=""
+                                // onSelect={this.onSelect}
+                                onSelect = {this.AllChange}
+                                filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
                             >
                                 {children}
                             </Select>
@@ -197,25 +225,43 @@ class AddEventCategory extends Component{
                     {...formItemLayout}
                     label={(
                         <span>
-                        所属细类&nbsp;
+                        所属事件细类&nbsp;
                         </span>
                     )}
                     hasFeedback
                     >
                         {getFieldDecorator('faultDetail', {
-                            initialValue:this.props.faultDetailId,
-                            rules: [{ required: true, message: '请选择所属细类名称', whitespace: true }],
+                            initialValue:initialSlects,
+                            rules: [{ required: true, message: '请选择所属事件细类名称', whitespace: true }],
                         })(
                             <Select
                                 style={{ width: '100%' }}
-                                placeholder="请选择所属细类名称"
-                                onSelect={this.onSelectdetail}
+                                showSearch
+                                optionFilterProp="children"
+                                placeholder=""
+                                onSelect={this.detailSelect}
+                                filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
                             >
                                 {childrenList}
                             </Select>
                         )}
                     </FormItem>
-                   
+                    <FormItem
+                        {...formItemLayout}
+                        label={(
+                            <span>
+                            事件类型名称&nbsp;
+                            </span>
+                        )}
+                        hasFeedback
+                        >
+                        {getFieldDecorator('faultName', {
+                            initialValue:this.props.faultname,
+                            rules: [{ required: true, message: '请输入事件类型名称'}],
+                        })(
+                            <Input placeholder = "请输入事件类型名称"/>
+                        )}
+                    </FormItem>
                 </Form>
                 </LocaleProvider>
             </Modal>

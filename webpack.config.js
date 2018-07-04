@@ -4,21 +4,23 @@ const CleanWebpackPlugin=require('clean-webpack-plugin');
 
 const theme = require('./js/theme');
 
-const imgPath='./img/';
-const jsPath='./js/'
+// const imgPath='./img/';
+// const jsPath='./js/'
 
 
 module.exports={
     entry:{
-        index:'./js/index',// 配置入口文件
+        index:'./js/index',// 默认配置入口文件
+        // index:'./js/index-charts',
         vendor:['react','react-dom','antd','axios','echarts','./js/config']
     },
     output:{
-        //publicPath:'./js/',
-        filename: `${jsPath}[name].[${process.env.NODE_ENV === 'production' ? 'chunkhash' : 'hash'}:8].js`,
+        publicPath:'/',
+        filename: `[name].[${process.env.NODE_ENV === 'production' ? 'chunkhash' : 'hash'}:8].js`,
     },
     devServer: {
-        historyApiFallback: true
+        historyApiFallback: true,
+        hot:false
     },
     module:{
         rules:[//配置加载器
@@ -62,19 +64,21 @@ module.exports={
                     loader: 'url-loader',
                     options: {
                       limit: 10000,
-                      name: `${imgPath}[name].[hash:8].[ext]`
+                      name: `[name].[hash:8].[ext]`
                     }
                   }
                 ]
               },
         ]
     },
-    externals:{
-        'BMap':'BMap'
-    },
+    // externals:{
+    //     'BMap':'BMap'
+    // },
     plugins:[
         new HtmlWebpackPlugin({//动态输出
+            title:'智能IT运维平台',
             template:'index.html',
+            favicon:'./favicon.ico',
             inject:true,
             minify:{
                 html5:true

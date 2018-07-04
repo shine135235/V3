@@ -1,6 +1,6 @@
 import React,{ Component } from "react";
 import { 
-    // Button , 
+    Button , 
     Input , Table ,LocaleProvider , Modal , Icon,message, Pagination} from 'antd';
 import $axios from "axios";
 import zhCN from 'antd/lib/locale-provider/zh_CN';
@@ -92,7 +92,7 @@ export default class AppSensitive extends Component {
     }
     searchFunc = (value) => {
         this.setState({searchVal:value})
-        this.getListData({});
+        this.getListData({searchVal:value});
     }
     showTotal = (total, range) => {
         return `共 ${total} 条记录 第${range[0]}-${range[1]}条 `
@@ -101,13 +101,13 @@ export default class AppSensitive extends Component {
         this.setState({
             pageNum:page,pageSize:pageSize
         })
-        this.getListData({pageNum:page,pageSize:pageSize});
+        this.getListData({pageNum:page,pageSize:pageSize,searchVal:this.state.searchVal});
     }
     onShowSizeChange = (current, size) =>{
         this.setState({
             pageNum:current,pageSize:size
         })
-        this.getListData({pageNum:current,pageSize:size});
+        this.getListData({pageNum:current,pageSize:size,searchVal:this.state.searchVal});
     }
     onSelectedChange = (selectedRowKeys, selectedRows) => {
       let selectedRowIds = [];
@@ -131,6 +131,9 @@ export default class AppSensitive extends Component {
         delIds:selectedRowIds,
       })
     }
+    refresh = () =>{
+        this.getListData({});
+    }
     render(){
         const { selectedRowKeys } = this.state;
         // const pagination = {
@@ -149,7 +152,8 @@ export default class AppSensitive extends Component {
         return(
             <div className="appSensitive">
                 <div className='appSensitive_topBtns'>
-                    <AddSensitive getListData = {this.getListData}/>
+                    <AddSensitive getListData = {this.getListData} listdata = {this.state.data}/>
+                    <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}><Icon type="reload"/></Button>
                     {/* <Button className='appSensitive_Betch_Upload'>批量导入</Button> */}
                     <Search
                         placeholder="请输入..."
@@ -157,7 +161,8 @@ export default class AppSensitive extends Component {
                         onSearch={this.searchFunc}
                     />
                     <div className="appSensitive_Betch_Delete" style={{"display":this.state.showBetchDel}}>
-                        <Icon type="check-circle" />
+                   
+                        {/* <Icon type="check-circle" /> */}
                         <span className="appSensitive_Betch_WZ">已选择<span style={{"color":"#21adfc","margin":"0 5px"}}>{this.state.delIdsLength}</span>项</span>
                         <span className='appSensitive_Betch_Delete_btn' onClick={this.delData.bind(this,this.state.delIds)}>删除</span>
                     </div>
@@ -173,9 +178,9 @@ export default class AppSensitive extends Component {
                         <Pagination 
                             size='small'
                             total={this.state.totalRecord}
-                            showSizeChanger={true}
+                            // showSizeChanger={true}
                             showQuickJumper={true}
-                            showTotal={this.showTotal}
+                            // showTotal={this.showTotal}
                             onChange={this.onChange}
                             onShowSizeChange={this.onShowSizeChange}
                         />

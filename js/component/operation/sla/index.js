@@ -23,6 +23,8 @@ export default class Sla extends Component {
         visibleDetail:false,
         data:[],
         detailData:{},
+        searchVal:"",
+        pageNum:"1"
     }
     onSelectedChange = (selectedRowKeys, selectedRows) => {
       let selectedRowIds = [];
@@ -95,8 +97,8 @@ export default class Sla extends Component {
         }
           
       }];
-    showTotal = (total, range) => {
-        return `共 ${total} 条记录 第${range[0]}-${range[1]}条 `
+    showTotal = (total) => {
+        return `共 ${total} 条记录 `
     }
     delData = (rowId,e) => {
         e.stopPropagation();
@@ -159,10 +161,10 @@ export default class Sla extends Component {
         })
     }
     onChange = (page, pageSize) => {
-        this.getListData({pageNum:page,pageSize:pageSize});
+        this.getListData({pageNum:page,pageSize:pageSize,searchVal:this.state.searchVal});
     }
     onShowSizeChange = (current, size) =>{
-        this.getListData({pageNum:current,pageSize:size});
+        this.getListData({pageNum:current,pageSize:size,searchVal:this.state.searchVal});
     }
     checkDetail = (record) => {
         return{
@@ -183,6 +185,7 @@ export default class Sla extends Component {
             this.setState({
                 data,
                 totalRecord,
+                pageNum:pageNum
             })
         })
     }
@@ -193,6 +196,7 @@ export default class Sla extends Component {
         this.getListData({});
     }
     searchFunc = (val) => {
+        this.setState({searchVal:val})
         this.getListData({searchVal:val})
     }
     getDetailData = ({rowId="",checkType = ""}) => {
@@ -294,7 +298,7 @@ export default class Sla extends Component {
                     <AddSla getListData = {this.getListData}/>
                     {/* <Button className='slaManagement_topBtns_secBtn'>导入</Button> */}
                     {/* <Button className='slaManagement_topBtns_secBtn'>导出</Button> */}
-                    <Button className='slaManagement_topBtns_secBtn' onClick={this.refreshData}><Icon type="reload" /></Button>
+                    <Button className='slaManagement_topBtns_secBtn' onClick={this.refreshData}><Icon type="reload"/></Button>
                     <Search
                         placeholder="请输入..."
                         style={{ 'width': '20%' }}
@@ -311,12 +315,13 @@ export default class Sla extends Component {
                 </div>
                 <div className='slaManagement_Pagination'>
                     <LocaleProvider  locale={zhCN}>
-                        <Pagination
+                        <Pagination current= {this.state.pageNum}
+                            pageSize = {10}
                             size="small" 
-                            showSizeChanger 
-                            showQuickJumper
+                            // showSizeChanger 
+                             showQuickJumper
                             total={this.state.totalRecord}
-                            showTotal={this.showTotal}
+                             showTotal={this.showTotal}
                             onChange={this.onChange}
                             onShowSizeChange={this.onShowSizeChange}
                         />

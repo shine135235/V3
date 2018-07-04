@@ -1,5 +1,5 @@
 import React , { Component } from "react";
-import { Button , Input , LocaleProvider , Pagination} from 'antd';
+import { Button , Input , LocaleProvider , Pagination,Icon} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import $axios from "axios";
 import CardGroups from "./cardGroups"
@@ -15,8 +15,11 @@ export default class AppMall extends Component {
         listData:[],
         totalRecord:0,
         rowId:'',
+        pageNum:1,
+        pageSize:10,
+        searchVal:'',
     }
-    getListData = ({pageNum = 1,pageSize = 10,searchVal = ""}) => {
+    getListData = ({pageNum = this.state.pageNum,pageSize = this.state.pageSize,searchVal = this.state.searchVal}) => {
         $axios.get(`${config.api_server}/app/goodsList?pageNum=${pageNum}&pageSize=${pageSize}&mohu=${searchVal}`).then((json) => {
             // eslint-disable-next-line
             console.log(json);
@@ -34,12 +37,13 @@ export default class AppMall extends Component {
     searchFunc = (value) => {
         //eslint-disable-next-line
         console.log(value);
+        this.setState({
+            searchVal:value
+        })
         this.getListData({searchVal:value});
     }
-    showTotal = (total, range) => {
-        //eslint-disable-next-line
-        console.log(total,"++++++++++++++++",range);
-        return `共 ${total} 条记录 第${range[0]}-${range[1]}条 `
+    showTotal = (total) => {
+        return `共 ${total} 条记录 `
     }
     changeShowPage = ({pageType = "list",rowId = ''}) => {
         this.setState({
@@ -48,10 +52,19 @@ export default class AppMall extends Component {
         })
     }
     onChange = (page, pageSize) => {
+        this.setState({
+            pageNum:page,pageSize:pageSize
+        })
         this.getListData({pageNum:page,pageSize:pageSize});
     }
     onShowSizeChange = (current, size) =>{
+        this.setState({
+            pageNum:current,pageSize:size
+        })
         this.getListData({pageNum:current,pageSize:size});
+    }
+    refresh = () =>{
+        this.getListData({ pageNum:1,pageSize:10,searchVal:''})
     }
     render(){
         if(this.state.pageType=='list'){
@@ -59,6 +72,7 @@ export default class AppMall extends Component {
                 <div className='appMall'>
                     <div className='appMall_topBtns'>
                         <Button type="primary" icon="plus" onClick={this.changeShowPage.bind(this,{pageType:"add"})}>新增</Button>
+                        <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}><Icon type="reload"/></Button>
                         <Search
                             placeholder="请输入..."
                             style={{ 'width': '20%' }}
@@ -71,7 +85,7 @@ export default class AppMall extends Component {
                             <Pagination
                                 size='small'
                                 total={this.state.totalRecord}
-                                showSizeChanger={true}
+                                // showSizeChanger={true}
                                 showQuickJumper={true}
                                 showTotal={this.showTotal}
                                 onChange={this.onChange}

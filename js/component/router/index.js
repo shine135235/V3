@@ -40,10 +40,14 @@ import ReportManage from "../operation/reportManage";
 import TaskManage from "../operation/eventManage/taskManage";
 import WatchDutyManage from "../operation/watchDuty/watchDutyManage";
 import DutyCalendarManage from "../operation/watchDuty/dutyCalendarManage";
+// import AchievementsManage from "../operation/achievements";
 import ComplaintManage from "../operation/eventManage/complaintManage";
 import ResearchManage from "../operation/eventManage/researchManage";
 import DutyTable from '../operation/dutyManage/dutyTable';
 import DutyCalendar from '../operation/dutyManage/dutyCalendar';
+import ChartsEvent from '../census/event';
+import ChartsUser from '../census/userUnit';
+import chartsQuality from '../census/zb-charts'
 import Assets from "../assets";
 // import HardWareAssets from "../assets/hardWareAssets"
 import HardCount from "../assets/hardWareAssets/hardCount";
@@ -55,7 +59,7 @@ import LicenseManager from "../system/licenseManager";
 
 const AuthRoute = (props) => {
     const isLogin = sessionStorage.getItem('isLogin') === 'true';
-    return isLogin ? <Route {...props} /> :location.href.indexOf('/login')==21?111:<Redirect to={//判断当前地址是否为登录,如果是,拦截redriect
+    return isLogin ? <Route {...props} /> :location.href.indexOf('/login')==21?null:<Redirect to={//判断当前地址是否为登录,如果是,拦截redriect
       {
         pathname: '/login',
         state: {
@@ -78,7 +82,7 @@ class SiteRouter extends Component{
                 {/* 系统 */}
                 <AuthRoute path='/System'component={System} />
                 {/* 数据统计(暂无法通过目录进入,但可以通过手动输入地址访问) */}
-                <AuthRoute path='/Census'component={Census} />
+                {/* <AuthRoute path='/Census'component={Census} /> */}
                 {/* 系统-用户管理 */}
                 <AuthRoute path='/System/UserManager' component={UserManager} />
                 <AuthRoute path='/System/RoleManager' component={RoleManager} />
@@ -164,6 +168,14 @@ class SiteRouter extends Component{
                 <AuthRoute path='/Operation/dutyTable' component={DutyTable} />
                 {/* 运维-值班日历管理 */}
                 <AuthRoute path='/Operation/dutyCalendar' component={DutyCalendar} />
+                {/* 运维-运维单位数据统计 */}
+                <AuthRoute path='/Operation/chartsUnit' component={Census} />
+                {/* 运维-故障大类数据统计 */}
+                <AuthRoute path='/Operation/chartsEvent' component={ChartsEvent} />
+                {/* 运维-用户单位数据统计 */}
+                <AuthRoute path='/Operation/chartsUser' component={ChartsUser} />
+                {/* 运维-维保期限数据统计 */}
+                <AuthRoute path='/Operation/chartsQuality' component={chartsQuality} />
                 {/* 资产 */}
                 <AuthRoute path='/Assets' component={Assets} />
                 {/* 资产-硬件资产管理 */}

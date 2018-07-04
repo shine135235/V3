@@ -5,7 +5,7 @@ import {Link} from 'react-router-dom';
 import config from '../../config'
 import './index.less'
 
-
+const MenuItemGroup=Menu.ItemGroup;
 const SubMenu=Menu.SubMenu;
 export default class LeftMenu extends Component{
     constructor(props){
@@ -16,7 +16,7 @@ export default class LeftMenu extends Component{
             parentName:null,
             childs:[],
             loading:false,
-            defaultOpenKeys:sessionStorage.getItem('oid')===null?[]:sessionStorage.getItem('oid').split(','),
+            openKeys:[],
             defaultSelectedKeys:sessionStorage.getItem('cid')===null?[]:[sessionStorage.getItem('cid')]
         }
     }
@@ -25,27 +25,41 @@ export default class LeftMenu extends Component{
             loading:true
         })
     }
+    rootSubmenuKeys=[];
     componentDidMount(){
         axios.post(`${config.api_server}/sys/resource`,{
             resourceId:this.state.parentID,
             roleId:JSON.parse(sessionStorage.getItem('user')).lastUsedRole.id
         }).then(res =>{
+            let rootKey=[]
+            res.data.childs.map(item =>{
+                rootKey.push(item.id)
+            })
             this.setState({
                 childs: res.data.childs,
                 loading:false
             })
-            sessionStorage.setItem('cid',res.data.childs[0].id)
+            this.rootSubmenuKeys=rootKey
         })  
     }
     handleClick=(e) =>{
+        this.setState({
+            cid:e.key
+        })
         sessionStorage.setItem('cid',e.key);
-        // this.setState({
-        //     defaultSelectedKeys:[e.key],
-        // })
     }
-    openChange=(e) =>{
-        console.log(e)
-        sessionStorage.setItem('oid',e)
+    openChange = (openKeys) => {
+        const latestOpenKey = openKeys.find(key => this.state.openKeys.indexOf(key) === -1);
+        console.log(latestOpenKey)
+        if (this.rootSubmenuKeys.indexOf(latestOpenKey) === -1) {
+            this.setState({ 
+                openKeys:[openKeys]
+             });
+        } else {
+            this.setState({
+            openKeys: latestOpenKey ? [latestOpenKey] : [],
+            });
+        }
     }
     render(){
         if(this.state.childs!=null&&this.state.childs.length>0){
@@ -56,7 +70,7 @@ export default class LeftMenu extends Component{
                 mode="inline"
                 onOpenChange={this.openChange}
                 onSelect={this.handleClick}
-                defaultOpenKeys={this.state.defaultOpenKeys}
+                openKeys={this.state.openKeys}
                 defaultSelectedKeys={this.state.defaultSelectedKeys}
                 >
                     {
@@ -94,7 +108,7 @@ export default class LeftMenu extends Component{
                                                     )
                                                 }else{
                                                     return(
-                                                    <SubMenu key={chunk.id} title={<span><Icon type={chunk.icon} /><span>{chunk.menu}</span></span>}>
+                                                    <MenuItemGroup key={chunk.id} title={<span><Icon type={chunk.icon} /><span>{chunk.menu}</span></span>}>
                                                         {
                                                             chunk.childs.map(list =>(
                                                                 <Menu.Item key={list.id}>     
@@ -109,12 +123,12 @@ export default class LeftMenu extends Component{
                                                                 </Menu.Item>
                                                             ))
                                                         }
-                                                    </SubMenu>
+                                                    </MenuItemGroup>
                                                     )
                                                 }    
                                             })
                                         }
-                                        </SubMenu>                                
+                                     </SubMenu>         
                                 )
                             }
                      })

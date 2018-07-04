@@ -1,7 +1,7 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
-import { Button,Modal,Form,Input,LocaleProvider } from 'antd';
+import { Button,Modal,Form,Input,LocaleProvider,message } from 'antd';
 import config from '../../../../config';
 
 // import WrappedRegistrationForm from "./test";
@@ -30,22 +30,12 @@ class Addchild extends Component{
         //   }
         // });
     }
-    //操作完成提示弹框
-    success = () => {
-        // success('操作成功!');
-        const modal = Modal.success({
-            title: '操作成功',
-            content: '添加字典类别管理成功',
-          });
-          setTimeout(() => modal.destroy(), 2000);
+    success = (success) => {
+        message.success(success)
     };
-
-     error = () => {
-        Modal.error({
-          title: '操作失败',
-          content: '添加字典类别失败',
-        });
-      }
+    error = (error) => {
+        message.error(error)
+    }
     addHandleOk = (e) => {
         this.setState({ addLoading: true});
          e.preventDefault();
@@ -63,14 +53,21 @@ class Addchild extends Component{
                 }).then((res) => {
                     let datas = res.data.success;
                     if(datas){
-                        this.props.getDataList({});
+                        this.props.getDataList({pageNum:1,pageSize:10,param:""})
                             setTimeout(() => {
-                                this.success();
+                                let success = "添加片区成功"
+                                this.success(success);
                             }, 3000);
                     }else{
+                        let error = ""
+                        if(res.data.message && res.data.message != ""){
+                            error = res.data.message
+                        }else{
+                            error = "添加片区失败"
+                        }
                         setTimeout(() => {
-                            this.error();
-                        }, 3000);
+                                this.error(error);
+                        }, 1000);
                     }
                 })
             }            
@@ -88,6 +85,14 @@ class Addchild extends Component{
            addVisible: true,
            editVisible: false,
           });
+    }
+    eventCodeName = (rule, value, callback) =>{
+        let cat =/^[A-Za-z]+$/g;
+        if(cat.test(value)){
+            callback()
+        }else{
+            callback('建议代号格式区域名称拼音首字母大写')
+        }    
     }
     render(){
         const { getFieldDecorator } = this.props.form;
@@ -109,8 +114,9 @@ class Addchild extends Component{
                     title="新建片区"
                     onOk={this.addHandleOk}
                     onCancel={this.addHandleCancel}
+                    destroyOnClose={true}
                     footer={[
-                        <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;类别编码格式统一为拼音首字母</span>,
+                        <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;建议代号为区域名称拼音首字母大写</span>,
                         <Button key="back" size="large" onClick={this.addHandleCancel}>取消</Button>,
                         <Button key="submit" type="primary" size="large" htmlType="submit" loading={this.state.addLoading} onClick={this.addHandleOk}>
                         保存
@@ -133,7 +139,7 @@ class Addchild extends Component{
                                 validator: this.eventName,
                             }],
                         })(
-                            <Input placeholder = "请输区域名称"/>
+                            <Input placeholder = "如：北京"/>
                         )}
                         </FormItem>
                         <FormItem
@@ -147,10 +153,10 @@ class Addchild extends Component{
                         >
                         {getFieldDecorator('code', {
                             rules: [{ required: true, message: '请输入代号', whitespace: true }, {
-                                validator: this.eventName,
+                                validator: this.eventCodeName,
                             }],
                         })(
-                            <Input placeholder = "请输入代号"/>
+                            <Input placeholder = "如：BJ"/>
                         )}
                         </FormItem>
                         <FormItem

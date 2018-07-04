@@ -1,6 +1,6 @@
 import React,{Component} from 'react';
 import $axios from 'axios'
-import { Button,Modal,Form,Input,LocaleProvider} from 'antd';
+import { Button,Modal,Form,Input,LocaleProvider,message} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
@@ -22,40 +22,24 @@ class Editchild extends Component{
     }
     handleSubmit = (e) => {
         e.preventDefault();
-        // this.props.form.validateFieldsAndScroll((err, values) => {
-        //   if (!err) {
-        //       //eslint-disable-next-line
-        //     console.log('Received values of form: ', values);
-        //   }
-        // });
     }
-    //操作完成提示弹框
-    success = () => {
-        // success('操作成功!');
-        const modal = Modal.success({
-            title: '操作成功',
-            content: '添加字典类别管理成功',
-          });
-          setTimeout(() => modal.destroy(), 2000);
+    success = (success) => {
+        message.success(success)
     };
-
-     error = () => {
-        Modal.error({
-          title: '操作失败',
-          content: '添加字典类别失败',
-        });
-      }
+    error = (error) => {
+        message.error(error)
+    }
       editHandleOk = (e) => {
         this.setState({ editLoading: true});
          e.preventDefault();
-         let obj = {id: this.props.record.areaId};
+         let obj = {id: this.props.record.id};
         this.props.form.validateFieldsAndScroll((err, values) => {
             if (err) {
                 return ;
             }
             let parm = Object.assign(values,obj);
             //eslint-disable-next-line
-            console.log("222",values);
+            //console.log("222",values);
             $axios({
                 url:`${config.api_server}/sys/area/update`,
                 method:'post',
@@ -66,17 +50,24 @@ class Editchild extends Component{
             }).then((res) => {
                 let datas = res.data.success;
                 if(datas){
-                    this.props.getDataList({});
                     setTimeout(() => {
-                        this.setState({ editLoading: false, editVisible: false});
+                        this.props.getDataList({});
+                        this.props.changeT({editLoading: false, editVisible: false});
                     }, 1000);  
                     setTimeout(() => {
-                        this.success();
+                        let success = "编辑片区管理成功"
+                                this.success(success);
                     }, 1000);
                 }else{
                     this.setState({ editLoading: false});
+                    let error = ""
+                    if(res.data.message && res.data.message != ""){
+                        error = res.data.message
+                    }else{
+                        error = "编辑片区管理失败"
+                    }
                     setTimeout(() => {
-                        this.error();
+                        this.error(error);
                     }, 1000);
                 }
            })
@@ -87,6 +78,14 @@ class Editchild extends Component{
         this.setState({editVisible:false})
         this.props.changeT({editVisible:false});
     }
+    // eventCodeName = (rule, value, callback) =>{
+    //     let cat =/^[A-Z]+$/;
+    //     if(cat.test(value)){
+    //         callback()
+    //     }else{
+    //         callback('建议代号格式区域名称拼音首字母大写')
+    //     }  
+    // }
     render(){
         const { getFieldDecorator } = this.props.form;
         const formItemLayout = {
@@ -104,10 +103,10 @@ class Editchild extends Component{
         let description = "";
         let recordDataV = this.props.record; 
         // //eslint-disable-next-line
-        // console.log("recordDataVrecordDataV1",recordDataV);
-        if(recordDataV.areaId){
+         //console.log("recordDataVrecordDataV1",recordDataV);
+        if(recordDataV.id){
             nameValue = recordDataV.areaName;
-            categoryCodeV = recordDataV.areaCode;
+            categoryCodeV = recordDataV.code;
             description = recordDataV.areaDesc
         }
         return (
@@ -120,7 +119,7 @@ class Editchild extends Component{
                     onCancel={this.editHandleCancel}
                     destroyOnClose={true}
                     footer={[
-                        <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;类别编码格式统一为拼音首字母</span>,
+                        <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;建议代号格式区域名称拼音首字母大写</span>,
                         <Button key="back" size="large" onClick={this.editHandleCancel}>取消</Button>,
                         <Button key="submit" type="primary" size="large" htmlType="submit" loading={this.state.addLoading} onClick={this.editHandleOk}>
                         保存
@@ -156,10 +155,10 @@ class Editchild extends Component{
                         )}
                         hasFeedback
                         >
-                        {getFieldDecorator('categoryCode', {
+                        {getFieldDecorator('code', {
                              initialValue:categoryCodeV,
                             rules: [{ required: true, message: '请输入代号', whitespace: true }, {
-                                validator: this.eventName,
+                                validator: this.eventCodeName,
                             }],
                         })(
                             <Input placeholder = "请输入代号"/>
@@ -174,7 +173,7 @@ class Editchild extends Component{
                         )}
                         hasFeedback
                         >
-                        {getFieldDecorator('describeCode', {
+                        {getFieldDecorator('areaDesc', {
                             initialValue:description,
                             rules: [{ required: false, message: '请输入区域描述!', whitespace: true }],
                         })(

@@ -16,14 +16,15 @@ export default class PieReact extends React.Component {
     let myChart = echarts.init(this.ID) //初始化echarts
 
     //设置options
-    myChart.setOption(option)
+    myChart.clear();
+    myChart.setOption(option,true)
     window.onresize = function() {
       myChart.resize()
     }
   }
   
   componentDidMount() {
-    this.initPie()
+    //this.initPie()
   }
   
   componentDidUpdate() {

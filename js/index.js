@@ -3,7 +3,7 @@ import ES6Shim from 'es6-shim';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter,browserHistory} from 'react-router-dom';
-
+import './index.less';
 // import Login from './component/login';
 import SiteRouter from './component/router';
 import '../css/index.css';

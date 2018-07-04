@@ -8,7 +8,9 @@ class AddRoleFrom extends Component{
     constructor(props){
         super(props)
         this.state = { 
-            visible:false
+            visible:false,
+            loading:false,
+            disabled:false
         }
     }
   componentWillReceiveProps(){
@@ -16,8 +18,11 @@ class AddRoleFrom extends Component{
       visible:this.props.show
     })
   }
-
   handleOk = () => {
+    this.setState({
+      loading:true,
+      disabled:true
+    })
     axios.post(`${config.api_server}/sys/role`,{
       name:this.props.form.getFieldValue('role'),
       isOpen:this.props.public
@@ -26,6 +31,10 @@ class AddRoleFrom extends Component{
          message.success('角色添加成功');
          this.props.hide();
          this.props.reloadData();
+         this.setState({
+          loading:false,
+          disabled:false
+        })
        }else{
          message.error(res.data.message)
        }
@@ -35,7 +44,6 @@ class AddRoleFrom extends Component{
    this.props.hide()
   }
     render(){
-      console.log(this.props.public)
       const { getFieldDecorator } = this.props.form;
       const formItemLayout = {
           labelCol: {
@@ -48,7 +56,6 @@ class AddRoleFrom extends Component{
           },
       };
         return (
-         
                 <Modal
                 title={`添加${this.props.public?'公有':'私有'}角色`}
                 visible={this.props.show}
@@ -58,7 +65,7 @@ class AddRoleFrom extends Component{
                 destroyOnClose={true}
                 footer={[
                   <Button key="back" size="large" onClick={this.handleCancel}>取消</Button>,
-                  <Button key="submit" type="primary" size="large" loading={this.state.loading} onClick={this.handleOk}>
+                  <Button key="submit" type="primary" size="large" loading={this.state.loading} disabled={this.state.disabled} onClick={this.handleOk}>
                     提交
                   </Button>
                 ]}

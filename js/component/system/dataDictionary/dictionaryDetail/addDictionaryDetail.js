@@ -1,17 +1,17 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Select,LocaleProvider,message } from 'antd';
+import { Button,Modal,Form,Select,LocaleProvider,message,Col,Input,Icon,Row } from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
- import Child from "./childTest";
+//  import Child from "./childTest";
  import config from '../../../../config';
 //  import SelectOne from "./selectOne";
-import './dictionaryAll.less';
+import './index.less';
 
 // const { TextArea } = Input;
 const Option = Select.Option;
 // const InputGroup = Input.Group;
 const FormItem = Form.Item;
-let uuid = 0;
+// let uuid = 0;
 class AddDictionaryDetail extends Component{
     constructor(props){
         super(props)
@@ -26,7 +26,9 @@ class AddDictionaryDetail extends Component{
             // parentID:this.props,
              childs:[],
              data:[],
-             rowCode:["GZJB"]
+             rowCode:["GZJB"],
+             childKey:[],
+             uuid:0
         }
     }
     getSelectList = () =>{
@@ -42,34 +44,41 @@ class AddDictionaryDetail extends Component{
     }
     componentDidMount(){
         // this.props.getDataList({pageNum,pageSize})
+       
         this.getSelectList();
        
     }
     componentDidUpdate(){
-       
+       console.log("uuiduuid:",this.state.uuid)
     }
     changeChilc = (childs) =>{
         this.setState({childs})
     }
+    childKey = (childKey) =>{
+        this.setState({childKey})
+    }
     //操作完成提示弹框
     success = () => {
         // success('操作成功!');
-        message.success("添加用户单位成功")
+        message.success("添加字典项成功")
     };
-    error = () => {
-        message.error("添加用户单位失败")
+    error = (error) => {
+        message.error(error)
     }
     addHandleOk = () => {
-        let obj=null;
-        let childDate = this.state.childs;
+        let dName=null;
         this.props.form.validateFieldsAndScroll((err, values) => {
+            let childDate=[];
             if (!err) {
-                this.setState({ addLoading: true });
-                obj = values.dicName;
-                for(let i = 0;i<childDate.length;i++){
-                childDate[i].sysDictId = obj;
+                dName = values.dicName;
+                for(let i = 0;i<values.keys.length;i++){
+                    const  obj = {};
+                    obj.itemKey = this.props.form.getFieldValue('dicName' + values.keys[i]);
+                    obj.itemValue = this.props.form.getFieldValue('dicName' + values.keys[i] + '2');
+                    childDate.push(obj);
+                    childDate[i].sysDictId = dName;
                 }
-                childDate = JSON.stringify(childDate);
+                this.setState({ addLoading: true });
                 $axios({
                     url:`${config.api_server}/sys/dictitem/add/batch`,
                     method:'post',
@@ -80,7 +89,9 @@ class AddDictionaryDetail extends Component{
                 }).then((res) => {
                     let datas = res.data.success;
                     if(datas){
-                        this.props.getDataList({})
+                        let pageNum = 1;
+                        let pageSize = 10;
+                        this.props.getDataList({pageNum,pageSize})
                         setTimeout(() => {
                             this.setState({ addLoading: false, addVisible: false});
                         }, 1000);
@@ -88,8 +99,14 @@ class AddDictionaryDetail extends Component{
                             this.success();
                         }, 1000);
                     }else{
+                        let error = ""
+                        if(res.data.message && res.data.message != ""){
+                            error = res.data.message
+                        }else{
+                            error = "添加字典项失败"
+                        }
                         setTimeout(() => {
-                            this.error();
+                                this.error(error);
                         }, 1000);
                     }
                 })    
@@ -100,18 +117,11 @@ class AddDictionaryDetail extends Component{
         this.setState({ addVisible: false });
     }
     AddNew = () => {
+        this.add();
         this.setState({
            addVisible: true,
            dataSource:[]
           });
-    }
-
-    handleChange = () => {
-        
-    }
-    handleBlur = () => {
-       
-        
     }
     handleFocus = () => { 
         this.getSelectList();
@@ -132,19 +142,35 @@ class AddDictionaryDetail extends Component{
     }
     
     add = () => {
+        let uuid = this.state.uuid
         uuid++;
         const { form } = this.props;
         // can use data-binding to get
         const keys = form.getFieldValue('keys');
         const nextKeys = keys.concat(uuid);
+        this.setState({uuid:uuid})
         // can use data-binding to set
         // important! notify form to detect changes
         form.setFieldsValue({
             keys: nextKeys,
         });
     }
+    removeData = () =>{
+        const { form } = this.props;
+        this.setState({uuid:0})
+        form.setFieldsValue({
+            keys: [],
+        });
+    }
+    eventCode = (rule, value, callback) =>{
+        if(!(/^[A-Za-z]+$/g.test(value))){
+            callback("条目内容建议为名称首字母大写");
+        }else{
+            callback();
+        }
+    }
     render(){
-        const { getFieldDecorator } = this.props.form;
+        const { getFieldDecorator,getFieldValue } = this.props.form;
         const formItemLayout = {
             labelCol: {
                 xs: { span: 24 },
@@ -155,6 +181,12 @@ class AddDictionaryDetail extends Component{
                 sm: { span: 16 },
             },
         };
+        const formItemLayoutWithOutLabel = {
+            wrapperCol: {
+              xs: { span: 24, offset: 0 },
+              sm: { span: 20, offset: 6 },
+            },
+          };
         let option =[];
         let bData = this.state.data;
         if(bData.length > 0){
@@ -164,6 +196,65 @@ class AddDictionaryDetail extends Component{
                 ) 
             })     
         }
+
+        getFieldDecorator('keys', { initialValue: [] });
+        const keys = getFieldValue('keys');
+        //eslint-disable-next-line
+        //console.log("新建lebel下标",keys);
+        const formItems = keys.map((k) => {
+          return (
+            <FormItem
+              {... formItemLayout}
+              label={'条目项标识-名称'}
+              required={true}
+              key={k}
+            >    
+                {
+                    <Row gutter = {24} style = {{"display":"inline-block","width":"100%"}}>
+                        <Col span={10}>
+                            <FormItem >
+                                {getFieldDecorator(`dicName${k}`, {
+                                        rules: [{ required: true, message: '请输入条目项标识', whitespace: true }, {
+                                          validator: this.eventCode,
+                                      }],
+                                    })(
+                                        <Input placeholder="条目项标识" />
+                                    )
+                                }
+                            </FormItem>
+                        </Col>
+                        <Col span={1}>
+                            <span style={{ display: 'inline-block', width: '100%', textAlign: 'center' }}>
+                            -
+                            </span>
+                        </Col>
+                        <Col span={10}>
+                            <FormItem>
+                                {getFieldDecorator(`dicName${k}2`, {
+                                        rules: [{ required: true, message: '请输入名称', whitespace: true }],
+                                    })(
+                                        <Input placeholder="请输入名称" />
+                                    )
+                                }
+                            </FormItem>
+                        </Col>
+                        <Col span = {2}>
+                            {
+                                keys.length > 1 ? (
+                                    <Icon
+                                    className="dynamic-delete-button"
+                                    type="minus-circle-o"
+                                    disabled={keys.length === 1}
+                                    onClick={() => this.remove(k)}
+                                    />
+                                ) : null
+                            }
+                        </Col>  
+                    </Row>
+                }
+            </FormItem>
+          );
+        });
         return (
             <span>
                 <Button type="primary" onClick = {this.AddNew} icon="plus">新建</Button>
@@ -174,8 +265,9 @@ class AddDictionaryDetail extends Component{
                     onCancel={this.addHandleCancel}
                     destroyOnClose={true}
                     width={600}
+                    afterClose = {this.removeData}
                     footer={[
-                        <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;条目项标识用于后端存储,名称用于前端展示</span>,
+                        <span key style = {{"display":"inline-block","marginRight":"50px","color":"#BA55D3"}}>提示:&nbsp;建议条目项标识格式统一为名称拼音首字母大写</span>,
                         <Button key="back" size="large" onClick={this.addHandleCancel}>取消</Button>,
                         <Button key="submit" type="primary" size="large" loading={this.state.addLoading}  onClick={this.addHandleOk} >
                         保存
@@ -200,9 +292,9 @@ class AddDictionaryDetail extends Component{
                         })(
                             <Select
                                 showSearch
-                                onChange={this.handleChange}
+                                optionFilterProp="children"
+                                filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
                                 onFocus={this.handleFocus}
-                                onBlur={this.handleBlur}
                             >
                                 {option}   
                             </Select>
@@ -210,8 +302,13 @@ class AddDictionaryDetail extends Component{
                         </FormItem>      
                     </Form>
                     </LocaleProvider>
-                    <Child  changeChilc={ childs =>this.changeChilc(childs)} />
-                    
+                        {formItems}
+                        <FormItem {...formItemLayoutWithOutLabel}>
+                        <Button type="dashed" onClick={this.add} style={{ width: '60%' }}>
+                            <Icon type="plus" /> 增加条目
+                        </Button>
+                        </FormItem>
+                    {/* <Child  changeChilc={ childs =>this.changeChilc(childs)} childKey = {this.childKey}/>   */}
                 </Modal>
             </span>
         )

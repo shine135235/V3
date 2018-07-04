@@ -30,9 +30,10 @@ class EditAppMall extends Component {
                 let fileListArr = result.detailresource.split(",");
                 for(let i = 0;i<fileListArr.length;i++){
                     let obj = {};
-                    obj.url = fileListArr[i];
+                    obj.url = `${config.api_server}/`+fileListArr[i];
                     obj.response = fileListArr[i];
                     obj.uid = i;
+                    obj.size = 102400;
                     fileList.push(obj);
                 }
             }
@@ -41,9 +42,10 @@ class EditAppMall extends Component {
                 let fileListMainArr = result.resource.split(",");
                 for(let i = 0;i<fileListMainArr.length;i++){
                     let obj = {};
-                    obj.url = fileListMainArr[i]; 
+                    obj.url = `${config.api_server}/`+fileListMainArr[i]; 
                     obj.response = fileListMainArr[i]; 
                     obj.uid = i;
+                    obj.size = 102400;
                     fileListMain.push(obj);
                 }
             }
@@ -106,11 +108,31 @@ class EditAppMall extends Component {
     handleChangeMain = ({ fileList }) => {
         //eslint-disable-next-line
         console.log('fileListMain',fileList);
+        fileList = fileList.filter((file) => {
+            let fileSize = file.size/1024;
+            // if(fileSize <= 200){
+            //     this.error("图片过大，请删除重新上传！");
+            //     return false;
+            // }
+        //eslint-disable-next-line
+        console.log('filefilefilefilefile',file);
+        return fileSize <= 200;
+        })
         this.setState({ fileListMain:fileList });
     }
     handleChange = ({ fileList }) => {
         //eslint-disable-next-line
         console.log('fileList',fileList);
+        fileList = fileList.filter((file) => {
+            let fileSize = file.size/1024;
+            // if(fileSize <= 200){
+            //     this.error("图片过大，请删除重新上传！");
+            //     return false;
+            // }
+        //eslint-disable-next-line
+        console.log('filefilefilefilefile',file);
+        return fileSize <= 200;
+        })
         this.setState({ fileList });
     }
     handleSubmit = (e) => {
@@ -131,7 +153,7 @@ class EditAppMall extends Component {
             if(resourcePath.length == 0){
                 this.props.form.setFields({
                     merchandiseMainPicEdit:{
-                        error:"请上传商品主图！",
+                        errors:[new Error("请上传商品主图！")],
                     }
                 })
                 return;
@@ -148,7 +170,7 @@ class EditAppMall extends Component {
             if(detailresourcePath.length == 0){
                 this.props.form.setFields({
                     merchandisePicEdit:{
-                        error:"请上传商品图！",
+                        errors:[new Error("请上传商品图！")],
                     }
                 })
                 return;
@@ -209,6 +231,7 @@ class EditAppMall extends Component {
             
         //eslint-disable-next-line
         console.log("超出范围啦");
+        this.error("图片过大，请重新上传！");
         return false;
         }
     }
@@ -223,6 +246,7 @@ class EditAppMall extends Component {
             
         //eslint-disable-next-line
         console.log("超出范围啦");
+        this.error("图片过大，请重新上传！");
         return false;
         }
     }
@@ -324,14 +348,13 @@ class EditAppMall extends Component {
                     <FormItem
                         {...formItemLayout}
                         label='上传商品主图'
-                        hasFeedback
                     >
+                    <div className='clearfix'>
                         {getFieldDecorator('merchandiseMainPicEdit', {
                             rules: [{ required: true, message: '请上传商品主图!'}],
                         })(
-                            <div>
                                 <Upload
-                                    action={`${config.api_server}/app/goods/uploadimg`}
+                                    action={`${config.api_server}/upload/resource/goods`}
                                     listType="picture-card"
                                     fileList={fileListMain}
                                     onPreview={this.handlePreviewMain}
@@ -340,23 +363,24 @@ class EditAppMall extends Component {
                                 >
                                 {fileListMain.length >= 4 ? null : uploadButtonMain}
                                 </Upload>
-                                <div>图片分辨率建议：750*750，图片大小不超过200k</div>
-                                <Modal visible={previewVisibleMain} footer={null} onCancel={this.handleCancelMain}>
+                        )}
+                        
+                        </div>
+                        <Modal visible={previewVisibleMain} footer={null} onCancel={this.handleCancelMain}>
                                     <img alt="example" style={{ width: '100%' }} src={previewImageMain} />
                                 </Modal>  
-                            </div>
-                        )}
+                        <div>图片分辨率建议：750*750，图片大小不超过200k</div>
                     </FormItem>
                     <FormItem
                         {...formItemLayout}
-                        label="上传传商品图"
+                        label="上传商品图"
                     >
+                    <div className="clearfix">
                         {getFieldDecorator('merchandisePicEdit', {
                             rules: [{ required: true, message: '请上传商品图!' }],
                         })(
-                            <div>
                                 <Upload
-                                    action={`${config.api_server}/app/goods/uploadimg`}
+                                    action={`${config.api_server}/upload/resource/goods`}
                                     listType="picture-card"
                                     fileList={fileList}
                                     onPreview={this.handlePreview}
@@ -364,13 +388,14 @@ class EditAppMall extends Component {
                                     beforeUpload={this.beforeUpload}
                                 >
                                 {fileList.length >= 4 ? null : uploadButton}
-                                </Upload>
-                                <div>图片分辨率建议：750*450，图片大小不超过200k</div>
-                                <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
-                                    <img alt="example" style={{ width: '100%' }} src={previewImage} />
-                                </Modal>  
-                            </div>
+                                </Upload> 
                         )}
+                        </div>
+                        <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
+                            <img alt="example" style={{ width: '100%' }} src={previewImage} />
+                        </Modal> 
+                        
+                        <div>图片分辨率建议：750*450，图片大小不超过200k</div>
                     </FormItem>
                     <FormItem
                     {...formItemLayout}

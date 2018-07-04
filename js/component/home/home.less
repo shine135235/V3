@@ -1,0 +1,184 @@
+@keyframes maker{
+    from{transform: scale(1,1);opacity: 1;}
+    to{transform: scale(2.5,2.5);opacity: 0;}
+}
+.content{
+    width:100%;
+    height:95.5%;
+    float:left;
+    margin-top:60px;
+    padding:1%;
+    background-color:#044699;
+    .charts-part{
+        width:100%;
+        height:100%;
+        float:left;
+        .view-charts{
+            width:100%;
+            height:70%;
+            float:left;
+            .view-left{
+                width:19.5%;
+                height:100%;
+                float:left;
+                .gauge{
+                    width:100%;
+                    height:50%;
+                    float:left;
+                    border:2px solid #0078db;
+                    overflow: hidden;
+                }
+                .asset-runing{
+                    width:100%;
+                    height:48.5%;
+                    float:left;
+                    margin-top:4%;
+                    border:2px solid #0078db;
+                    color:#fff;
+                }
+            }
+            .view-center{
+                width:60%;
+                height:100%;
+                float:left;
+                margin:0 .5%;
+                span.school-name{
+                    display: inline-block;
+                    width:auto;
+                    color:#fff;
+                    white-space:nowrap;
+                    padding: 5px;
+                    margin-top:15px;
+                }
+                span.school-icon{
+                    display: inline-block;
+                    width:20px;
+                    height: 20px;
+                    border-radius:100%;
+                    position: relative;
+                    .event-num{
+                        display: inline-block;
+                        width:20px;
+                        height: 20px;
+                        position: absolute;
+                        z-index: 9;
+                        text-align: center;
+                        line-height: 20px;
+                        font-size:12px;
+                        top: 0;
+                        left: 0;
+                        color:#fff;
+                    }
+                    .animate-span{
+                        display: inline-block;
+                        width:20px;
+                        height: 20px;
+                        border-radius:100%;
+                        overflow: hidden;
+                        background-color: transparent!important;  
+                        animation:maker 1s infinite;
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                    }
+                }
+                .bnormal{
+                    border:2px solid #20dc59;
+                }
+                .bimportant{
+                    border:2px solid #f1aa40;
+                }
+                .bserious{
+                    border:2px solid #f2637b;
+                }
+                .bunknown{
+                    border:2px solid #fff;
+                }
+                .unknown{
+                    background-color:#fff;
+                    .event-num{
+                        color:#3aa3ff!important;
+                    }
+                }
+                .normal{
+                    background-color:#20dc59;
+                }
+                .important{
+                    background-color:#f1aa40;
+                }
+                .serious{
+                    background-color:#f2637b;
+                }
+            }
+            .view-right{
+                width:19.5%;
+                height:100%;
+                float:left;
+                .time-wrap{
+                    width:100%;
+                    height:50px;
+                    float:left;
+                    border:2px solid #0078db;
+                    .date-picker{
+                        width:100%;
+                        height:50px;
+                        float:left;
+                        line-height:45px;
+                        color:#fff;
+                        font-size:22px;
+                        text-align: center;
+                        cursor: pointer;
+                    }
+                }
+                .event-count{
+                    width:100%;
+                    height:41.4%;
+                    float:left;
+                    border:2px solid #0078db;
+                    margin-top:3%;
+                    .event-charts{
+                        width:100%;
+                        height:100%;
+                        float:left;
+                        color:#fff;
+                    }
+                }
+                .event-top{
+                    width:100%;
+                    height:48.5%;
+                    float:left;
+                    margin-top:4%;
+                    border:2px solid #0078db;
+                    color:#fff;
+                }
+            }
+        }
+    }
+    .table-part{
+        width:100%;
+        height:28%;
+        float:left;
+        margin-top:1%;
+        border:2px solid #0078db;
+        overflow: hidden;
+        .ant-table-placeholder{border:none;background-color: transparent;color:#fff;}
+        .ant-progress-bg{background:linear-gradient(to right,#4dcb73, #36cbcb);}
+        .ant-table-body{background-color:transparent!important;overflow-x:hidden;}
+        .ant-table-header{background-color:#044699!important;}
+        .ant-progress-text{color:#fff;}
+        .ant-progress-inner{background-color:transparent;border:1px solid #4dcb73;}
+        .ant-table-header{overflow:hidden;}
+        .ant-table-body{margin-top:20px;}
+        .home-table,.home-tr,.home-td{
+            background-color:transparent!important;
+            color:#fff;
+            border-bottom: 1px solid #0078db;
+            text-align: center!important;
+        }
+    }
+}
+.amap-logo,.amap-copyright{  
+    display:none!important;  
+}  
+.ant-slider-mark-text{color:#fff;font-size:12px;}
+.ant-spin-dot{margin-top:25%;}

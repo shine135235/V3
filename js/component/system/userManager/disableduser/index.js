@@ -1,18 +1,19 @@
 import React,{Component} from 'react';
 import {Table,Switch,message} from 'antd';
 import axios from 'axios';
+import AuthPower from '../../../authpower';
 import config from '../../../../config';
 
 export default class DisableUser extends Component{
     state={
-        data:[]
+        checked:false
     }
     changeUser=(record) =>{
         axios.put(`${config.api_server}/sys/user/start`,{
             id:record.id
         }).then(res =>{
             if(res.data.success){
-                message.success('角色已启用!');
+                message.success('用户已启用!');
                 this.props.reloadData(1,this.props.uid,this.props.rid,this.props.code)
             }
         })
@@ -32,7 +33,7 @@ export default class DisableUser extends Component{
         title:"操作",
         key:"id",
         render:(text,record) =>(
-            <Switch checkedChildren="启用" unCheckedChildren="禁用" onChange={this.changeUser.bind(this,record)}  />
+            <AuthPower><Switch god='jyyh' checkedChildren="启用" unCheckedChildren="禁用" checked={this.state.checked} onChange={this.changeUser.bind(this,record)}  /></AuthPower>
         )
         }
     ];

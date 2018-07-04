@@ -1,0 +1,27 @@
+{
+    "center":{
+        "longitude": 116.405285, 
+        "latitude": 39.904989
+    },
+    "gague":50,
+    "annular":[
+        {"value":335, "name":"在线"},
+        {"value":310, "name":"离线"},
+        {"value":234, "name":"未检测"}
+    ],
+    "maparea":"朝阳区",
+    "makers":[
+        {"lgt":116.405285,"lat":39.904989,"name":"有所学校","level":"normal"},
+        {"lgt": 116.387738, "lat": 39.926279,"name":"又有所学校","level":"important"},
+        {"lgt": 116.371297, "lat": 39.922327,"name":"还有所学校","level":"serious"}
+    ],
+    "event":[
+        {"value":335, "name":"在线","id":222},
+        {"value":310, "name":"离线","id":333},
+        {"value":234, "name":"未检测","id":444}
+    ],
+    "eventtop":{
+        "xData":["巴西","印尼","美国","印度","中国","写啊"],
+        "yData":[182, 234, 290, 104, 131, 630]
+    }
+}

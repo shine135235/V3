@@ -31,10 +31,10 @@ class AddEventCategory extends Component{
     }
     //操作完成提示弹框
     success = () => {
-        message.success("添加字典类别管理成功")
+        message.success("添加字典类别成功")
     };
-    error = () => {
-        message.error("添加字典类别管理失败")
+    error = (error) => {
+        message.error(error)
     }
     addData = (values) =>{
         $axios({
@@ -47,7 +47,9 @@ class AddEventCategory extends Component{
         }).then((res) => {
             let datas = res.data.success;
             if(datas){
-                this.props.getParentListData({});
+                let pageNum = 1;
+                let pageSize = 10;
+                this.props.getParentListData({pageNum,pageSize});
                 setTimeout(() => {
                     this.setState({ addLoading: false, addVisible: false});
                 }, 1000);
@@ -56,8 +58,14 @@ class AddEventCategory extends Component{
                 }, 1000);
             }else{
                 this.setState({ addLoading: false});
+                let error = ""
+                if(res.data.message && res.data.message != ""){
+                    error = res.data.message
+                }else{
+                    error = "添加字典类别失败"
+                }
                 setTimeout(() => {
-                    this.error();
+                        this.error(error);
                 }, 1000);
             }
         })  
@@ -148,13 +156,13 @@ class AddEventCategory extends Component{
                 <Button type="primary" onClick = {this.AddNew} icon="plus">新建</Button>
                 <Modal
                     visible={this.state.addVisible}
-                    title="新建字典类别管理"
+                    title="新建字典类别"
                     onOk={this.addHandleOk}
                     onCancel={this.addHandleCancel}
                     destroyOnClose={true}
                     afterClose = {this.afterClose}
                     footer={[
-                        <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;类别编码格式统一为拼音首字母大写</span>,
+                        <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;建议类别编码格式统一为拼音首字母大写</span>,
                         <Button key="back" size="large" onClick={this.addHandleCancel}>取消</Button>,
                         <Button key="submit" type="primary" size="large" htmlType="submit" loading={this.state.addLoading} onClick={this.addHandleOk}>
                         保存

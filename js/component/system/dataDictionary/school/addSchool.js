@@ -45,14 +45,14 @@ class AddEventCategory extends Component{
        
     }
     success = () => {
-        message.success("编辑故障大类成功")
+        message.success("添加用户单位成功")
     };
-    error = () => {
-        message.error("编辑故障大类失败")
+    error = (error) => {
+        message.error(error)
     }
     addHandleOk = (e) => {
         //eslint-disable-next-line
-        console.log("啊啊啊啊啊啊啊啊啊啊啊啊啊",sessionStorage.getItem('selectValue'))
+        //console.log("啊啊啊啊啊啊啊啊啊啊啊啊啊",sessionStorage.getItem('selectValue'))
          e.preventDefault();
         this.props.form.validateFieldsAndScroll(['name','area','pepole','phone','adds','describeCode'],(err) => {
            if(!sessionStorage.getItem('selectValue')){
@@ -70,6 +70,7 @@ class AddEventCategory extends Component{
                 })
             }
              let addValue = this.state.prentsData;
+           //  console.log("ddddddddddddddddddddddd",typeof(addValue));
             let values = {
                 "name":this.props.form.getFieldValue("name"),
                 "areaId":this.props.form.getFieldValue("area"),
@@ -96,7 +97,7 @@ class AddEventCategory extends Component{
             }).then((res) => {
                 let datas = res.data.success;
                 if(datas){
-                    this.props.getSchoolDataList({})
+                    this.props.getSchoolDataList({pageNum:1,pageSize:10,param:""})
                     setTimeout(() => {
                         this.setState({ addLoading: false, addVisible: false});
                     }, 1000);
@@ -104,13 +105,18 @@ class AddEventCategory extends Component{
                         this.success();
                     }, 1000);
                 }else{
+                    let error = ""
+                    if(res.data.message && res.data.message != ""){
+                        error = res.data.message
+                    }else{
+                        error = "添加用户单位失败"
+                    }
                     setTimeout(() => {
-                        this.error();
-                    }, 3000);
+                            this.error(error);
+                    }, 1000);
                 }
             })
-        });
-           
+        });      
     }
     addHandleCancel = () => {
         this.setState({ addVisible: false });
@@ -149,21 +155,33 @@ class AddEventCategory extends Component{
     }
     prentsData = (value) =>{
         //eslint-disable-next-line
-        //console.log("prentsDataprentsDataprentsData",value)
-        this.setState({prentsData:value})
-        // this.props.form.setFields({
-        //     ""
-        // })
+        console.log("prentsDataprentsDataprentsData",value)
+        if(value && value != "" ){
+            let arr = value.split(",")
+            let obj = {}
+            obj.lng = arr[0]
+            obj.lat = arr[1]
+            //console.log("prentsDataprentsDataprentsData",obj)
+            this.setState({prentsData:obj})
+            // this.props.form.setFields({
+            //     ""
+            // })
+        }else{
+            message.success("没有选择地理位置")
+        }
+        
     }
     getChPoint = (value) =>{
         //eslint-disable-next-line
         console.log("valuevaluevaluevaluevalue",value)
-        this.setState({getChPoint:value})
-        this.props.form.setFields({
-            adds:{
-                value:value
-            }
-        })
+        if(value != ""){
+            this.setState({getChPoint:value})
+            this.props.form.setFields({
+                adds:{
+                    value:value
+                }
+            })
+        }  
     }
 
     prentssetLat = (value) =>{
@@ -184,7 +202,7 @@ class AddEventCategory extends Component{
             if (point) {
                 map.centerAndZoom(point, 16);    
                  //eslint-disable-next-line
-                console.log("pointpointpointpointpoint",point.lat)            
+                console.log("pointpointpointpointpoint",point)            
                  _this.setState({prentsData:point})
                 // map.addOverlay(new BMap.Marker(point));
                 _this.props.form.setFields({
@@ -202,6 +220,13 @@ class AddEventCategory extends Component{
                 })
             }
         }, "北京市"); 
+    }
+    checkPhone=(rule, value, callback) =>{
+        if(!(/^1(3|4|5|7|8)\d{9}$/.test(value)) && !(/^(\d3,4|\d{3,4}-)?\d{7,8}$/).test(value)){
+            callback("电话号码有误，请重填");
+        }else{
+            callback();
+        }
     }
     render(){
         const { getFieldDecorator } = this.props.form;
@@ -264,7 +289,9 @@ class AddEventCategory extends Component{
                     ]}
                 >
                 <LocaleProvider locale={zhCN}>
+                  
                     <Form onSubmit={this.handleSubmit}>
+                    <Row>
                         <FormItem
                         {...formItemLayout}
                         label={(
@@ -275,15 +302,16 @@ class AddEventCategory extends Component{
                         hasFeedback
                         >
                             {getFieldDecorator('name', {
-                                rules: [{ required: true, message: '请输名称', whitespace: true }, {
+                                rules: [{ required: true, message: '请输入名称', whitespace: true }, {
                                     validator: this.eventName,
                                 }],
                             })(
-                                <Input placeholder = "请输名称"/>
+                                <Input placeholder = "请输入名称"/>
                             )}
                         </FormItem>
+                    </Row >
                         <Row >
-                            <Col span = {10} key = {1} offset = {1}>
+                            <Col span = {10} key = {1} style = {{"marginLeft":"2.8%"}} >
                             <FormItem
                                 {...formItemLayoutWithOutLabel1}
                                 label={(
@@ -294,7 +322,7 @@ class AddEventCategory extends Component{
                                 hasFeedback
                                 >
                                     {getFieldDecorator('categoryCode', {
-                                        rules: [{ required: true, message: '请选择单位性质', whitespace: true }, {
+                                        rules: [{ required: true, message: '请选择办学性质', whitespace: true }, {
                                             validator: this.eventName,
                                         }],
                                     })(
@@ -302,7 +330,7 @@ class AddEventCategory extends Component{
                                     )}
                                 </FormItem>
                             </Col>
-                            <Col span = {11} key = {2} >
+                            <Col span = {11} key = {2} style = {{"marginLeft":"1.4%"}}>
                                 <FormItem
                                 {...formItemLayoutWithOutLabel1}
                                 label={(
@@ -320,9 +348,9 @@ class AddEventCategory extends Component{
                                         // <SelectOne rowCode = {this.state.areaCode}/>
                                         <Select
                                             showSearch
-                                            onChange={this.handleChange}
-                                            onFocus={this.handleFocus}
-                                            onBlur={this.handleBlur}
+                                            optionFilterProp="children"
+                                            filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+                                            onSelect={this.onSelect} 
                                         >
                                             {option}   
                                         </Select>
@@ -331,7 +359,7 @@ class AddEventCategory extends Component{
                             </Col>
                         </Row>
                         <Row >
-                            <Col span = {10} key = {1}  offset = {1}>
+                            <Col span = {10} key = {1} style = {{"marginLeft":"2.8%"}} >
                                 <FormItem
                                 {...formItemLayoutWithOutLabel1}
                                 label={(
@@ -342,15 +370,15 @@ class AddEventCategory extends Component{
                                 hasFeedback
                                 >
                                     {getFieldDecorator('pepole', {
-                                        rules: [{ required: true, message: '请输负责人', whitespace: true }, {
+                                        rules: [{ required: true, message: '请输入负责人', whitespace: true }, {
                                             validator: this.eventName,
                                         }],
                                     })(
-                                        <Input placeholder = "请输负责人"/>
+                                        <Input placeholder = "请输入负责人"/>
                                     )}
                                 </FormItem>
                             </Col>
-                            <Col span = {11} key = {2}  >
+                            <Col span = {11} key = {2} style = {{"marginLeft":"1.4%"}} >
                                 <FormItem
                                 {...formItemLayoutWithOutLabel1}
                                 label={(
@@ -361,17 +389,17 @@ class AddEventCategory extends Component{
                                 hasFeedback
                                 >
                                     {getFieldDecorator('phone', {
-                                        rules: [{ required: true, message: '请输联系电话', whitespace: true }, {
-                                            validator: this.eventName,
+                                        rules: [{ required: true, message: '请输入联系电话', whitespace: true }, {
+                                            validator: this.checkPhone,
                                         }],
                                     })(
-                                        <Input placeholder = "请输联系电话"/>
+                                        <Input placeholder = "请输入联系电话"/>
                                     )}
                                 </FormItem>
                             </Col>
                         </Row>
                         <Row>
-                            <Col span = {20} key = {1}  offset = {1}>
+                            <Col span = {20} key = {1} style = {{"marginLeft":"2.8%"}}>
                                 <FormItem
                                 {...formItemLayoutWithOutLabel}
                                 label={(
@@ -382,17 +410,17 @@ class AddEventCategory extends Component{
                                 hasFeedback
                                 >
                                     {getFieldDecorator('adds', {
-                                        rules: [{ required: true, message: '请输详细地址', whitespace: true }, {
+                                        rules: [{ required: true, message: '请输入详细地址', whitespace: true }, {
                                             validator: this.eventName,
                                         }],
                                     })(
-                                        <Input placeholder = "请输详细地址" onBlur = {this.addOnBlur}/>
+                                        <Input placeholder = "请输入详细地址" onBlur = {this.addOnBlur}/>
                                     )}{
                                         
                                     }
                                 </FormItem>
                             </Col>
-                            <Col span = {2} key = {11} >
+                            <Col span = {2} key = {11}>
                             
                                 <SchoolMap  mapVisible = {this.state.mapVisible} mapChange = {this.mapChange} searchData = {this.state.searchData} addrMassage = {this.addrMassage} prentsData={this.prentsData}  prentssetLat={this.prentssetLat} getChPoint = {this.getChPoint}/>
                             </Col>

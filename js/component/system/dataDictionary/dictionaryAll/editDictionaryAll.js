@@ -1,6 +1,6 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Input,LocaleProvider } from 'antd';
+import { Button,Modal,Form,Input,LocaleProvider,message } from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
@@ -30,20 +30,13 @@ class AddEventCategory extends Component{
            editVisible: true
          });    
     } 
-    success = () => {                       //操作完成提示弹框
-        const modal = Modal.success({       // success('操作成功!');
-            title: '操作成功',
-            content: '编辑字典类别管理成功',
-          });
-          setTimeout(() => modal.destroy(), 1000);
+    //操作完成提示弹框
+    success = () => {
+        message.success("编辑字典类别成功")
     };
-    error = () => {
-        const modal = Modal.error({         // success('操作成功!');
-            title: '操作失败',
-            content: '编辑字典类别管理失败',
-          });
-          setTimeout(() => modal.destroy(), 2000);
-    };
+    error = (error) => {
+        message.error(error)
+    }
 
     editHandleOk = (e) => {
          e.preventDefault();
@@ -64,7 +57,10 @@ class AddEventCategory extends Component{
             }).then((res) => {
                 let datas = res.data.success;
                 if(datas){
-                    this.props.getParentListData({});
+                    let pageNum = 1;
+                    let pageSize = 10;
+                    this.props.getParentListData({pageNum,pageSize});
+                    // this.props.getParentListData({});
                     setTimeout(() => {
                         this.props.changeT({editLoading: false, editVisible: false})  
                         this.setState({ editLoading: false, editVisible: false});
@@ -74,8 +70,14 @@ class AddEventCategory extends Component{
                     }, 1000);
                 }else{
                     this.setState({ editLoading: false});
+                    let error = ""
+                    if(res.data.message && res.data.message != ""){
+                        error = res.data.message
+                    }else{
+                    error = "编辑字典类别失败"
+                    }
                     setTimeout(() => {
-                        this.error();
+                            this.error(error);
                     }, 1000);
                 }
             })
@@ -113,12 +115,13 @@ class AddEventCategory extends Component{
         return (
             <Modal
                 visible={this.props.editVisible}
-                title="编辑字典类别管理"
+                title="编辑字典类别"
                 onOk={this.addHandleOk}
                 onCancel={this.editHandleCancel}
                 destroyOnClose={true}
                 afterClose={this.afterClose}
                 footer={[
+                    <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;建议类别编码格式统一为拼音首字母大写</span>,
                     <Button key="back" size="large" onClick={this.editHandleCancel}>取消</Button>,
                     <Button key="submit" type="primary" size="large" htmlType="submit" loading={this.state.editLoading} onClick={this.editHandleOk}>
                     保存

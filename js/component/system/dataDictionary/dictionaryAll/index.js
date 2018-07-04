@@ -1,7 +1,8 @@
 import React,{Component} from 'react';
 import axios from 'axios';
-import { Button,Input,Table,LocaleProvider,Modal} from 'antd';
+import { Button,Input,Table,LocaleProvider,Modal,message,Icon} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
+import AuthPower from '../../../authpower';
 import AddEventCategory from "./addDictionaryAll";
 import EditDictionaryAll from "./editDictionaryAll";
 import config from '../../../../config';
@@ -45,51 +46,52 @@ export default class ChildArea extends Component{
         key:"action",
         render:(text, record) => (
             <span>
-                <a href="#" onClick= {this.showModal.bind(this,record)}>编辑</a>
+                <AuthPower>
+                <a href="#"  god = "ny-dcAllEdit" onClick= {this.showModal.bind(this,record)}>编辑</a>
+                </AuthPower>
                 <span className="ant-divider" />
-                <a href="#" onClick = {this.Delet.bind(this,record)}>删除</a>
+                <AuthPower>
+                <a href="#" god = "ny-dcAllDelet" onClick = {this.Delet.bind(this,record)}>删除</a>
+                </AuthPower>
             </span>
         ), 
     }];
     showModal = (record) =>{
         this.setState({record,editVisible:true});
     }
-    getParentListData = ({pageNum=1,pageSize=10}) => {
+    getParentListData = ({pageNum,pageSize}) => {
         axios.get(`${config.api_server}/sys/dict/queryall?pageNum=${pageNum}&pageSize=${pageSize}`).then((res) =>{
             if(res.data.page.datas){
-                this.setState({data:res.data.page.datas})
+                this.setState({data:res.data.page.datas,totalRecord:res.data.page.totalRecord,pageNum:pageNum})
                 //eslint-disable-next-line
-                console.log("ssssss",res.data.page);
-                this.setState({totalRecord:res.data.page.totalRecord})
+               // console.log("ssssss",res.data.page);
+               // this.setState({totalRecord:res.data.page.totalRecord})
             }
         })
     }
 
     componentDidMount(){
-        this.getParentListData({});
+        let pageNum = this.state.pageNum;
+        let pageSize = this.state.pageSize;
+        this.getParentListData({pageNum,pageSize});
     }
     refresh = () =>{
-        this.getParentListData({});
+        // let pageNum = this.state.pageNum;
+        let pageNum = 1;
+        let pageSize = this.state.pageSize;
+        this.getParentListData({pageNum,pageSize});
     }
-    success = () => {                       //操作完成提示弹框
-        const modal = Modal.success({       // success('操作成功!');
-            title: '操作成功',
-            content: '删除字典类别成功',
-          });
-          setTimeout(() => modal.destroy(), 1000);
+    success = (success) => {
+        message.success(success)
     };
-    error = () => {
-        const modal = Modal.error({         // success('操作成功!');
-            title: '操作失败',
-            content: '删除字典类别失败',
-          });
-          setTimeout(() => modal.destroy(), 1000);
-    };
+    error = (error) => {
+        message.error(error)
+    }
     Delet = (record) => {
         let records = record.id;
         confirm({
-            title: '确定要删除此条信息吗?',
-            content: '删除的内容？',
+            title: '删除操作',
+            content: '确定要删除吗？',
             okText: '是',
             okType: 'danger',
             cancelText: '否',
@@ -97,13 +99,22 @@ export default class ChildArea extends Component{
               axios.get(`${config.api_server}/sys/dict/delete?id=${records}`).then(res =>{
                     let datas = res.data.success;
                     if(datas == true){
-                        this.getParentListData({});
-                            setTimeout(() => {
-                                this.success();
-                            }, 1000);
-                    }else{
+                        let pageNum = 1;
+                        let pageSize = this.state.pageSize;
+                        this.getParentListData({pageNum,pageSize});
                         setTimeout(() => {
-                            this.error();
+                            let success = "删除字典类别成功"
+                            this.success(success);
+                        }, 1000);
+                    }else{
+                        let error = ""
+                        if(res.data.message && res.data.message != ""){
+                            error = res.data.message
+                        }else{
+                            error = "删除字典类别失败"
+                        }
+                        setTimeout(() => {
+                                this.error(error);
                         }, 1000);
                     }
                 })
@@ -115,13 +126,15 @@ export default class ChildArea extends Component{
         });
     }
     onShowSizeChange = (current, size) =>{
+        this.setState({pageNum:current})
         this.getParentListData({pageNum:current,pageSize:size})
     } 
     onChange = (page, pageSize) =>{
+        this.setState({pageNum:page})
         this.getParentListData({pageNum :page,pageSize:pageSize})
     }
-    showTotal = (total, range) => {
-        return `共 ${total} 条记录 第${range[0]}-${range[1]}条 `
+    showTotal = (total) => {
+        return `共 ${total} 条记录 `
     }
     changeT = ({editVisible=false}) =>{
         this.setState({editVisible})
@@ -140,28 +153,22 @@ export default class ChildArea extends Component{
     }
     render(){
         const pagination = {
+            current:this.state.pageNum,
             showQuickJumper:true,
             onShowSizeChange:this.onShowSizeChange,
             onChange:this.onChange,
             total:this.state.totalRecord,
             showTotal:this.showTotal,
-            showSizeChanger:true,
+            // showSizeChanger:true,
             size:"small",
         }
         return (
             <div className='data-class-overKnow'>
-                {/* <div className = 'eventTitle'>
-                    <span className="titleLeft"></span>
-                    <span>自定义父类型管理</span> 
-                    <div className = "eventTitleSearch">
-                        <Search placeholder="搜索"  style={{ width: 200 }} onSearch={this.onSearch}/>
-                        <Button  onClick = {this.refresh}>刷新</Button>
-                        <AddEventCategory getParentListData = {this.getParentListData} dataList = {this.state.data}/>
-                    </div>
-                </div> */}
                 <div className = 'eventTitle'>
-                        <AddEventCategory getParentListData = {this.getParentListData} dataList = {this.state.data}/>
-                        <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}>刷新</Button>
+                    <AuthPower>
+                        <AddEventCategory god = "ny-dcAllAdd" getParentListData = {this.getParentListData} dataList = {this.state.data}/>
+                    </AuthPower>
+                        <Button onClick = {this.refresh} style = {{"marginLeft":"10px"}}><Icon type="reload"/></Button>
                         <div className = "eventTitleSearch"  style={{ width: "20%" }}>
                             <Search placeholder="搜索"  style={{ width: "100%" }} onSearch={this.onSearch}/>                          
                         </div>

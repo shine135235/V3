@@ -34,10 +34,10 @@ class EditDictionaryDetailTest extends Component{
     //操作完成提示弹框
     success = () => {
         // success('操作成功!');
-        message.success("添加用户单位成功")
+        message.success("编辑字典项成功")
     };
-    error = () => {
-        message.error("添加用户单位失败")
+    error = (error) => {
+        message.error(error)
     }
     editHandleOk = () => { 
         let record = this.props.record;
@@ -56,10 +56,12 @@ class EditDictionaryDetailTest extends Component{
                     data:obj
                 }).then((res) => {
                     //eslint-disable-next-line
-                    console.log(res);
+                    //console.log(res);
                     let datas = res.data.success;
                     if(datas){
-                        this.props.getDataList({});
+                        let pageNum = 1;
+                        let pageSize = 10;
+                        this.props.getDataList({pageNum,pageSize})
                         setTimeout(() => {
                             this.props.changeT({editLoading: false, editVisible: false})  
                             this.setState({editLoading: false, editVisible: false})  
@@ -68,9 +70,15 @@ class EditDictionaryDetailTest extends Component{
                             this.success();
                         }, 3000);
                     }else{
+                        let error = ""
+                        if(res.data.message && res.data.message != ""){
+                            error = res.data.message
+                        }else{
+                        error = "编辑字典项失败"
+                        }
                         setTimeout(() => {
-                            this.error();
-                        }, 3000);
+                                this.error(error);
+                        }, 1000);
                     }
                 })
             }
@@ -90,6 +98,13 @@ class EditDictionaryDetailTest extends Component{
     }
     afterClose = () => {
         this.isOrNoStyle({});
+    }
+    eventCode = (rule, value, callback) =>{
+        if(!(/^[A-Za-z]+$/g.test(value))){
+            callback("条目内容建议为名称首字母大写");
+        }else{
+            callback();
+        }
     }
     render(){
         const { getFieldDecorator } = this.props.form;
@@ -114,7 +129,7 @@ class EditDictionaryDetailTest extends Component{
                     afterClose={this.afterClose}
                     destroyOnClose={true}
                     footer={[
-                        <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;条目项标识用于后端存储,名称用于前端展示</span>,
+                        <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;建议条目项标识格式统一为名称拼音首字母大写</span>,
                         <Button key="back" size="large" onClick={this.editHandleCancel}>取消</Button>,
                         <Button key="submit" type="primary" htmlType='submit' size="large" loading={this.state.editLoading} onClick={this.editHandleOk}
                         >保存</Button>
@@ -150,7 +165,9 @@ class EditDictionaryDetailTest extends Component{
                                         <FormItem >
                                             {getFieldDecorator(`dicName1`, {
                                                     initialValue:this.props.record.itemKey,
-                                                    rules: [{ required: true, message: '请输入条目', whitespace: true }],
+                                                    rules: [{ required: true, message: '请输入条目', whitespace: true }, {
+                                                        validator: this.eventCode,
+                                                    }],
                                                 })(
                                                     <Input placeholder="条目"  />
                                                 )
