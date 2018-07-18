@@ -23,7 +23,8 @@ export default class RoleManage extends Component{
             rolename:'思维分服务台',
             roleType:true,
             display:true,
-            treeDisabled:false
+            treeDisabled:false,
+            buttonLoad:false
         };
     }
     componentDidMount(){
@@ -134,6 +135,31 @@ export default class RoleManage extends Component{
           });
         
     }
+    onSubPower=() =>{
+        this.setState({
+            treeDisabled:true,
+            buttonLoad:true
+        })
+        axios.post(`${config.api_server}/sys/permission`,{
+            permissionId:this.state.checkedKeys,
+            roleId:this.state.roleid
+        }).then(res =>{
+            if(res.data.success){
+                message.success('权限修改成功!');
+                this.getPowerData(this.state.roleid[0]);
+                this.setState({
+                    treeDisabled:false,
+                    buttonLoad:false
+                })
+            }else{
+                message.error('权限修改失败,请重试!');
+                this.setState({
+                    treeDisabled:false,
+                    buttonLoad:false
+                })
+            }
+        })
+    }
     onCheck = (checkedKeys,v) => {
         let subKeys=[...checkedKeys];
           if(v.halfCheckedKeys.length>0){
@@ -141,23 +167,6 @@ export default class RoleManage extends Component{
                 subKeys.push(item)
               ))
           }
-        this.setState({
-            treeDisabled:true
-        })
-        axios.post(`${config.api_server}/sys/permission`,{
-            permissionId:subKeys,
-            roleId:this.state.roleid
-        }).then(res =>{
-            if(res.data.success){
-                message.success('权限修改成功!');
-                this.getPowerData(this.state.roleid[0]);
-                this.setState({
-                    treeDisabled:false
-                })
-            }else{
-                message.error('权限修改失败,请重试!')
-            }
-        })
         this.setState({ checkedKeys });
       }
       renderTreeNodes = (data) => {
@@ -210,6 +219,7 @@ export default class RoleManage extends Component{
             <div className='power-list'>
              <div className='power-group'>
                     <div className='power-list-item'>
+                    <Button type='primary' loading={this.state.buttonLoad} onClick={this.onSubPower}>提交</Button>
                         <Tree
                         checkable
                         autoExpandParent={this.state.autoExpandParent}

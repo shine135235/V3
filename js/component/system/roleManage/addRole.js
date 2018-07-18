@@ -19,25 +19,30 @@ class AddRoleFrom extends Component{
     })
   }
   handleOk = () => {
-    this.setState({
-      loading:true,
-      disabled:true
-    })
-    axios.post(`${config.api_server}/sys/role`,{
-      name:this.props.form.getFieldValue('role'),
-      isOpen:this.props.public
-    }).then(res =>{
-       if(res.data.success){
-         message.success('角色添加成功');
-         this.props.hide();
-         this.props.reloadData();
-         this.setState({
-          loading:false,
-          disabled:false
+    this.props.form.validateFields((err,values)=>{
+      if(!err){
+        this.setState({
+          loading:true
         })
-       }else{
-         message.error(res.data.message)
-       }
+        axios.post(`${config.api_server}/sys/role`,{
+          name:values.role,
+          isOpen:this.props.public
+        }).then(res =>{
+           if(res.data.success){
+             message.success('角色添加成功');
+             this.props.hide();
+             this.props.reloadData();
+             this.setState({
+              loading:false
+             })
+           }else{
+             message.error(res.data.message);
+             this.setState({
+              loading:false
+             })
+           }
+        })
+      }
     })
   }
   handleCancel = () => {
@@ -65,7 +70,7 @@ class AddRoleFrom extends Component{
                 destroyOnClose={true}
                 footer={[
                   <Button key="back" size="large" onClick={this.handleCancel}>取消</Button>,
-                  <Button key="submit" type="primary" size="large" loading={this.state.loading} disabled={this.state.disabled} onClick={this.handleOk}>
+                  <Button key="submit" type="primary" size="large" loading={this.state.loading} onClick={this.handleOk}>
                     提交
                   </Button>
                 ]}
@@ -79,8 +84,7 @@ class AddRoleFrom extends Component{
                     {getFieldDecorator('role', {
                         rules: [{
                         required: true, message: '请输入角色名称!',
-                        }],
-                        initialValue:this.props.name
+                        }]
                     })(
                         <Input />
                     )}

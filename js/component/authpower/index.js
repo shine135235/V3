@@ -2,8 +2,8 @@ import React,{Component} from 'react';
 import axios from 'axios';
 import config from '../../config';
 
-
-console.log('------------->',sessionStorage.getItem('cid'))
+let CancelToken = axios.CancelToken;
+let source = CancelToken.source();
 let ajaxNum=0
 let pageData=[];
 export default class AuthPower extends Component{
@@ -23,28 +23,29 @@ export default class AuthPower extends Component{
                     ajaxNum=0;
             })
             return false
+        }else{
+            return false
         }
     }
-    render(){
-           if(pageData.length>0){
-               if(pageData.find(item =>(
-                item==this.props.children.props.god
-               ))){
-                return(
-                    <span>
-                        {this.props.children}
-                    </span>
-                )
-               }else{
-                   return(
-                    <span></span>
-                   )
-               }
-           }else{
-            return(
-                <span></span>
-               )
-           }
-       
+    componentWillUnmount(){
+        ajaxNum=0;
+        source.cancel();
     }
+    render(){
+            if(pageData.length>0){
+                if(pageData.find(item =>(
+                 item==this.props.children.props.god
+                ))){
+                 return(
+                     <span>
+                         {this.props.children}
+                     </span>
+                 )
+                }else{
+                    return null
+                }
+            }else{
+             return null
+    }
+}
 }

@@ -53,9 +53,6 @@ class AddEventCategory extends Component{
                 opt.id = option[i];
                 arr.push(opt)
             }
-            if (err) {
-                return ;
-            }
             this.setState({ addLoading: true});
             $axios({
                 url:`${config.api_server}/sys/faultcategory`,

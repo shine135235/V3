@@ -64,9 +64,11 @@ export default class ChildArea extends Component{
         this.setState({record,editVisible:true});
     }
     onShowSizeChange = (current, size) =>{
+        this.setState({selectedRowKeys:[],showBetchDel:"none"})
         this.getDataList({pageNum:current,pageSize:size,param:this.state.param})
     } 
     onChange = (page, pageSize) =>{
+        this.setState({selectedRowKeys:[],showBetchDel:"none"})
         this.getDataList({pageNum :page,pageSize:pageSize,param:this.state.param})
     }
     showTotal = (total) => {
@@ -164,10 +166,11 @@ export default class ChildArea extends Component{
        
     }
     refresh = () =>{
+        this.setState({param:"",selectedRowKeys:[],showBetchDel:"none"})
         this.getDataList({pageNum:1,pageSize:this.state.pageSize,param:""});
     }
     onSearch = (value) =>{
-        this.setState({param:value})
+        this.setState({param:value,selectedRowKeys:[],showBetchDel:"none"})
         this.getDataList({pageNum:1,pageSize:this.state.pageSize,param:value});
     }
     render(){

@@ -60,6 +60,10 @@ class SetUserMsgForm extends Component{
                         message.error(res.data.message)
                     }
                 })
+            }else{
+                this.setState({
+                    loading:false
+                })
             }
         })
     }

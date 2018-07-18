@@ -35,19 +35,19 @@ class UpdatePwd extends Component{
         this.setState({ confirmDirty: this.state.confirmDirty || !!value });
     }
     checkPassword = (rule, value, callback) => {
-        const form = this.props.form;
-        if (value && value !== form.getFieldValue('password')) {
-            callback('两次输入密码不一致!');
-        } else {
+        if(!(/^(\d|[a-zA-Z])*((\d[a-zA-Z])|([a-zA-Z]\d))(\d|[a-zA-Z])*$/.test(value))){
+            callback('必须同时包含字母和数字!')
+        }else{
             callback();
         }
     }
     checkConfirm = (rule, value, callback) => {
         const form = this.props.form;
-        if (value && this.state.confirmDirty) {
-            form.validateFields(['confirm'], { force: true });
+        if (value !=form.getFieldValue('password')) {
+            callback('两次输入密码不一致!');
+        }else{
+            callback();
         }
-        callback();
     }
     checkOldPwd = (rule, value, callback) => {
         const form = this.props.form;
@@ -121,7 +121,7 @@ class UpdatePwd extends Component{
                                 {getFieldDecorator('password', {
                                     rules: [
                                         {required: true,min:6,max:16, message: '密码最小6位,最大16位!',}, 
-                                        {validator: this.checkConfirm,}
+                                        {validator: this.checkPassword,}
                                     ],
                                 })(
                                     <Input type="password" />
@@ -135,7 +135,7 @@ class UpdatePwd extends Component{
                                 {getFieldDecorator('confirm', {
                                     rules: [
                                         {required: true, min:6,max:16, message: '密码最小6位,最大16位'}, 
-                                        {validator: this.checkPassword}
+                                        {validator: this.checkConfirm}
                                     ],
                                 })(
                                     <Input type="password" onBlur={this.handleConfirmBlur} />

@@ -117,7 +117,6 @@ class ChartsEvent extends Component{
     }
 
     btnChange=(e) =>{
-        console.log(e.target.value)
         switch(parseInt(e.target.value)){
             case 0:
             this.getData(this.state.census,moment(new Date()).format('YYYY-MM-DD hh:mm:ss'),moment(new Date()).format('YYYY-MM-DD hh:mm:ss'))
@@ -149,7 +148,6 @@ class ChartsEvent extends Component{
             titName='维保期限'
             break;
         }
-        console.log(titName)
         const columns = [{
             title:titName,
             dataIndex: 'name',

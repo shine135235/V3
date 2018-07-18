@@ -44,7 +44,6 @@ class AdduserForm extends Component{
     state={
         loading:false,
         status:true,
-        disabled:false,
         sp:[],
         roleValue:''
     }
@@ -60,14 +59,26 @@ class AdduserForm extends Component{
             callback();
         }
     }
-    
+    checkUserName=(rule,value,callback) =>{
+        if(!(/[a-zA-Z0-9_@-]$/.test(value))){
+            callback('只能输入英文字母,数字,合法字符')
+        }else{
+            callback();
+        }
+    }
+    // checkPassword=(rule,value,callback) =>{
+    //     if(!(/[A-Z]|[a-z]|[0-9]|[`~!@#$%^&*()+=]$/.test(value))){
+    //         callback('只能输入英文字母,数字,字符')
+    //     }else{
+    //         callback();
+    //     }
+    // }
     handleOk=() =>{
-        this.setState({
-            disabled:true,
-            loding:true
-        })
         this.props.form.validateFields((err,values)=>{
             if(!err){
+                this.setState({
+                    loading:true
+                })
                 axios.post(`${config.api_server}/sys/user`,{
                     userName:values.name,
                     loginId:values.username,
@@ -82,19 +93,21 @@ class AdduserForm extends Component{
                 }).then(res =>{
                     if(res.data.success){
                         message.success('添加成功');
-                        this.props.reloadData(1,this.props.unit,sessionStorage.getItem('addUser').split(',')[1],this.props.code)
+                        this.props.reloadData(1,this.props.unit,this.props.role,this.props.code)
                         this.props.cannel();
                         this.setState({
-                            disabled:false,
                             loading:false
                         })
                     }else{
                         message.error(res.data.message);
                         this.setState({
-                            disabled:false,
-                            loding:false
+                            loading:false
                         })
                     }
+                })
+            }else{
+                this.setState({
+                    loading:false
                 })
             }
         })
@@ -131,7 +144,7 @@ class AdduserForm extends Component{
             destroyOnClose='true'
             footer={[
                 <Button key="back" size="large" onClick={this.handleCancel}>取消</Button>,
-                <Button key="submit" type="primary" size="large" loading={this.state.loading} disabled={this.state.disabled} onClick={this.handleOk}>
+                <Button key="submit" type="primary" size="large" loading={this.state.loading} onClick={this.handleOk}>
                   提交
                 </Button>
               ]}
@@ -155,10 +168,14 @@ class AdduserForm extends Component{
                 label="用户名"
                 >
                 {getFieldDecorator('username', {
-                    rules: [{
-                    required: true,whitespace:true,  message: '请输入用户名!',
-                    }]
-                })(<Input />)}
+                    rules: [
+                    {
+                    required: true,whitespace:true, min:3, max:16,  message: '请输入3-16位用户名'
+                    },{
+                        validator:this.checkUserName
+                    }
+                ]
+                })(<Input maxLength={16} />)}
                 </FormItem>
                 <FormItem
                 {...formItemLayout}

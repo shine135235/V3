@@ -1,6 +1,6 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Input,LocaleProvider,message } from 'antd';
+import { Button,Modal,Form,Input,LocaleProvider,message,Tooltip,Icon} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
@@ -91,8 +91,16 @@ class AddEventCategory extends Component{
     afterClose = () => {
         this.setState({recordData:[]})
     }
+    eventCode = (rule, value, callback) =>{
+        if(!(/^[A-Z]+$/g.test(value))){
+            callback("类别编码建议为名称首字母大写");
+        }else{
+            callback();
+        }
+    }
     render(){
         const { getFieldDecorator } = this.props.form;
+        const text = <span>格式统一为名称拼音首字母大写</span>;
         const formItemLayout = {
             labelCol: {
                 xs: { span: 24 },
@@ -153,6 +161,9 @@ class AddEventCategory extends Component{
                     label={(
                         <span>
                         类别编码&nbsp;
+                            <Tooltip placement="top" title={text}>
+                                    <Icon type="info-circle-o"  className = "iTip" />
+                            </Tooltip>
                         </span>
                     )}
                     hasFeedback
@@ -160,7 +171,7 @@ class AddEventCategory extends Component{
                     {getFieldDecorator('categoryCode', {
                         initialValue:categoryCodeV,
                         rules: [{ required: true, message: '请输入类别编码', whitespace: true }, {
-                            validator: this.eventName,
+                            validator: this.eventCode,
                         }],
                     })(
                         <Input placeholder = "如：ZCLB"/>

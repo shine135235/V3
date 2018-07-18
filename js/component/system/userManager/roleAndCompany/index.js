@@ -11,6 +11,9 @@ import config from '../../../../config';
 const SubMenu = Menu.SubMenu;
 const TabPane = Tabs.TabPane;
 
+
+console.log(sessionStorage.getItem('cid'))
+
 export default class RoleAndCompany extends Component{
     state={
         deptData:[],
@@ -29,7 +32,6 @@ export default class RoleAndCompany extends Component{
         this.getUnitList()
     }
     getUnitList=(pn,uid,rid,cod) =>{
-        console.log(sessionStorage.getItem('addUser'))
         axios.post(`${config.api_server}/sys/user/unitrole`,{
             params:{
                 userID:'001'
@@ -44,7 +46,7 @@ export default class RoleAndCompany extends Component{
                 rid:this.state.rid==undefined?res.data[0].unitRole[0].id:this.state.rid,
                 code:this.state.code==undefined?res.data[0].code:this.state.code,
             })
-            this.getUserList(pn?pn:1,uid?uid:res.data[0].id,rid?rid:res.data[0].unitRole[0].id,cod?cod:res.data[0].code);
+            this.getUserList(pn?pn:1,uid?uid:res.data[0].id,rid?rid:sessionStorage.getItem('addUser')?sessionStorage.getItem('addUser').split('-')[0]:res.data[0].unitRole[0].id,cod?cod:res.data[0].code);
         })
     }
     getUserList=(pn,uid,rid,cod) =>{
@@ -203,7 +205,7 @@ export default class RoleAndCompany extends Component{
         }
         if(this.state.deptData.length>0){
             return(
-                <div className='role-content'>
+                <div className='role-content' sytle={{display:sessionStorage.getItem('isOver')?'block':'none'}}>
                 <div className='department'>
                     <div className='depart-search'>
                     </div>
@@ -248,7 +250,7 @@ export default class RoleAndCompany extends Component{
                         <TabPane tab="已禁用帐号" key='disabled'>
                             <DisableUser data={this.state.disable} reloadData={this.getUserList} rid={this.state.rid} uid={this.state.uid} code={this.state.code}  />
                         </TabPane>
-                        <TabPane tab="数据权限" key='data'>
+                        <TabPane tab="数据权限" key='data' disabled={true}>
                         333
                         </TabPane>
                     </Tabs>

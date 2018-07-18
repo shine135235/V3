@@ -1,5 +1,6 @@
 import React,{Component} from 'react'
-import { Menu, Popover, Button, Form, DatePicker,Icon,Pagination } from 'antd';
+import { Menu, Popover, Button,LocaleProvider, Form, DatePicker,Icon,Pagination } from 'antd';
+import zhCN from 'antd/lib/locale-provider/zh_CN';
 import axios from 'axios';
 import moment from 'moment';
 import Echarts from './echarts'
@@ -23,10 +24,11 @@ export default class PerformanceManage extends Component{
         total:null,
         startTime:"",
         endTime:"",
-        pageSize:16,
+        pageSize:12,
         rootSubmenuKeys:[],
         type:"",
-        pageNum:1
+        pageNum:1,
+        ecData:[]
     }
       componentDidMount (){
         this.getMenuList()
@@ -41,7 +43,7 @@ export default class PerformanceManage extends Component{
             for(let i = 0;i<res.data[0].dataClass.length;i++){
                 rootSubmenuKeys.push(res.data[0].dataClass[i].id)
             }
-            console.log("rootSubmenuKeysrootSubmenuKeys",rootSubmenuKeys)
+            //console.log("rootSubmenuKeysrootSubmenuKeys",rootSubmenuKeys)
             this.setState({
                     menuData:res.data,
                     menuList:res.data[0].dataClass,
@@ -61,7 +63,7 @@ export default class PerformanceManage extends Component{
                 startTime:startTime,
                 endTime:endTime,
                 pageNum:pn,
-                pageSize:16,
+                pageSize:12,
             }
         }).then(res =>{
            this.setState({
@@ -147,7 +149,7 @@ export default class PerformanceManage extends Component{
          
     }
     pageChange = (page) =>{
-        console.log("pagepage",page);
+       // console.log("pagepage",page);
          this.getArchiveRateStatistic(this.state.openKey,this.state.statisticType,this.state.startTime,this.state.endTime,page)
     }
     onOpenChange = (openKeys) =>{
@@ -160,21 +162,30 @@ export default class PerformanceManage extends Component{
           });
         }
     }
+    showTotal = (total) => {
+        return `共 ${total} 条记录`
+    }
+    // onShowSizeChange = (current, size) =>{
+    //     this.setState({pageNum:current})
+    //     this.getDataList({pageNum:current,pageSize:size,searchparam:this.state.searchparam})
+    // }
     render(){ 
         let content = (
-            <Form
-                className="ant-advanced-search-form"
-                onSubmit={this.handleSearch}
-            >
-                <FormItem>
-                    <Button className = "1" onClick = {this.oneWeek.bind(this,"oneWeek")}>最近一周</Button>
-                    <Button className = "2" onClick = {this.oneWeek.bind(this,"oneMonth")}>最近一月</Button>
-                    <Button className = "3" onClick = {this.oneWeek.bind(this,"threeMonth")}>最近三月</Button>
-                </FormItem>
-                <FormItem>
-                        <RangePicker  onChange={this.onTimeChange} showTime format="YYYY-MM-DD HH:mm:ss" />            
-                </FormItem>
-            </Form>
+            <LocaleProvider locale = {zhCN}>
+                <Form
+                    className="ant-advanced-search-form"
+                    onSubmit={this.handleSearch}
+                >
+                    <FormItem>
+                        <Button className = "1" onClick = {this.oneWeek.bind(this,"oneWeek")} style = {{"marginRight":"8px"}}>最近一周</Button>
+                        <Button className = "2" onClick = {this.oneWeek.bind(this,"oneMonth")} style = {{"marginRight":"8px"}}>最近一月</Button>
+                        <Button className = "3" onClick = {this.oneWeek.bind(this,"threeMonth")}>最近三月</Button>
+                    </FormItem>
+                    <FormItem>
+                            <RangePicker  onChange={this.onTimeChange}  format="YYYY-MM-DD HH:mm:ss" />            
+                    </FormItem>
+                </Form>
+            </LocaleProvider>
         )
         //  console.log("this.state.menuList",this.state.menuList)
         // console.log("totaltotaltotaltotal",this.state.total)
@@ -226,11 +237,13 @@ export default class PerformanceManage extends Component{
                         </div>
                    </div>
                    <div style = {{"width":"100%","height":"93.5%"}}>
-                       <div style = {{"width":"100%","height":"95%"}}>
+                       <div style = {{"width":"100%","height":"90%"}}>
                             <Echarts ecData = {this.state.ecData} type = {this.state.type}/>
                        </div>
-                       <div style = {{"float":"right"}}>
-                            <Pagination current= {this.state.pageNum} size="small" total={this.state.total} onChange={this.pageChange}  position = {'both'} pageSize = {16} /> 
+                       <div style = {{"float":"right","marginTop":"6px"}}>
+                            <LocaleProvider locale = {zhCN}>
+                                <Pagination current= {this.state.pageNum} size="small" total={this.state.total}  onShowSizeChange={this.onShowSizeChange} showTotal={this.showTotal} onChange={this.pageChange}  position = {'both'} pageSize = {12} /> 
+                            </LocaleProvider>
                         </div>
                    </div>
                 </div>

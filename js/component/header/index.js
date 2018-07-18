@@ -34,7 +34,7 @@ class SetNav extends Component{
         this.state={
             theme:'dark',
             disable:false,
-            selectedKeys:this.props.selectedKeys?this.props.selectedKeys:sessionStorage.getItem('selectedKeys')===null?['5109AE81528211E8A4FB02004C4F4F51']:sessionStorage.getItem('selectedKeys'),
+            selectedKeys:sessionStorage.getItem('pid'),
             userData:JSON.parse(sessionStorage.getItem('user'))
         }
     }
@@ -58,7 +58,7 @@ class SetNav extends Component{
             return(
                 <div className='header'>
                 <div className='v3-logo' onClick={this.crazyClick}>
-                <div className='logo'><img src={config.api_server+sessionStorage.getItem('logo')} /></div>
+                <div className='logo' id='Logo'><img src={config.api_server+sessionStorage.getItem('logo')} /></div>
                 <div className='name'>{sessionStorage.getItem('name')}</div>
                 </div>
                 <Menu theme={this.state.theme} onClick={this.handleClick} selectedKeys={[this.state.selectedKeys]}>

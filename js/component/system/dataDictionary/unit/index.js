@@ -101,11 +101,11 @@ export default class ChildArea extends Component{
         message.error(error)
     }
     onShowSizeChange = (current, size) =>{
-        this.setState({pageNum:current})
+        this.setState({pageNum:current,selectedRowKeys:[],showBetchDel:"none"})
         this.getDataList({pageNum:current,pageSize:size,param:this.state.param})
     } 
     onChange = (page, pageSize) =>{
-        this.setState({pageNum:page})
+        this.setState({pageNum:page,selectedRowKeys:[],showBetchDel:"none"})
         this.getDataList({pageNum :page,pageSize:pageSize,param:this.state.param})
     }
     showTotal = (total) => {
@@ -201,13 +201,14 @@ export default class ChildArea extends Component{
         this.getDataList({pageNum:1,pageSize:10,param:""});
     }
     refresh = () =>{
+        this.setState({selectedRowKeys:[],showBetchDel:"none",param:""})
         this.getDataList({pageNum:1,pageSize:10,param:""});
     }  
     onSearch = (value) =>{
         let pageNum = 1;
         let pageSize = 10;
         let param = value;
-        this.setState({param:value})
+        this.setState({param:value,selectedRowKeys:[],showBetchDel:"none"})
         this.getDataList({pageNum,pageSize,param});
     } 
     render(){

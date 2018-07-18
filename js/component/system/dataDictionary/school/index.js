@@ -24,6 +24,7 @@ export default class ChildArea extends Component{
             nameValue:"",
             principalPhone:"",
             principal:"",
+            schoolCode:"",
             note:"",
             unitType:"",
             address:"",
@@ -91,6 +92,7 @@ export default class ChildArea extends Component{
                     unitType : res.data.data.unitType,
                     address  : res.data.data.address,
                     area  : res.data.data.areaId,
+                    schoolCode:res.data.data.schoolCode,
                     recordId : record,
                     lat: res.data.data.lat,
                     lng: res.data.data.lng,
@@ -194,12 +196,15 @@ export default class ChildArea extends Component{
             this.getSchoolDataList({pageNum:1,pageSize:10,param:""});
     }
     refresh = () =>{
-            this.getSchoolDataList({pageNum:1,pageSize:10,param:""});
+        this.setState({selectedRowKeys:[],showBetchDel:"none",param:""})
+        this.getSchoolDataList({pageNum:1,pageSize:10,param:""});
     }  
     onShowSizeChange = (current, size) =>{
+        this.setState({selectedRowKeys:[],showBetchDel:"none"})
         this.getSchoolDataList({pageNum:current,pageSize:size,param:this.state.param})
     } 
     onChange = (page, pageSize) =>{
+        this.setState({selectedRowKeys:[],showBetchDel:"none"})
         this.getSchoolDataList({pageNum :page,pageSize:pageSize,param:this.state.param})
     }
     showTotal = (total) => {
@@ -212,7 +217,7 @@ export default class ChildArea extends Component{
         let pageNum = 1;
         let pageSize = 10;
         let param = value;
-        this.setState({param:value})
+        this.setState({param:value,selectedRowKeys:[],showBetchDel:"none"})
         this.getSchoolDataList({pageNum,pageSize,param});
     } 
     render(){
@@ -247,7 +252,7 @@ export default class ChildArea extends Component{
                     <span className="slaManagement_Betch_WZ">已选择<span style={{"color":"#21adfc","margin":"0 5px"}}>{this.state.delIdsLength}</span>项</span>
                     <span className='slaManagement_Betch_Delete_btn' onClick={this.delData.bind(this,this.state.delIds)} style = {{"color":"red"}}>批量删除</span>
                 </div>
-                <div>
+                <div style = {{"height":"94%","overflowY":"auto"}}>
                     <LocaleProvider locale = {zhCN}>
                         <Table dataSource={this.state.dataList}  pagination = {pagination} columns={this.columns}  rowSelection = {rowSelection}  />          
                     </LocaleProvider>                   
@@ -264,6 +269,7 @@ export default class ChildArea extends Component{
                     recordId={ this.state.recordId} 
                     unitType={ this.state.unitType} 
                     address={ this.state.address} 
+                    schoolCode={ this.state.schoolCode} 
                     changeT = {this.changeT}
                     lat = {this.state.lat}
                     lng = {this.state.lng}

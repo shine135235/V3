@@ -45,13 +45,13 @@ class AddEventCategory extends Component{
         this.props.form.validateFieldsAndScroll((err,values) => {
             //eslint-disable-next-line
             //console.log("valuesvaluesvalues",values)
-            let arr = [];
-            let option = values.projects;
-            for(let i = 0;i<option.length;i++){
-                let opt = {};
-                opt.id = option[i];
-                arr.push(opt)
-            }
+            // let arr = [];
+            // let option = values.projects;
+            // for(let i = 0;i<option.length;i++){
+            //     let opt = {};
+            //     opt.id = option[i];
+            //     arr.push(opt)
+            // }
             if (err) {
                 return ;
             }
@@ -64,7 +64,7 @@ class AddEventCategory extends Component{
                 },
                 data:{
                     "faultName":values.faultName,
-                    "projects":arr,
+                    // "projects":arr,
                 }
             }).then((res) => {
                 let datas = res.data.success;
@@ -190,7 +190,7 @@ class AddEventCategory extends Component{
                             )}
                         </FormItem>
                        
-                        <FormItem
+                        {/* <FormItem
                         {...formItemLayout}
                         label={(
                             <span>
@@ -214,7 +214,7 @@ class AddEventCategory extends Component{
                                     {children}
                                 </Select>
                             )}
-                        </FormItem>
+                        </FormItem> */}
                     </Form>
                     </LocaleProvider>
                 </Modal> 

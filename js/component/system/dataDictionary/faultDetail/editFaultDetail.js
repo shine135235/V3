@@ -39,7 +39,7 @@ class AddEventCategory extends Component{
             if (err) {
                 return ;
             }
-            this.setState({ addLoading: true});
+            this.setState({ editVisible: true});
             $axios({
                 url:`${config.api_server}/sys/faultcategory`,
                 method:'put',
@@ -48,7 +48,7 @@ class AddEventCategory extends Component{
                 },
                 data:{
                     "id":this.props.record.id,
-                    "faultName":values.projects,
+                    "faultName":values.faultDetailName,
                     "parentId":values.faultName,
                 }
             }).then((res) => {
@@ -57,13 +57,13 @@ class AddEventCategory extends Component{
                     this.props.getParentListData({pageNum:1,pageSize:10,search:""})
                     setTimeout(() => {
                         this.props.changeT({editLoading: false, editVisible: false})
-                        this.setState({ addLoading: false, addVisible: false});
+                        this.setState({ editVisible: false, addVisible: false});
                     }, 1000);
                     setTimeout(() => {
                         this.success();
                     }, 1000);
                 }else{
-                    this.setState({ addLoading: false});
+                    this.setState({ editVisible: false});
                     let error = ""
                     if(res.data.message && res.data.message != ""){
                          error = res.data.message
@@ -109,6 +109,7 @@ class AddEventCategory extends Component{
                 sm: { span: 14 },
             },
         };
+        console.log("this.props.recordthis.props.record",this.props.record);
         const children = [];
         let bData = this.state.data;
         let initialSlect = this.props.record.fid;
@@ -181,7 +182,7 @@ class AddEventCategory extends Component{
                     )}
                     hasFeedback
                     >
-                    {getFieldDecorator('projects', {
+                    {getFieldDecorator('faultDetailName', {
                         initialValue:this.props.record.faultname,
                         rules: [{ required: true, message: '请输入事件细类名称'}],
                     })(

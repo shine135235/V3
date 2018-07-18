@@ -9,6 +9,8 @@ import './index.less'
 
 const Search = Input.Search;
 let that=0;
+let CancelToken = $axios.CancelToken;
+let source = CancelToken.source();
 export default class WorkOrder extends Component {
     state = {
         showBetchDel:"none",
@@ -19,12 +21,18 @@ export default class WorkOrder extends Component {
         visibleEdit:false,
         visibleAudit:false,
         visibleDetail:false,
+        isWith:false,
+        nowPage:1,
         data:[],
         detailData:{},
         showType:"list",
         rowData:{},
         onlyView:0,
-        withOffice:0
+        withOffice:0,
+        withIds:'',
+        faultUnit:'',
+        tableLoading:false,
+        searchKey:''
     }
     onSelectedChange = (selectedRowKeys, selectedRows) => {
         let selectedRowIds = [];
@@ -51,13 +59,13 @@ export default class WorkOrder extends Component {
             title: '项目名称',
             dataIndex: 'projectName',
             render:(text) =>(
-                <span title={text===null?'':text}>{text===null?'':text.length<=18?text:text.substring(0,18)+'...'}</span>
+                <span title={text===null?'':text}>{text===null?'':text.length<=18?text:text.substring(0,17)+'...'}</span>
             )
         },{
             title: '故障主题',
             dataIndex: 'faultTheme',
             render:(text) =>(
-                <span title={text===null?'':text}>{text===null?'':text.length<=18?text:text.substring(0,18)+'...'}</span>
+                <span title={text===null?'':text}>{text===null?'':text.length<=18?text:text.substring(0,17)+'...'}</span>
             )
         },{
             title: '级别',
@@ -85,6 +93,9 @@ export default class WorkOrder extends Component {
         },{
             title: '学校名称',
             dataIndex: 'faultSourceUnit',
+            render:(text) =>(
+                <span title={text===null?'':text}>{text===null?'':text.length<=18?text:text.substring(0,17)+'...'}</span>
+            )
         },{
             title: '创建人',
             dataIndex: 'createByName',
@@ -164,7 +175,7 @@ export default class WorkOrder extends Component {
                 if(record.status==7){
                     return(
                         <span>
-                            <a href="javascript:void 0" onClick={this.showEdit.bind(this,record)} className={record.status>=2?!record.canOpearte?'non-event':'':''}>{con}</a>
+                            <a href="javascript:void 0" onClick={this.showEdit.bind(this,record)} className={!record.canOpearte?'non-event':''}>{con}</a>
                             <span className="ant-divider"/>
                             <a href="javascript:void 0" onClick={this.showEdit.bind(this,record)} id='1'>查看</a>
                         </span>
@@ -172,7 +183,7 @@ export default class WorkOrder extends Component {
                 }else{
                     return(
                         <span>
-                            <a href="javascript:void 0" onClick={this.showEdit.bind(this,record)} className={record.status>=2?!record.canOpearte?'non-event':'':''}>{con}</a>
+                            <a href="javascript:void 0" onClick={this.showEdit.bind(this,record)} className={!record.canOpearte?'non-event':''}>{con}</a>
                             <span className="ant-divider"/>
                             <a href="javascript:void 0" onClick={this.showEdit.bind(this,record)} id='3'>查看</a>
                         </span>
@@ -217,17 +228,17 @@ export default class WorkOrder extends Component {
                 onlyView:0
             })
         }
+        console.log(this.state.isWith)
         if(view.target.getAttribute('id')!=3){
             if(record.status==3 || record.status==4){
                 that=that+1;
                 if(that===1){
-                    console.log(333)
                     $axios.put(`${config.api_server}/ops/workorder`,{
                         id:record.id,
                         status:record.status
                     }).then(res =>{
                         if(res.data.success){
-                            this.getListData(1);
+                            this.getListData(this.state.nowPage,!this.state.isWith);
                             setTimeout(() =>{
                                 that=0
                             },2000)
@@ -242,44 +253,77 @@ export default class WorkOrder extends Component {
             }else{
                 this.setState({
                     rowData:record.id,
-                    orderStatus:record.status
+                    orderStatus:record.status,
+                    faultUnit:record.faultSourceUnitId
                 })
                 this.changeShowType('edit');
             }
         }else{
             this.setState({
                 rowData:record.id,
-                orderStatus:record.status
+                orderStatus:record.status,
+                faultUnit:record.faultSourceUnitId
             })
             this.changeShowType('edit');
         }
         
     }
-    getListData = (pn,sc) => {
-        $axios.get(`${config.api_server}/ops/workorder/list`,{
-            params:{
+    getListData = (pn,re,sc) => {
+        let withIds=this.state.withIds
+        if(re==undefined || re==true){
+            withIds=''
+        }
+        this.setState({
+            tableLoading:true
+        })
+        $axios.post(`${config.api_server}/ops/workorder/list`,{
                 pageNum:pn?pn:1,
                 pageSize:10,
-                searchparam:sc
-            }
+                searchparam:sc,
+                ids:withIds
         }).then((json) => {
-            let data = json.data.page.datas;
-            let totalRecord = json.data.page.totalRecord;
-            this.setState({data,totalRecord})
+            this.setState({
+                data:json.data.page.datas,
+                totalRecord:json.data.page.totalRecord,
+                withOffice:json.data.page.backLogInfo.num,
+                withIds:json.data.page.backLogInfo.ids?json.data.page.backLogInfo.ids:'',
+                tableLoading:false
+            })
         })
     }
     loop=setInterval(this.getListData,300000)
     componentDidMount(){
         this.getListData(1)
     }
+    componentWillUnmount(){
+        source.cancel();
+    }
     refreshData = () => {
-        this.getListData(1)
+        this.getListData(1,true);
+        this.setState({
+            isWith:false,
+            nowPage:1,
+            searchKey:''
+        })
     }
     onChange=(v) =>{
-        this.getListData(v)
+        this.setState({
+            nowPage:v
+        })
+        this.getListData(v,!this.state.isWith)
     }
     searchFunc=(value) =>{
-        this.getListData(1,value)
+        this.setState({
+            searchKey:value
+        })
+        this.getListData(1,true,value)
+    }
+    withOffice=() =>{
+        this.setState({
+            isWith:true,
+            nowPage:1
+        })
+        this.getListData(1,false)
     }
     render(){
         const { selectedRowKeys,rowData,orderStatus } = this.state;
@@ -293,7 +337,7 @@ export default class WorkOrder extends Component {
                     <div className = 'workOrder_topBtns'>
                         <Button type="primary" icon="plus" onClick={this.changeShowType.bind(this,'add')}>新建</Button>
                         <Button className='workOrder_topBtns_secBtn' onClick={this.refreshData}><Icon type="reload" /></Button>
-                        <Icon type="edit" style={{marginRight:'10px',marginLeft:'10px'}} /><a href='javascript:void(0)'>待办（{this.state.withOffice}）</a> 
+                        <Icon type="edit" style={{marginRight:'10px',marginLeft:'10px'}} /><a href='javascript:void(0)' onClick={this.withOffice}>待办（{this.state.withOffice}）</a> 
                         <Search
                             placeholder="请输入..."
                             style={{ 'width': '20%' }}
@@ -309,13 +353,14 @@ export default class WorkOrder extends Component {
                     </div> 
                     <div className='workOrder_Table'>
                     <LocaleProvider  locale={zhCN}>
-                        <Table rowSelection={rowSelection} columns={this.columns} dataSource={this.state.data} pagination={false}/>
+                        <Table rowSelection={rowSelection} loading={this.state.tableLoading} columns={this.columns} dataSource={this.state.data} pagination={false}/>
                     </LocaleProvider>
                     </div>
                     <div className='workOrder_Pagination'>
                         <LocaleProvider  locale={zhCN}>
                             <Pagination
                                 size="small"
+                                current={this.state.nowPage}
                                 showQuickJumper 
                                 total={this.state.totalRecord}
                                 showTotal={this.showTotal}
@@ -331,7 +376,7 @@ export default class WorkOrder extends Component {
             )
         }else if(this.state.showType == "edit"){
             return(
-                <FaultTab changeShowType = {this.changeShowType} rowData={rowData} orderStatus={orderStatus} refreshData={this.getListData} only={this.state.onlyView} />
+                <FaultTab changeShowType = {this.changeShowType} rowData={rowData} orderStatus={orderStatus} refreshData={this.getListData} only={this.state.onlyView} faultunit={this.state.faultUnit} />
             )
         }
     }

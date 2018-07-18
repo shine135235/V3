@@ -25,7 +25,6 @@ export default class ChildArea extends Component{
             record:{},
             data:[],
             name:"",
-            initialSlect:[],
             showBetchDel:"none",
             selectedRowKeys:[],
             search:""
@@ -73,9 +72,9 @@ export default class ChildArea extends Component{
         ), 
     }];
     showModal = (record) =>{
-        let initialSlect = record.projectids.split(",") ;
+        // let initialSlect = record.projectids.split(",") ;
         let name = record.faultname;
-        this.setState({record,initialSlect,name,editVisible:true});
+        this.setState({record,name,editVisible:true});
     }
     getParentListData = ({pageNum,pageSize,search}) => {
         axios.get(`${config.api_server}/sys/faultcategory/list?pageNum=${pageNum}&pageSize=${pageSize}&search=${search}`).then((res) =>{
@@ -195,6 +194,7 @@ export default class ChildArea extends Component{
         this.setState({editVisible})
     }  
     refresh = () =>{
+        this.setState({search:""})
         this.getParentListData({pageNum :1,pageSize:this.state.pageSize,search:""});
     }
     onSearch = (value) =>{
@@ -262,11 +262,11 @@ export default class ChildArea extends Component{
                         <span className="slaManagement_Betch_WZ">已选择<span style={{"color":"#21adfc","margin":"0 5px"}}>{this.state.delIdsLength}</span>项</span>
                         <span className='slaManagement_Betch_Delete_btn' onClick={this.delData.bind(this,this.state.delIds)} style = {{"color":"red"}}>批量删除</span>
                 </div> */}
-                <div>
+                <div style = {{"height":"94%","overflowY":"auto"}}>
                     <LocaleProvider locale = {zhCN}>
                         <Table dataSource={this.state.data}  pagination = {pagination} columns={this.columns} />          
                     </LocaleProvider>
-                    <EditFaultAll editVisible = {this.state.editVisible} getParentListData = {this.getParentListData } record={ this.state.record} initialSlect = {this.state.initialSlect}  changeT = {this.changeT} name = {this.state.name}/>
+                    <EditFaultAll editVisible = {this.state.editVisible} getParentListData = {this.getParentListData } record={ this.state.record}   changeT = {this.changeT} name = {this.state.name}/>
                     <Project />
                 </div>
             </div>

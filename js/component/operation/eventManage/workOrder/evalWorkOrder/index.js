@@ -125,30 +125,37 @@ class EvalOrderForm extends Component{
                         serviceSuggestions=values.zphdesc
                         break;
                     }
-                    axios.post(`${config.api_server}/ops/workorder/evaluation`,{
-                        workOrderId:this.props.rowData,
-                        timeToService:timeToService,
-                        technologicalLevel:technologicalLevel,
-                        failureDescription:failureDescription,
-                        serviceAttribute:serviceAttribute,
-                        serviceSuggestions:serviceSuggestions,
-                        starCount:timeToService+technologicalLevel+failureDescription+serviceAttribute
-                    }).then(res =>{
-                        if(res.data.success){
-                            message.success('感谢您的评价!');
-                            this.props.changeShowType('list');
-                            this.props.refreshData(1);
-                            this.setState({
-                                rageLoading:false
-                            })
-                        }else{
-                            message.error('评价失败,请重试!');
-                            this.setState({
-                                rageLoading:false
-                            })
-                        }
-                        
-                    })
+                    if(timeToService!==0&&technologicalLevel!==0&&failureDescription!==0&&serviceAttribute!==0){
+                        axios.post(`${config.api_server}/ops/workorder/evaluation`,{
+                            workOrderId:this.props.rowData,
+                            timeToService:timeToService,
+                            technologicalLevel:technologicalLevel,
+                            failureDescription:failureDescription,
+                            serviceAttribute:serviceAttribute,
+                            serviceSuggestions:serviceSuggestions,
+                            starCount:timeToService+technologicalLevel+failureDescription+serviceAttribute
+                        }).then(res =>{
+                            if(res.data.success){
+                                message.success('感谢您的评价!');
+                                this.props.changeShowType('list');
+                                this.props.refreshData(1,true);
+                                this.setState({
+                                    rageLoading:false
+                                })
+                            }else{
+                                message.error('评价失败,请重试!');
+                                this.setState({
+                                    rageLoading:false
+                                })
+                            }
+                            
+                        })
+                    }else{
+                        message.error('请对本次服务作出评价!');
+                        this.setState({
+                            rageLoading:false
+                        })
+                    }
                 }
             }
         })
@@ -268,6 +275,10 @@ class EvalOrderForm extends Component{
                         </FormItem>
                         <FormItem {...formItemLayout} label='客户评价' className='non-bottom'>
                             {getFieldDecorator('desc', {
+                                rules: [{
+                                    required: true,
+                                    message: '请输入您的评价',
+                                }],
                                 initialValue:serviceSuggestions
                             })(
                                     <TextArea disabled={this.state.firstDisable} />
@@ -276,7 +287,7 @@ class EvalOrderForm extends Component{
                     </Card>
                     </Row>
                         <Row style={{display:`${this.state.secondShow?'block':'none'}`,marginBottom:'20px'}}>
-                        <Card title="甲方评分" bordered={true}>
+                        <Card title="追评" bordered={true}>
                         <FormItem {...formItemLayout} label='服务时效' className='non-bottom'>
                             {getFieldDecorator('zptime', {
                                         rules: [{
@@ -331,7 +342,7 @@ class EvalOrderForm extends Component{
                         </Card>
                         </Row>
                         <Row style={{display:`${this.state.thirdShow?'block':'none'}`,marginBottom:'20px'}}>
-                        <Card title="监理评分" bordered={true}>
+                        <Card title="追评" bordered={true}>
                         <FormItem {...formItemLayout} label='服务时效' className='non-bottom'>
                             {getFieldDecorator('zphtime', {
                                         rules: [{

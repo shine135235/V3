@@ -64,6 +64,7 @@ export default class AppMall extends Component {
         this.getListData({pageNum:current,pageSize:size});
     }
     refresh = () =>{
+        this.setState({searchVal:""})
         this.getListData({ pageNum:1,pageSize:10,searchVal:''})
     }
     render(){

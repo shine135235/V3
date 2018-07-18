@@ -32,8 +32,6 @@ export default class BarReact extends React.Component {
   }
   
   render() {
-    //eslint-disable-next-line
-    console.log('----------->',111)
     const { width="100%", height="700px"} = this.props
     return <div ref={ID => this.ID = ID} style={{width, height}}></div>
   }

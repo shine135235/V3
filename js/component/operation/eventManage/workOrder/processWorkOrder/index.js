@@ -1,5 +1,5 @@
 import React,{Component} from 'react';
-import { Form, Button, Table, Input, Row, Col, Select, Upload, Icon, Modal,Switch,message } from 'antd';
+import { Form, Button, Table, Input, Row, Col, Select, Upload, Icon, Modal,Switch,message,Alert } from 'antd';
 import axios from 'axios';
 import AssetsMsg from './AssetsMsg'
 import config from '../../../../../config';
@@ -12,6 +12,7 @@ const Option = Select.Option;
 class ProcessWorkOrder extends Component {
     state = {
         previewVisible: false,
+        previewVisibles:false,
         sfAssets:false,
         previewImage: '',
         fileList: [],
@@ -23,7 +24,9 @@ class ProcessWorkOrder extends Component {
         disabled:false,
         loading:false,
         Assetsvisible:false,
-        faultPic:[]
+        faultPic:[],
+        alertShow:false,
+        imgSrc:''
     }
     goBack = () => { 
         this.props.changeShowType('list')
@@ -83,27 +86,73 @@ class ProcessWorkOrder extends Component {
       }
       handleCancel = () => this.setState({ previewVisible: false })
 
-    handlePreview = (e) => {
+    handlePreview = (file) => {
+        this.setState({
+            previewImage: file.url || file.thumbUrl,
+            previewVisible: true,
+          });
+    }
+    handlePreviews = (e) => {
         switch(e.target.parentNode.childNodes.length){
             case 1:
             this.setState({
-                previewVisible: true,
+                previewVisibles: true,
                 imgSrc:e.target.parentNode.parentNode.childNodes[0].currentSrc
             })
             break;
             case 2:
             this.setState({
-                previewVisible: true,
+                previewVisibles: true,
                 imgSrc:e.target.parentNode.childNodes[0].currentSrc
             })
             break;
         }
     }
-
-    handleChange = ({ fileList }) => this.setState({ fileList })
+    handleChange = (info) => {
+        let fileList=info.fileList;
+        fileList.filter(item =>{
+            if(item.response){
+                if(item.response.success==='true'){
+                    this.setState({
+                        alertShow:false
+                    })
+                    return item.status='success'
+                }else{
+                    this.setState({
+                        alertShow:true
+                    })
+                    return item.status='error';
+                }
+            }
+        })
+        this.setState({fileList:fileList});
+    };
+    beforeUpload=(file) => {
+        let fileSize = file.size/1024;
+        if(file.type==='image/jpeg' || file.type==='image/png' || file.type==='image/gif'){
+            if(fileSize > 5125){
+                this.error("图片过大，请重新上传！");
+                this.setState({UploadFlg:true});
+                return;
+            }else{
+                this.setState({UploadFlg:false})
+            }
+        }else{
+            this.error('上传图片格式有误,请重新上传!');
+            this.setState({UploadFlg:true});
+            return ;
+        }
+        
+    }
+    handleRemove=(vs) =>{
+        console.log(vs)
+       if(this.state.fileList.length<=1){
+           this.setState({
+               alertShow:false
+           })
+       }
+    }
     showAssetsTable = () => {
-        //let showAssets = this.state.showAssets=="none"?"block":"none";
-        //this.setState({showAssets})
         this.setState({
             Assetsvisible:true
         })
@@ -113,12 +162,12 @@ class ProcessWorkOrder extends Component {
     }
     getOrderData=() =>{
         axios.get(`${config.api_server}/ops/workorder/solveWorkOrderLog/${this.props.rowData}?view=${this.props.orderStatus>5?true:false}`).then(res =>{
+            console.log(res.data.data)
             this.setState({
                 closeData:res.data.data,
                 assetsData:res.data.data.assetsList!=""?JSON.parse(res.data.data.assetsList):[],
-                faultPic:res.data.data.faultHandlePicture
+                faultPic:res.data.data.faultHandlePicture!=''?res.data.data.faultHandlePicture.split(','):[]
             })
-            console.log(res.data.data.assetsList)
             if(res.data.data.assetsList!=""){
                 this.setState({
                     showAssets:'table'
@@ -140,53 +189,63 @@ class ProcessWorkOrder extends Component {
                 })
             }
     }
+    uploads=true
     submitFunc=() =>{
-        this.props.form.validateFields((err,values) =>{
-            if(!err){
-                this.setState({
-                    loading:true
-                })
-                let faultPicture=[]
-                let pic = this.state.fileList;
-                if(pic.length > 0){
-                    for(let i = 0;i<pic.length;i++){
-                        faultPicture.push(pic[i].response.path);
-                    }
-                }
-                axios.post(`${config.api_server}/ops/workorder/solve`,{
-                    id:this.props.rowData,
-                    status:this.props.orderStatus,
-                    isSolve:this.state.switchType,
-                    quality:values.quality,
-                    resultsDesc:values.processDesc,
-                    solution:values.processSolutionType,
-                    faultHandlePicture:faultPicture
-                }).then(res =>{
-                    if(res.data.success){
-                        message.success('工单处理成功!');
-                        this.props.changeShowType('list');
-                        this.props.refreshData(1);
-                        this.setState({
-                            loading:false
-                        })
-                    }else{
-                        message.error(res.data.message);
-                        this.setState({
-                            loading:false
-                        })
-                    }
-                })
+        this.state.fileList.map(item =>{
+            if(item.status=='error'){
+                this.uploads=false
             }
         })
+        if(this.uploads){
+            this.props.form.validateFields((err,values) =>{
+                if(!err){
+                    this.setState({
+                        loading:true
+                    })
+                    let faultPicture=''
+                    let pic = this.state.fileList;
+                    if(pic.length > 0){
+                        for(let i = 0;i<pic.length;i++){
+                            faultPicture+=pic[i].response.path+',';
+                        }
+                    }
+                    axios.post(`${config.api_server}/ops/workorder/solve`,{
+                        id:this.props.rowData,
+                        status:this.props.orderStatus,
+                        isSolve:this.state.switchType,
+                        quality:values.quality,
+                        resultsDesc:values.processDesc,
+                        solution:values.processSolutionType,
+                        faultHandlePicture:faultPicture.substring(0,faultPicture.length-1)
+                    }).then(res =>{
+                        if(res.data.success){
+                            message.success('工单处理成功!');
+                            this.props.changeShowType('list');
+                            this.props.refreshData(1,true);
+                            this.setState({
+                                loading:false
+                            })
+                        }else{
+                            message.error(res.data.message);
+                            this.setState({
+                                loading:false
+                            })
+                        }
+                    })
+                }
+            })
+        }
+        
     }
     handleCancel =() =>{
         this.setState({
             previewVisible:false,
+            previewVisibles:false,
             Assetsvisible:false
         })
     }
     render(){
-        const { previewVisible, previewImage, fileList } = this.state;
+        const { previewVisible,  fileList,previewImage,previewVisibles } = this.state;
         const {getFieldDecorator} = this.props.form;
         const uploadButton = (
             <div>
@@ -206,18 +265,6 @@ class ProcessWorkOrder extends Component {
             // span:20
             },
         };
-        // const formItemLayoutPeo = {
-        //     labelCol: {
-        //       xs: { span: 24 },
-        //       sm: { span: 4 },
-        //     // span:4,
-        //     },
-        //     wrapperCol: {
-        //       xs: { span: 24 },
-        //       sm: { span: 7 },
-        //     // span:20
-        //     },
-        // };
         const formItemLayout1 = {
             labelCol: {
               xs: { span: 24 },
@@ -269,7 +316,7 @@ class ProcessWorkOrder extends Component {
                         <div  className='processWorkOrder_table' style={{"marginLeft":"5%","display":this.state.showAssets}}>
                             <Table title={() => '资产领取信息'} rowKey='PROCESSID' rowSelection={rowSelection} bordered  columns={this.columns} dataSource={this.state.assetsData} pagination={false} style={{width:'100%',"marginTop":"12px"}}/>
                         </div>
-                        <AssetsMsg cannel={this.handleCancel} show={this.state.Assetsvisible} reloadData={this.getOrderData} orderId={this.props.rowData} />
+                        <AssetsMsg cannel={this.handleCancel} show={this.state.Assetsvisible} reloadData={this.getOrderData} orderId={this.props.rowData} unit={this.props.faultunit} />
                     </FormItem>
                     <Row style={{"marginTop":"12px"}}>
                         <Col span={10} style={{"marginLeft":"6%"}}>
@@ -362,7 +409,7 @@ class ProcessWorkOrder extends Component {
                     </FormItem>
                     <FormItem
                         {...formItemLayout}
-                        label='质保期限'
+                        label='质保情况'
                     >
                         {getFieldDecorator("quality",{
                             rules:[
@@ -373,8 +420,8 @@ class ProcessWorkOrder extends Component {
                             initialValue:`${this.state.closeData.quality}`
                         })(
                             <Select placeholder="请选择解决方式..." disabled={this.state.disabled}>
-                                        <Option key='0' value='0'>保内</Option>
-                                        <Option key='1' value='1'>保外</Option>
+                                        <Option key='0' value='0'>保外</Option>
+                                        <Option key='1' value='1'>保内</Option>
                                         <Option key='2' value='2'>不确定</Option>
                             </Select>
                         )}
@@ -422,6 +469,7 @@ class ProcessWorkOrder extends Component {
                                     action={`${config.api_server}/upload/resource/commonupload`}
                                     listType="picture-card"
                                     fileList={fileList}
+                                    onRemove={this.handleRemove}
                                     onPreview={this.handlePreview}
                                     onChange={this.handleChange}
                                     disabled={this.state.disabled}
@@ -429,24 +477,30 @@ class ProcessWorkOrder extends Component {
                                         type:'workorder'
                                     }}
                                 >
-                                    {fileList.length >= 3 ? null : uploadButton}
+                                    {fileList.length+this.state.faultPic.length >= 3 ? null : uploadButton}
                                 </Upload>
-                                {
-                                this.state.faultPic.length>0?this.state.faultPic.split(',').map((item,key) =>(
-                                    <div key={key} className='ant-upload ant-upload-select ant-upload-select-picture-card imgshow' onClick={this.handlePreview}>
-                                        <span className='imgmask'>
-                                        <img src={config.api_server+item} />
-                                        <div className='maskview'><Icon type='eye' style={{fontSize:'22px'}} /></div>
-                                        </span>
-                                    </div>
-                                    )):null
-                                }
-                                <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
+                                <Modal width='80%' visible={previewVisible} footer={null} onCancel={this.handleCancel}>
                                     <img alt="example" style={{ width: '100%' }} src={previewImage} />
+                                </Modal>
+                                {
+                                    this.state.faultPic.length>0?this.state.faultPic.map((item,key) =>(
+                                        <div key={key} className='ant-upload ant-upload-select ant-upload-select-picture-card imgshow' onClick={this.handlePreviews}>
+                                            <span className='imgmask'>
+                                            <img src={config.api_server+item} />
+                                            <div className='maskview'><Icon type='eye' style={{fontSize:'22px'}} /></div>
+                                            </span>
+                                        </div>
+                                        )):null
+                                }
+                            
+                                <Modal width='80%' visible={previewVisibles} footer={null} onCancel={this.handleCancel}>
+                                    <img alt="example" style={{ width: '100%' }} src={this.state.imgSrc} />
                                 </Modal>
                           </div>
                         )}
-                        <div>可以上传3张图片，单张小于5M。图片支持的格式有：jpg,bmp,png,gif</div>
+                        
+                        <div>可以上传3张图片，单张小于5M。图片支持的格式有：jpg,png,gif</div>
+                        <Alert style={{display:this.state.alertShow?'block':'none'}} closable={true} message="图片上传失败,请重试!" type="error" />
                     </FormItem>
                     <FormItem
                         wrapperCol={{ span: 20, offset: 4 }}

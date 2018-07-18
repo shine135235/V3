@@ -1,6 +1,6 @@
 import React,{Component} from 'react';
 import $axios from 'axios'
-import { Button,Modal,Form,Input,LocaleProvider,message} from 'antd';
+import { Button,Modal,Form,Input,LocaleProvider,message,Tooltip,Icon} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
@@ -14,12 +14,6 @@ class Editchild extends Component{
         editLoading:false,
         // alertVisible:false
       }
-    componentDidMount(){
-
-    }
-    componentDidUpdate(){
-       
-    }
     handleSubmit = (e) => {
         e.preventDefault();
     }
@@ -29,8 +23,7 @@ class Editchild extends Component{
     error = (error) => {
         message.error(error)
     }
-      editHandleOk = (e) => {
-        this.setState({ editLoading: true});
+    editHandleOk = (e) => {
          e.preventDefault();
          let obj = {id: this.props.record.id};
         this.props.form.validateFieldsAndScroll((err, values) => {
@@ -38,8 +31,7 @@ class Editchild extends Component{
                 return ;
             }
             let parm = Object.assign(values,obj);
-            //eslint-disable-next-line
-            //console.log("222",values);
+            this.setState({ editLoading: true});
             $axios({
                 url:`${config.api_server}/sys/area/update`,
                 method:'post',
@@ -51,11 +43,11 @@ class Editchild extends Component{
                 let datas = res.data.success;
                 if(datas){
                     setTimeout(() => {
-                        this.props.getDataList({});
+                        this.props.getDataList({pageNum:1,pageSize:10,param:""})
                         this.props.changeT({editLoading: false, editVisible: false});
                     }, 1000);  
                     setTimeout(() => {
-                        let success = "编辑片区管理成功"
+                        let success = "编辑片区成功"
                                 this.success(success);
                     }, 1000);
                 }else{
@@ -64,7 +56,7 @@ class Editchild extends Component{
                     if(res.data.message && res.data.message != ""){
                         error = res.data.message
                     }else{
-                        error = "编辑片区管理失败"
+                        error = "编辑片区失败"
                     }
                     setTimeout(() => {
                         this.error(error);
@@ -78,16 +70,17 @@ class Editchild extends Component{
         this.setState({editVisible:false})
         this.props.changeT({editVisible:false});
     }
-    // eventCodeName = (rule, value, callback) =>{
-    //     let cat =/^[A-Z]+$/;
-    //     if(cat.test(value)){
-    //         callback()
-    //     }else{
-    //         callback('建议代号格式区域名称拼音首字母大写')
-    //     }  
-    // }
+    eventCodeName = (rule, value, callback) =>{
+        let cat =/^[A-Z]+$/;
+        if(cat.test(value)){
+            callback()
+        }else{
+            callback('建议代号格式区域名称拼音首字母大写')
+        }  
+    }
     render(){
         const { getFieldDecorator } = this.props.form;
+        const text = <span>代号为区域名称拼音首字母大写</span>;
         const formItemLayout = {
         labelCol: {
             xs: { span: 24 },
@@ -110,7 +103,6 @@ class Editchild extends Component{
             description = recordDataV.areaDesc
         }
         return (
-
             <span>
                 <Modal
                     visible={this.props.editVisible}
@@ -151,6 +143,9 @@ class Editchild extends Component{
                         label={(
                             <span>
                             代号&nbsp;
+                            <Tooltip placement="top" title={text}>
+                                    <Icon type="info-circle-o"  className = "iTip" />
+                            </Tooltip>
                             </span>
                         )}
                         hasFeedback

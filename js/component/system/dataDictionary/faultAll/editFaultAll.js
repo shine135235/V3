@@ -1,12 +1,12 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Input,Select,message,LocaleProvider} from 'antd';
+import { Button,Modal,Form,Input,message,LocaleProvider} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
 // import './eventCategory.less';
 
-const Option = Select.Option;
+// const Option = Select.Option;
 const FormItem = Form.Item;
 class AddEventCategory extends Component{
     state = {
@@ -37,13 +37,13 @@ class AddEventCategory extends Component{
     editHandleOk = (e) => {
          e.preventDefault();
         this.props.form.validateFieldsAndScroll((err, values) => {
-            let arr = [];
-            let option = values.projects;
-            for(let i = 0;i<option.length;i++){
-                let opt = {};
-                opt.id = option[i];
-                arr.push(opt)
-            }
+            // let arr = [];
+            // let option = values.projects;
+            // for(let i = 0;i<option.length;i++){
+            //     let opt = {};
+            //     opt.id = option[i];
+            //     arr.push(opt)
+            // }
             if (err) {
                 return ;
             }
@@ -57,7 +57,7 @@ class AddEventCategory extends Component{
                 data:{
                     "id":this.props.record.id,
                     "faultName":values.faultName,
-                    "projects":arr,
+                    // "projects":arr,
                 }
             }).then((res) => {
                 let datas = res.data.success;
@@ -120,37 +120,27 @@ class AddEventCategory extends Component{
                 sm: { span: 14 },
             },
         };
-        const children = [];
-        let bData = this.state.data;
-        let initialSlect = this.props.initialSlect;
-        let intSelect = [];
-        console.log("bDatabDatabData",bData);
-        console.log("initialSlectinitialSlect",initialSlect);
-        if(bData.length > 0){
-            for (let i = 0; i < bData.length; i++) {
-                children.push(<Option key = {i} value = {bData[i].proId}>{bData[i].proName}</Option>);
-           }
-            if(initialSlect.length != 0){
-                for(let i = 0;i<initialSlect.length;i++){
-                    for(let j = 0;j<bData.length;j++){
-                        if(bData[j].proId == initialSlect[i]){
-                            intSelect.push(initialSlect[i])
-                            break;
-                        }else{
-                            continue
-                            // if(j == bData.length - 1){
-                            //     initialSlect[ initialSlect.indexOf( initialSlect[i] ) ] = null;
-                            // }else{
-                            //     continue
-                            // }
-                        }
-                    }    
-                }
-               // initialSlect =  initialSlect.splice( initialSlect.indexOf( null ), 1 )
-                
-        console.log("22222222222222222222222",intSelect);
-            }  
-        }
+        // const children = [];
+        // let bData = this.state.data;
+        // let initialSlect = this.props.initialSlect;
+        // let intSelect = [];
+        // if(bData.length > 0){
+        //     for (let i = 0; i < bData.length; i++) {
+        //         children.push(<Option key = {i} value = {bData[i].proId}>{bData[i].proName}</Option>);
+        //    }
+        //     if(initialSlect.length != 0){
+        //         for(let i = 0;i<initialSlect.length;i++){
+        //             for(let j = 0;j<bData.length;j++){
+        //                 if(bData[j].proId == initialSlect[i]){
+        //                     intSelect.push(initialSlect[i])
+        //                     break;
+        //                 }else{
+        //                     continue
+        //                 }
+        //             }    
+        //         }
+        //     }  
+        // }
         let name = "";
         name = this.props.name;
         return (
@@ -188,7 +178,7 @@ class AddEventCategory extends Component{
                         <Input placeholder = "请输入事件大类名称"/>
                     )}
                     </FormItem>
-                    <FormItem
+                    {/* <FormItem
                     {...formItemLayout}
                     label={(
                         <span>
@@ -213,7 +203,7 @@ class AddEventCategory extends Component{
                             {children}
                         </Select>
                     )}
-                    </FormItem>
+                    </FormItem> */}
                 </Form>
                 </LocaleProvider>
             </Modal>

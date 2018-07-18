@@ -22,7 +22,8 @@ export default class ChildArea extends Component{
             record:[],
             pageSize:10,
             pageNum:1,
-            totalRecord:0
+            totalRecord:0,
+            keyWord:''
         }
     }
     columns = [{
@@ -51,23 +52,17 @@ export default class ChildArea extends Component{
     showModal = (record) =>{
         this.setState({record,editVisible:true});
     }
-    getDataList =({pageNum,pageSize}) =>{
-        $axios.get(`${config.api_server}/sys/dictitem/query/itemlist?pageNum=${pageNum}&pageSize=${pageSize}`).then(res =>{
-                if(res.data.page.datas){
-                    console.log(res.data.page.datas);
-                    // this.setState({dataList:res.data.page.datas})
-                    this.setState({totalRecord:res.data.page.totalRecord,dataList:res.data.page.datas,pageNum:pageNum})
-                    // if(res.data.page.totalRecord >10){
-                    //     let pag = res.data.page.totalRecord / pageSize + 1;
-                    //     if( pag > this.state.pageNum){
-                    //         this.setState({totalRecord:res.data.page.totalRecord,dataList:res.data.page.datas})     
-                    //     }else{
-                    //         this.setState({pageNum:this.state.pageNum-1,dataList:res.data.page.datas,totalRecord:res.data.page.totalRecord})
-                    //     }
-                    // }else{
-                    //     this.setState({totalRecord:res.data.page.totalRecord,dataList:res.data.page.datas})
-                    // }
-                }       
+    getDataList =({pageNum,pageSize,param}) =>{
+        $axios.get(`${config.api_server}/sys/dictitem/query/fuzzy`,{
+            params:{
+                pageNum:pageNum,
+                pageSize:pageSize,
+                param:param
+            }
+        }).then(res =>{
+            if(res.data.page.datas){
+                this.setState({totalRecord:res.data.page.totalRecord,dataList:res.data.page.datas,pageNum:pageNum})
+            }       
         })
     }
     componentDidMount(){
@@ -83,8 +78,6 @@ export default class ChildArea extends Component{
         message.error(error)
     }
     Delet = (record) => {
-        // //eslint-disable-next-line
-        //  console.log("ssssss",record);
          let records = record.id;
         confirm({
             title: '删除操作',
@@ -135,7 +128,7 @@ export default class ChildArea extends Component{
     } 
     onChange = (page, pageSize) =>{
         this.setState({pageNum:page})
-        this.getDataList({pageNum :page,pageSize:pageSize})
+        this.getDataList({pageNum :page,pageSize:pageSize,param:this.state.keyWord})
     }
     changeT = ({editVisible=false}) =>{
         this.setState({editVisible})
@@ -144,24 +137,19 @@ export default class ChildArea extends Component{
         return `共 ${total} 条记录 `
     }
     refresh = () =>{
-        // let pageNum = this.state.pageNum;
         let pageNum = 1;
         let pageSize = this.state.pageSize;
+        this.setState({keyWord:""})
         this.getDataList({pageNum,pageSize});
     }
     onSearch = (value) =>{
-        console.log("valuevaluevalue",value);
         let pageNum = 1;
         let pageSize = 10;
-        let search = value;
-        $axios.get(`${config.api_server}/sys/dictitem/query/fuzzy?pageNum=${pageNum}&pageSize=${pageSize}&param=${search}`).then((res) =>{
-            if(res.data.page){
-                if(res.data.page.datas){
-                    this.setState({dataList:res.data.page.datas})
-                    this.setState({totalRecord:res.data.page.totalRecord})
-                }
-            }   
+        let param = value;
+        this.setState({
+            keyWord:value
         })
+      this.getDataList({pageNum,pageSize,param})
     }
     render(){
         const pagination = {

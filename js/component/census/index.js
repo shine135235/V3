@@ -60,6 +60,9 @@ class Census extends Component{
                         tooltip: {
                             trigger: 'axis'
                         },
+                        grid:{
+                            bottom:'25%'
+                        },
                         legend: {
                             data:['工单总数','已完成','处理中']
                         },
@@ -71,7 +74,15 @@ class Census extends Component{
                                     type: 'shadow'
                                 },
                                 axisLabel:{  
-                                    interval:0,//横轴信息全部显示   
+                                    interval:0,//横轴信息全部显示
+                                    rotate:-45,
+                                    // formatter:function(value)
+                                    // {
+                                    //     return value.split("").join("\n");
+                                    // },
+                                    textStyle:{
+                                        fontSize:12
+                                    }
                                }  
                             }
                         ],
@@ -118,7 +129,6 @@ class Census extends Component{
     }
 
     btnChange=(e) =>{
-        console.log(e.target.value)
         switch(parseInt(e.target.value)){
             case 0:
             this.getData(this.state.census,moment(new Date()).format('YYYY-MM-DD hh:mm:ss'),moment(new Date()).format('YYYY-MM-DD hh:mm:ss'))
@@ -150,7 +160,6 @@ class Census extends Component{
             titName='维保期限'
             break;
         }
-        console.log(titName)
         const columns = [{
             title:titName,
             dataIndex: 'name',

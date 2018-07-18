@@ -36,12 +36,6 @@ class AddEventCategory extends Component{
     }
     handleSubmit = (e) => {
         e.preventDefault();
-        // this.props.form.validateFieldsAndScroll((err, values) => {
-        //   if (!err) {
-        //       //eslint-disable-next-line
-        //     console.log('Received values of form: ', values);
-        //   }
-        // });
     }
     //操作完成提示弹框
     success = () => {
@@ -54,7 +48,7 @@ class AddEventCategory extends Component{
     addHandleOk = (e) => {
         this.setState({ editLoading: true});
         e.preventDefault();
-        this.props.form.validateFieldsAndScroll(['name','area','pepole','phone','adds','describeCode'],(err) => {
+        this.props.form.validateFieldsAndScroll(['name','area','pepole','phone','adds','describeCode',"schoolCode"],(err) => {
             if (err) {
                 return ;
             }
@@ -72,8 +66,6 @@ class AddEventCategory extends Component{
                     }
                 })
             }
-            //eslint-disable-next-line
-             console.log('addressaddressaddressaddress', this.props.form.getFieldValue("adds"));
            let addValue = this.state.prentsData;
            let lng = "";
            let lat = "";
@@ -86,6 +78,7 @@ class AddEventCategory extends Component{
             }
             let values = {
                 "name":this.props.form.getFieldValue("name"),
+                "schoolCode":this.props.form.getFieldValue("schoolCode"),
                 "areaId":this.props.form.getFieldValue("area"),
                 "address":this.props.form.getFieldValue("adds"),
                 "principal":this.props.form.getFieldValue("pepole"),
@@ -97,7 +90,6 @@ class AddEventCategory extends Component{
                 "id":this.props.recordId
             }
             this.setState({ editLoading: true});
-            console.log("valuesvalues",values)
             $axios({
                 url:`${config.api_server}/sys/unit/update/userunit`,
                 method:'post',
@@ -118,6 +110,7 @@ class AddEventCategory extends Component{
                         this.success();
                     }, 1000);
                 }else{
+                    this.setState({ editLoading: false});
                     let error = ""
                     if(res.data.message && res.data.message != ""){
                         error = res.data.message
@@ -192,6 +185,13 @@ class AddEventCategory extends Component{
         }else{
             callback();
         }
+    }
+    schoolCode = (rule, value, callback) =>{
+        if(!(/^[0-9]*$/.test(value))){
+            callback("学校编号必须为数字");
+        }else{
+            callback();
+        } 
     }
     render(){
         const { getFieldDecorator } = this.props.form;
@@ -287,6 +287,26 @@ class AddEventCategory extends Component{
                             )}
                         </FormItem>
                         </Row >
+                        <Row>
+                        <FormItem
+                        {...formItemLayout}
+                        label={(
+                            <span>
+                            学校编号&nbsp;
+                            </span>
+                        )}
+                        hasFeedback
+                        >
+                            {getFieldDecorator('schoolCode', {
+                                initialValue:this.props.schoolCode,
+                                rules: [{ required: true, message: '请输入学校编号', whitespace: true }, {
+                                    validator: this.schoolCode,
+                                }],
+                            })(
+                                <Input placeholder = "请输入学校编号"/>
+                            )}
+                        </FormItem>
+                    </Row >
                         <Row >
                             <Col span = {10} key = {1}  style = {{"marginLeft":"2.8%"}}>
                             <FormItem

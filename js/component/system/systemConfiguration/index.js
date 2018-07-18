@@ -1,4 +1,5 @@
 import React,{Component} from 'react';
+import ReactDOM from 'react-dom';
 import $axios from 'axios';
 // import {History} from 'react-router-dom';
 import { Form,Input,Select,Button,Switch,Upload,Icon,Modal,message,LocaleProvider} from 'antd';
@@ -8,18 +9,7 @@ import "./index.less"
 
 const FormItem = Form.Item;
 const Option = Select.Option;
-const outLogin=() =>{
-    console.log(JSON.parse(sessionStorage.getItem('user')))
-    $axios.post(`${config.api_server}/sys/user/logout`,{
-        id:JSON.parse(sessionStorage.getItem('user')).id,
-        loginId:JSON.parse(sessionStorage.getItem('user')).loginId
-    }).then(res =>{
-        if(res.data.flag==='success'){
-            sessionStorage.clear();
-            location.href='/';
-        }
-    })
-}
+
 class SystemConfiguration extends Component{
     state = {
         confirmDirty: false,
@@ -40,6 +30,7 @@ class SystemConfiguration extends Component{
         gzdq:"BSDQ",
         bsdqData:[],
         servicerListData:[],
+        onTach:true,
         // upParam:{
         //     type:1
         // },
@@ -135,9 +126,9 @@ class SystemConfiguration extends Component{
                 let datas = res.data.success;
                 if(datas){
                     message.success("操作成功,请重新登录")
-                    setTimeout(() => {
-                        outLogin()
-                    }, 2000);
+                    sessionStorage.setItem('logo',`${res.data.data}`);
+                    //eslint-disable-next-line
+                    ReactDOM.findDOMNode(document.getElementById('Logo')).innerHTML=`<img src="${config.api_server}${sessionStorage.getItem('logo')}" />`
                 }else{
                     let error = ""
                     if(res.data.message && res.data.message != ""){
@@ -179,6 +170,7 @@ class SystemConfiguration extends Component{
         }
     }
     handleChange = (info) => {
+        console.log(info);
         let fileList = info.fileList;
         if(fileList.length >0){
             if(fileList[0].response){
@@ -193,7 +185,7 @@ class SystemConfiguration extends Component{
           }
           return true;
         });
-        this.setState({ fileList });
+        this.setState({ fileList,onTach:false });
     }
 
     icoChange = (info) => {
@@ -211,13 +203,58 @@ class SystemConfiguration extends Component{
           }
           return true;
         });
-        this.setState({ fileLists });
+        this.setState({ fileLists,onTach:false });
     }
     checkPhone=(rule, value, callback) =>{
         if(!(/^1(3|4|5|7|8)\d{9}$/.test(value)) && !(/^(\d3,4|\d{3,4}-)?\d{7,8}$/).test(value)){
             callback("手机号码有误，请重填");
         }else{
             callback();
+        }
+    }
+    changeUnit= (e) =>{
+        if(e.target.value != this.state.constructionUnitName){
+            this.setState({onTach:false})
+        }else{
+            this.setState({onTach:true})
+        }
+    }
+    // dataChange = (value) =>{
+    //     console.log("22222222222222222",value)
+    // }
+    changeserviceDeskPhone = (e) =>{
+        if(e.target.value != this.state.serviceDeskPhone){
+            this.setState({onTach:false})
+        }else{
+            this.setState({onTach:true})
+        }
+    }
+    changeplatformDisplayname = (e) =>{
+        if(e.target.value != this.state.platformDisplayname){
+            this.setState({onTach:false})
+        }else{
+            this.setState({onTach:true})
+        }
+    }
+    deployArea = (value) =>{
+        if(value != this.state.deployArea){
+            this.setState({onTach:false})
+        }else{
+            this.setState({onTach:true})
+        }
+    }
+    serviceDeskUnit = (value) =>{
+        if(value != this.state.serviceDeskUnit){
+            this.setState({onTach:false})
+        }else{
+            this.setState({onTach:true})
+        }
+    }
+    SwitchChange = (value) =>{
+        if(value !=this.state.canDistributionToEngineer){
+            this.setState({onTach:false})
+        }else{
+            this.setState({onTach:true})
         }
     }
     render(){
@@ -292,7 +329,7 @@ class SystemConfiguration extends Component{
                             initialValue:this.state.constructionUnitName,
                             rules: [{ required: false, message: '', whitespace: true }],
                         })(
-                            <Input />
+                            <Input  onInput = {this.changeUnit.bind(this)}/>
                         )}
 
                     </FormItem>
@@ -309,7 +346,9 @@ class SystemConfiguration extends Component{
                             initialValue:this.state.deployArea,
                             rules: [{ required: false, message: '', whitespace: true }],
                         })(
-                            <Select >
+                            <Select 
+                            onChange={this.deployArea}
+                            >
                                 {bsda}
                             </Select>
                         )}
@@ -395,7 +434,7 @@ class SystemConfiguration extends Component{
                             // initialValue:"",
                             rules: [{ required: false, message: '', whitespace: true }],
                         })(
-                            <Select >
+                            <Select onChange={this.serviceDeskUnit}>
                                 {servicerList}
                             </Select>
                         )}
@@ -412,7 +451,7 @@ class SystemConfiguration extends Component{
                         {getFieldDecorator('canDistributionToEngineer', { valuePropName: 'checked',
                         initialValue:this.state.canDistributionToEngineer,    
                         })(
-                            <Switch />
+                            <Switch onChange={this.SwitchChange} />
                         )}
                     </FormItem>
                     <FormItem
@@ -428,7 +467,7 @@ class SystemConfiguration extends Component{
                             initialValue:this.state.platformDisplayname,
                             rules: [{ required: false, message: '', whitespace: true }],
                         })(
-                            <Input />
+                            <Input onInput = {this.changeplatformDisplayname.bind(this)} />
                         )}
 
                     </FormItem>
@@ -447,7 +486,7 @@ class SystemConfiguration extends Component{
                                 validator: this.checkPhone,
                             }],
                         })(
-                            <Input />
+                            <Input onInput = {this.changeserviceDeskPhone.bind(this)} />
                         )}
 
                     </FormItem>
@@ -473,7 +512,7 @@ class SystemConfiguration extends Component{
                         <FormItem
                         wrapperCol={{ span: 12, offset: 8 }}
                         >
-                            <Button type="primary" htmlType="submit" onClick = {this.handleSubmit}>保存</Button>
+                            <Button type="primary" htmlType="submit"  disabled= {this.state.onTach} onClick = {this.handleSubmit}>保存</Button>
                         </FormItem>
                     </Form>
                     </LocaleProvider>

@@ -75,7 +75,7 @@ export default class FaultTab extends Component {
                         <EditWorkOrder changeShowType = {this.props.changeShowType} rowData={this.props.rowData} orderStatus={this.props.orderStatus} refreshData={this.props.refreshData} only={this.props.only} />
                     </TabPane>
                     <TabPane tab="故障处理" key="2" disabled={this.state.Process}>
-                        <ProcessWorkOrder changeShowType = {this.props.changeShowType} rowData={this.props.rowData} orderStatus={this.props.orderStatus} refreshData={this.props.refreshData} only={this.props.only} />
+                        <ProcessWorkOrder changeShowType = {this.props.changeShowType} rowData={this.props.rowData} orderStatus={this.props.orderStatus} refreshData={this.props.refreshData} only={this.props.only} faultunit={this.props.faultunit} />
                     </TabPane>
                     <TabPane tab="故障评价" key="3" disabled={this.state.Commend}>
                     <EvalWorkOrder changeShowType = {this.props.changeShowType} rowData={this.props.rowData} orderStatus={this.props.orderStatus} refreshData={this.props.refreshData} only={this.props.only} />

@@ -51,10 +51,8 @@ class AddEventCategory extends Component{
         message.error(error)
     }
     addHandleOk = (e) => {
-        //eslint-disable-next-line
-        //console.log("啊啊啊啊啊啊啊啊啊啊啊啊啊",sessionStorage.getItem('selectValue'))
          e.preventDefault();
-        this.props.form.validateFieldsAndScroll(['name','area','pepole','phone','adds','describeCode'],(err) => {
+        this.props.form.validateFieldsAndScroll(['name','area','pepole','phone','adds','describeCode','schoolCode'],(err) => {
            if(!sessionStorage.getItem('selectValue')){
                 this.props.form.setFields({
                     categoryCode:{
@@ -73,6 +71,7 @@ class AddEventCategory extends Component{
            //  console.log("ddddddddddddddddddddddd",typeof(addValue));
             let values = {
                 "name":this.props.form.getFieldValue("name"),
+                "schoolCode":this.props.form.getFieldValue("schoolCode"),
                 "areaId":this.props.form.getFieldValue("area"),
                 "address":this.props.form.getFieldValue("adds"),
                 "principal":this.props.form.getFieldValue("pepole"),
@@ -105,6 +104,7 @@ class AddEventCategory extends Component{
                         this.success();
                     }, 1000);
                 }else{
+                    this.setState({ addLoading: false});
                     let error = ""
                     if(res.data.message && res.data.message != ""){
                         error = res.data.message
@@ -228,6 +228,13 @@ class AddEventCategory extends Component{
             callback();
         }
     }
+    schoolCode = (rule, value, callback) =>{
+        if(!(/^[0-9]*$/.test(value))){
+            callback("学校编号必须为数字");
+        }else{
+            callback();
+        } 
+    }
     render(){
         const { getFieldDecorator } = this.props.form;
         let option =[];
@@ -307,6 +314,25 @@ class AddEventCategory extends Component{
                                 }],
                             })(
                                 <Input placeholder = "请输入名称"/>
+                            )}
+                        </FormItem>
+                    </Row >
+                    <Row>
+                        <FormItem
+                        {...formItemLayout}
+                        label={(
+                            <span>
+                            学校编号&nbsp;
+                            </span>
+                        )}
+                        hasFeedback
+                        >
+                            {getFieldDecorator('schoolCode', {
+                                rules: [{ required: true, message: '请输入学校编号', whitespace: true }, {
+                                    validator: this.schoolCode,
+                                }],
+                            })(
+                                <Input placeholder = "请输入学校编号"/>
                             )}
                         </FormItem>
                     </Row >

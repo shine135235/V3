@@ -3,8 +3,9 @@ import React,{Component} from 'react';
 import {Button,Form,Input,LocaleProvider,message,DatePicker,Col,Row,Icon,Select,Upload,Cascader } from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import $axios from 'axios';
-import moment from 'moment'
-import config from '../../../../config'
+import moment from 'moment';
+import config from '../../../../config';
+import OverView from './overView';
 
 // const { TextArea } = Input;
 const FormItem = Form.Item;
@@ -31,7 +32,9 @@ class AddKnowledge extends Component{
             nowKey:1,
             tableDisplay:'table',
             thData:JSON.parse(this.props.detailData.excelData).thData,
-            tdData:JSON.parse(this.props.detailData.excelData).tdData
+            tdData:JSON.parse(this.props.detailData.excelData).tdData,
+            overShow:false,
+            overData:[]
         }
         
     }
@@ -334,13 +337,22 @@ class AddKnowledge extends Component{
         };
      }
     overView=() =>{
+        
         let allDyr=[]
         for(let i=0;i<uuid;i++){
             this.props.form.getFieldValue(`dyr${i+1}`).map(item =>{
                 allDyr.push(item)
             })
         }
-        
+        this.setState({
+            overShow:true,
+            overData:allDyr
+        })
+    }
+    overViewcancel=() =>{
+        this.setState({
+            overShow:false
+        })
     }
     render(){
         const {  fileList } = this.state;     
@@ -705,7 +717,8 @@ class AddKnowledge extends Component{
                             <FormItem
                             wrapperCol={{ span: 12,offset : 2}}
                             >
-                                <Button type="primary" style = {{"marginRight":"20px"}} onClick={this.overView}>预览</Button>
+                                {/* <Button type="primary" style = {{"marginRight":"20px"}} onClick={this.overView}>预览</Button> */}
+                                <OverView display={this.state.overShow} cancel={this.overViewcancel} overData={this.state.overData}></OverView>
                                 <Button type="primary" htmlType="submit" onClick = {this.handleSubmit} style = {{"marginRight":"20px"}}>保存</Button>
                                 <Button type="primary" onClick = {this.goBack}>返回</Button>
                             </FormItem>

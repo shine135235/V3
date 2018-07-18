@@ -1,7 +1,7 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
-import { Button,Modal,Form,Input,LocaleProvider,message } from 'antd';
+import { Button,Modal,Form,Input,LocaleProvider,message,Tooltip,Icon } from 'antd';
 import config from '../../../../config';
 
 // import WrappedRegistrationForm from "./test";
@@ -36,12 +36,15 @@ class Addchild extends Component{
     error = (error) => {
         message.error(error)
     }
-    addHandleOk = (e) => {
-        this.setState({ addLoading: true});
+    addHandleOk = (e) => { 
          e.preventDefault();
         this.props.form.validateFieldsAndScroll((err, values) => {
             //eslint-disable-next-line
-            console.log("test",values);
+            // console.log("test",values);
+            if(err) {
+                return ;
+            }
+            this.setState({ addLoading: true});
           if (!err) {
                 $axios({
                     url:`${config.api_server}/sys/area/add`,
@@ -58,7 +61,11 @@ class Addchild extends Component{
                                 let success = "添加片区成功"
                                 this.success(success);
                             }, 3000);
+                            setTimeout(() => {
+                                this.setState({ addLoading: false, addVisible: false});
+                              }, 3000);  
                     }else{
+                        this.setState({ addLoading: false});
                         let error = ""
                         if(res.data.message && res.data.message != ""){
                             error = res.data.message
@@ -71,10 +78,7 @@ class Addchild extends Component{
                     }
                 })
             }            
-        });
-        setTimeout(() => {
-          this.setState({ addLoading: false, addVisible: false});
-        }, 3000);    
+        })  
     }
     addHandleCancel = () => {
         this.setState({ addVisible: false });
@@ -87,7 +91,7 @@ class Addchild extends Component{
           });
     }
     eventCodeName = (rule, value, callback) =>{
-        let cat =/^[A-Za-z]+$/g;
+        let cat =/^[A-Z]+$/g;
         if(cat.test(value)){
             callback()
         }else{
@@ -96,15 +100,16 @@ class Addchild extends Component{
     }
     render(){
         const { getFieldDecorator } = this.props.form;
+        const text = <span>代号为区域名称拼音首字母大写</span>;
         const formItemLayout = {
-        labelCol: {
-            xs: { span: 24 },
-            sm: { span: 6 },
-        },
-        wrapperCol: {
-            xs: { span: 24 },
-            sm: { span: 14 },
-        },
+            labelCol: {
+                xs: { span: 24 },
+                sm: { span: 6 },
+            },
+            wrapperCol: {
+                xs: { span: 24 },
+                sm: { span: 14 },
+            },
         };
         return (
             <span>
@@ -116,7 +121,7 @@ class Addchild extends Component{
                     onCancel={this.addHandleCancel}
                     destroyOnClose={true}
                     footer={[
-                        <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;建议代号为区域名称拼音首字母大写</span>,
+                        // <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;建议代号为区域名称拼音首字母大写</span>,
                         <Button key="back" size="large" onClick={this.addHandleCancel}>取消</Button>,
                         <Button key="submit" type="primary" size="large" htmlType="submit" loading={this.state.addLoading} onClick={this.addHandleOk}>
                         保存
@@ -135,7 +140,7 @@ class Addchild extends Component{
                         hasFeedback
                         >
                         {getFieldDecorator('name', {
-                            rules: [{ required: true, message: '请输区域名称', whitespace: true }, {
+                            rules: [{ required: true, message: '请输入区域名称', whitespace: true }, {
                                 validator: this.eventName,
                             }],
                         })(
@@ -147,6 +152,9 @@ class Addchild extends Component{
                         label={(
                             <span>
                             代号&nbsp;
+                            <Tooltip placement="top" title={text}>
+                                    <Icon type="info-circle-o"  className = "iTip" />
+                            </Tooltip>
                             </span>
                         )}
                         hasFeedback

@@ -64,11 +64,10 @@ export default class TestMap extends Component {
                    // _this.props.setChPoint(rs.address)
                    message.success(`您选择的地理位置位为：${massage}`)
                    let arr = [];
-                   arr.push(point.lng)
-                   arr.push(point.lat)
+                   arr.push(e.point.lng)
+                   arr.push(e.point.lat)
                    let str = arr.join(",")
-                    //eslint-disable-next-line
-                    console.log("clickclickclickclick",str);
+                   console.log(str)
                    document.getElementById("noInputLat").value = str;
                    document.getElementById("noInputCh").innerText = massage;
                    // alert(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber);

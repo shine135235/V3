@@ -1,5 +1,6 @@
 import React,{Component} from 'react';
 import axios from 'axios';
+import QueueAnim from 'rc-queue-anim';
 import {Menu,Icon} from 'antd';
 import {Link} from 'react-router-dom';
 import config from '../../config'
@@ -24,9 +25,6 @@ export default class LeftMenu extends Component{
         this.setState({
             loading:true
         })
-    }
-    rootSubmenuKeys=[];
-    componentDidMount(){
         axios.post(`${config.api_server}/sys/resource`,{
             resourceId:this.state.parentID,
             roleId:JSON.parse(sessionStorage.getItem('user')).lastUsedRole.id
@@ -36,11 +34,22 @@ export default class LeftMenu extends Component{
                 rootKey.push(item.id)
             })
             this.setState({
+                openKeys:[res.data.childs[0].id],
+                defaultSelectedKeys:[sessionStorage.getItem('cid')===null?res.data.childs[0].childs?res.data.childs[0].childs[0].code!=''?res.data.childs[0].childs[0].id:res.data.childs[0].id:res.data.childs[0].id:sessionStorage.getItem('cid')],
                 childs: res.data.childs,
-                loading:false
-            })
+            });
+            sessionStorage.setItem('cid',res.data.childs[0].childs?res.data.childs[0].childs[0].code!=''?res.data.childs[0].childs[0].id:res.data.childs[0].id:res.data.childs[0].id)
             this.rootSubmenuKeys=rootKey
-        })  
+        })
+    }
+    rootSubmenuKeys=[];
+    componentDidMount(){
+        this.setState({
+            loading:false
+        })
+    }
+    componentWillUnmount(){
+        sessionStorage.removeItem('cid');
     }
     handleClick=(e) =>{
         this.setState({
@@ -61,17 +70,25 @@ export default class LeftMenu extends Component{
             });
         }
     }
+    onEnd=() =>{
+        sessionStorage.setItem('isOver',true)
+    }
     render(){
         if(this.state.childs!=null&&this.state.childs.length>0){
             return (
-                <div className='left-menu'>
-                <Menu 
-                theme='dark' 
-                mode="inline"
-                onOpenChange={this.openChange}
-                onSelect={this.handleClick}
-                openKeys={this.state.openKeys}
-                defaultSelectedKeys={this.state.defaultSelectedKeys}
+                <div className='left-menu' id='leftMenu'>
+                <QueueAnim
+                component={Menu}
+                componentProps={{
+                    theme:'dark',
+                    mode:'inline',
+                    onOpenChange:this.openChange,
+                    onSelect:this.handleClick,
+                    openKeys:this.state.openKeys,
+                    defaultSelectedKeys:this.state.defaultSelectedKeys
+                }}
+                id='aMenu'
+                onEnd={this.onEnd}
                 >
                     {
                         this.state.childs.map(item =>{
@@ -133,7 +150,7 @@ export default class LeftMenu extends Component{
                             }
                      })
                     }
-                </Menu>
+                </QueueAnim>
                 </div>
             )
         }else{

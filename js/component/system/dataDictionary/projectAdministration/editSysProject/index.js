@@ -13,6 +13,7 @@ class EditSysProject extends Component {
         vendorData: [],
         vendorDataJF: [],
         vendorDataJL: [],
+        data:[]
     }
     handleOk = (e) => {
         e.preventDefault();
@@ -24,7 +25,13 @@ class EditSysProject extends Component {
             console.log('Received values of form: ', values);
             //eslint-disable-next-line
             console.log('rowId: ', this.props.rowId);
-            
+            let faultcategory = [];
+            let option = values.faultName;
+            for(let i = 0;i<option.length;i++){
+                let opt = {};
+                opt.id = option[i];
+                faultcategory.push(opt)
+            }
             this.setState({ loading: true });
             let id = this.props.rowId;
             let name = values.sysProjectNameEdit;
@@ -42,10 +49,10 @@ class EditSysProject extends Component {
             }
             //eslint-disable-next-line
             console.log('ids', ids);
-            this.editSysProjectData({id,name,quality,codename,ids,first_party,supervisor,fphone,sphone})
+            this.editSysProjectData({id,name,quality,codename,ids,first_party,supervisor,fphone,sphone,faultcategory})
         });
     }
-    editSysProjectData = ({id = "",name = "",quality = "", codename = "",ids = [],first_party="",supervisor="",fphone="",sphone=""}) => {
+    editSysProjectData = ({id = "",name = "",quality = "", codename = "",ids = [],first_party="",supervisor="",fphone="",sphone="",faultcategory=[]}) => {
         $axios.put(`${config.api_server}/pro/project`,{
             "id":id,
             "name":name,
@@ -56,6 +63,7 @@ class EditSysProject extends Component {
             "supervisor":supervisor,
             "fphone":fphone,
             "sphone":sphone,
+            "faultcategory":faultcategory
         }).then((json) => {
             // eslint-disable-next-line
             console.log(json);
@@ -157,6 +165,15 @@ class EditSysProject extends Component {
             })
         })
     }
+    getSelectList = () =>{
+        $axios.get(`${config.api_server}/sys/faultcategory/list`).then((res) =>{
+            if(res.data.page){
+                if(res.data.page.datas.length != 0){
+                    this.setState({data:res.data.page.datas})
+                }  
+            } 
+        })
+    }
     componentDidMount(){
        //获取参与人
        this.getUnitListData();
@@ -164,6 +181,7 @@ class EditSysProject extends Component {
        this.getUserJfData();
        //获取监理负责人
        this.getUserJLData();
+       this.getSelectList();
     }
     // selectJL = () => {
     //     let jlData = this.state.vendorDataJL;
@@ -213,9 +231,7 @@ class EditSysProject extends Component {
               xs: { span: 24 },
               sm: { span: 15 },
             },
-          };
-        //eslint-disable-next-line
-        console.log("row",this.props.fdname)
+        };
         let vendorArr = [];
         for(let i = 0;i<vendorData.length;i++){
             let item = vendorData[i];
@@ -224,18 +240,63 @@ class EditSysProject extends Component {
             )
         }
         let vendorJFArr = [];
+        let serviceDeskUnit = this.props.first_party;
         for(let i = 0;i<vendorDataJF.length;i++){
             let item = vendorDataJF[i];
             vendorJFArr.push(
                 <Option value={item.id} key={i}>{`${item.username}`}</Option>
-            )
+            )  
+        }
+        if(serviceDeskUnit != ""){
+            for(let i = 0;i<vendorDataJF.length;i++){
+                if(vendorDataJF[i].id == serviceDeskUnit){
+                    break;
+                }else{
+                    if(i == vendorDataJF.length - 1){
+                        serviceDeskUnit = ""
+                    }
+                }
+            }
         }
         let vendorJLArr = [];
+        let supervisor = this.props.supervisor;
         for(let i = 0;i<vendorDataJL.length;i++){
             let item = vendorDataJL[i];
             vendorJLArr.push(
                 <Option value={item.id} key={i}>{`${item.username}`}</Option>
             )
+        }
+        const children = [];
+        let bData = this.state.data;
+        let initialSlect = this.props.faultcategory;
+        let intSelect = [];
+        if(bData.length > 0){
+            for (let i = 0; i < bData.length; i++) {
+                children.push(<Option key = {i} value = {bData[i].id}>{bData[i].faultname}</Option>);
+           }
+            if(initialSlect.length != 0){
+                for(let i = 0;i<initialSlect.length;i++){
+                    for(let j = 0;j<bData.length;j++){
+                        if(bData[j].id == initialSlect[i].id){
+                            intSelect.push(initialSlect[i].id)
+                            break;
+                        }else{
+                            continue
+                        }
+                    }    
+                }
+            }  
+        }
+        if(supervisor != ""){
+            for(let i = 0;i<vendorDataJL.length;i++){
+                if(vendorDataJL[i].id == supervisor){
+                    break;
+                }else{
+                    if(i == vendorDataJL.length - 1){
+                        supervisor = ""
+                    }
+                }
+            }
         }
         return(
             <div className="sysProjectEdit">
@@ -264,6 +325,33 @@ class EditSysProject extends Component {
                                 initialValue: this.props.name,
                             })(
                                 <Input/>
+                            )}
+                        </FormItem>
+                        <FormItem
+                        {...formItemLayout}
+                        label={(
+                            <span>
+                            事件大类&nbsp;
+                            </span>
+                        )}
+                        hasFeedback
+                        >
+                            {getFieldDecorator('faultName', {
+                                initialValue: intSelect,
+                                rules: [{ required: true, message: '请选择事件大类', whitespace: true,type:"array" }],
+                            })(
+                                <Select
+                                    mode="multiple"
+                                    style={{ width: '100%' }}
+                                    showSearch
+                                    optionFilterProp="children"
+                                    placeholder="请选择事件大类"
+                                    onSelect={this.onSelect}
+                                    filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+                                >
+                                    {children}
+                                </Select>
+                                
                             )}
                         </FormItem>
                         <FormItem
@@ -311,7 +399,7 @@ class EditSysProject extends Component {
                                     label='甲方负责人'
                                 >
                                     {getFieldDecorator("sysProjectLeaderJFEdit",{
-                                        initialValue: this.props.first_party,
+                                        initialValue: serviceDeskUnit,
                                         rules:[{
                                             required: true, message: '请选择甲方负责人!'
                                         }],
@@ -354,7 +442,7 @@ class EditSysProject extends Component {
                                     label='监理负责人'
                                 >
                                     {getFieldDecorator("sysProjectLeaderJLEdit",{
-                                        initialValue: this.props.supervisor,
+                                        initialValue: supervisor,
                                         rules:[{
                                             // required: true, message: '请选择甲方负责人!'
                                             required: true, message: '请选择监理负责人!'

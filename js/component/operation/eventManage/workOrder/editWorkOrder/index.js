@@ -1,6 +1,6 @@
 import React,{Component} from 'react';
 import { Button, Form, Select, Input,  Row, Col, Upload, Icon, Modal, DatePicker, 
-    LocaleProvider ,message
+    LocaleProvider ,message,Alert
 } from 'antd';
 import $axios from 'axios';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
@@ -15,6 +15,7 @@ class EditWorkOrder extends Component {
     state = {
         showCollapse:"none",
         previewVisible: false,
+        previewVisibles: false,
         previewImage: '',
         resouseData:[],
         faultCategoryData:[],
@@ -44,57 +45,61 @@ class EditWorkOrder extends Component {
     goBack = () => { 
         this.props.changeShowType('list')
     }
+    uploads=true
     submitFunc = (e) => {
         e.preventDefault();
-        this.props.form.validateFields({ force: true },(err, values) => {
-            console.log(this.props.orderStatus)
-            if (err) {
-                return;
+        this.state.fileList.map(item =>{
+            if(item.status=='error'){
+                this.uploads=false
             }
-            let faultSource = values.faultResouse;//故障来源
-            let faultTheme = values.faultTheme;//故障主题
-            let workOrderDesc = values.faultDescription;//工单描述
-            let unitId = values.faultUnit;//流转单位
-            let faultSourceUnit = values.faultReportedUnit;//故障来源单位
-            let reportPeopleFault = values.faultPerson;  //报障人
-            let contactPhone = values.faultPersonPhone; //联系电话
-            let projectId = "";   //项目名称
-            let faultCategoryId = "";  //故障大类
-            let faultCategoryDetailId = "";  //故障细类
-            let faultType = "";  //故障类型
-            let slaId = "";    //sla 协议
-            let slaTimeLevelId = "";    //sla 等级
-            let appointmentTime = values.faultTime.format('YYYY-MM-DD HH:mm:ss');  //预约时间
-            let currentHandle = "";//处理人
-            let faultPicture = [];// 保存的图片路径
-            let relevantPeople = "";// 需要通知的相关人
-            if(this.state.isRequired){
-                projectId = values.faultProject;
-                faultCategoryId = values.faultCategory;
-                faultCategoryDetailId = values.faultItem;
-                faultType = values.faultType;
-                slaId = values.faultService;
-                slaTimeLevelId = values.faultServiceLevel;
-                currentHandle = values.faultDealPeople;
-                let rP = values.faultRelevantPerson;
-                if(rP != undefined){
-                    relevantPeople = rP.join(",");
+        })
+        if(this.uploads){
+            this.props.form.validateFields({ force: true },(err, values) => {
+                if (err) {
+                    return;
                 }
-            }
-            let pic = this.state.fileList;
-            console.log(pic)
-            if(pic.length > 0){
-                for(let i = 0;i<pic.length;i++){
-                    faultPicture.push(pic[i].response.path);
+                let faultSource = values.faultResouse;//故障来源
+                let faultTheme = values.faultTheme;//故障主题
+                let workOrderDesc = values.faultDescription;//工单描述
+                let unitId = values.faultUnit;//流转单位
+                let faultSourceUnit = values.faultReportedUnit;//故障来源单位
+                let reportPeopleFault = values.faultPerson;  //报障人
+                let contactPhone = values.faultPersonPhone; //联系电话
+                let projectId = "";   //项目名称
+                let faultCategoryId = "";  //故障大类
+                let faultCategoryDetailId = "";  //故障细类
+                let faultType = "";  //故障类型
+                let slaId = "";    //sla 协议
+                let slaTimeLevelId = "";    //sla 等级
+                let appointmentTime = values.faultTime.format('YYYY-MM-DD HH:mm:ss');  //预约时间
+                let currentHandle = "";//处理人
+                let faultPicture = [];// 保存的图片路径
+                let relevantPeople = "";// 需要通知的相关人
+                if(this.state.isRequired){
+                    projectId = values.faultProject;
+                    faultCategoryId = values.faultCategory;
+                    faultCategoryDetailId = values.faultItem;
+                    faultType = values.faultType;
+                    slaId = values.faultService;
+                    slaTimeLevelId = values.faultServiceLevel;
+                    currentHandle = values.faultDealPeople;
+                    let rP = values.faultRelevantPerson;
+                    if(rP != undefined){
+                        relevantPeople = rP.join(",");
+                    }
                 }
-            }
-            faultPicture = faultPicture.join(",");
-            this.roamWorkOrder({faultSource,faultTheme,workOrderDesc,unitId,faultSourceUnit,reportPeopleFault,contactPhone,projectId,faultCategoryId,faultCategoryDetailId,faultType,slaId,slaTimeLevelId,appointmentTime,currentHandle,faultPicture,relevantPeople})
-        });
+                let pic = this.state.fileList;
+                if(pic.length > 0){
+                    for(let i = 0;i<pic.length;i++){
+                        faultPicture.push(pic[i].response.path);
+                    }
+                }
+                faultPicture = faultPicture.join(",");
+                this.roamWorkOrder({faultSource,faultTheme,workOrderDesc,unitId,faultSourceUnit,reportPeopleFault,contactPhone,projectId,faultCategoryId,faultCategoryDetailId,faultType,slaId,slaTimeLevelId,appointmentTime,currentHandle,faultPicture,relevantPeople})
+            });
+        }
     }
-
     roamWorkOrder = ({faultSource = "",faultTheme = "",workOrderDesc = "",unitId = "",faultSourceUnit = "",reportPeopleFault = "",contactPhone = "",projectId = "",faultCategoryId = "",faultCategoryDetailId = "",faultType = "",slaId = "",slaTimeLevelId = "",appointmentTime = "",currentHandle = "",faultPicture = "",relevantPeople = "",}) => {
-        
         $axios.put(`${config.api_server}/ops/workorder`,{
             "id":this.props.rowData,//工单ID
             "faultSourceId":faultSource,//故障来源
@@ -112,14 +117,14 @@ class EditWorkOrder extends Component {
             "slaTimeLevelId":slaTimeLevelId,    //sla 等级
             "appointmentTime":appointmentTime,  //预约时间
             "currentHandleId":currentHandle,//处理人
-            "faultPicture": this.state.orderData.faultPicture?this.state.orderData.faultPicture+','+faultPicture:faultPicture,// 保存的图片路径
+            "faultPicture": this.state.orderData.faultPicture!=''?faultPicture!=''?faultPicture+','+this.state.orderData.faultPicture:this.state.orderData.faultPicture:faultPicture,// 保存的图片路径
             "status":this.props.orderStatus,  //状态
             "relevantPeople":relevantPeople,// 需要通知的相关人
         }).then((json) => {
             if(json.data.success){
                 this.success("提交成功！");
                 this.props.changeShowType('list');
-                this.props.refreshData(1);
+                this.props.refreshData(1,true);
             }else{
                 this.error(json.data.message);
             }
@@ -127,7 +132,13 @@ class EditWorkOrder extends Component {
     }
 
     handleCancel = () => this.setState({ previewVisible: false })
-
+    handleCancels = () => this.setState({ previewVisibles: false })
+    handlePreviews= (file) =>{
+        this.setState({
+            previewImage: file.url || file.thumbUrl,
+            previewVisibles: true,
+          });
+    }
     handlePreview = (e) => {
         switch(e.target.parentNode.childNodes.length){
             case 1:
@@ -147,16 +158,50 @@ class EditWorkOrder extends Component {
     }
 
     handleChange = (info) => {
-        if(info.file.type==='image/jpeg' || info.file.type==='image/png'){
-            this.setState({ fileList:info.fileList })
-            
+        let fileList=info.fileList;
+        fileList.filter(item =>{
+            if(item.response){
+                if(item.response.success==='true'){
+                    this.setState({
+                        alertShow:false
+                    })
+                    return item.status='success'
+                }else{
+                    this.setState({
+                        alertShow:true
+                    })
+                    return item.status='error';
+                }
+            }
+        })
+        this.setState({fileList:fileList});
+    };
+    beforeUpload=(file) => {
+        let fileSize = file.size/1024;
+        if(file.type==='image/jpeg' || file.type==='image/png' || file.type==='image/gif'){
+            if(fileSize > 5125){
+                this.error("图片过大，请重新上传！");
+                this.setState({UploadFlg:true});
+                return;
+            }else{
+                this.setState({UploadFlg:false})
+            }
         }else{
-            message.error('上传图片格式有误,请重新上传!')
+            this.error('上传图片格式有误,请重新上传!');
+            this.setState({UploadFlg:true});
             return ;
         }
-    };
+        
+    }
+    handleRemove=(vs) =>{
+        console.log(vs)
+       if(this.state.fileList.length<=1){
+           this.setState({
+               alertShow:false
+           })
+       }
+    }
     componentDidMount () {
-        console.log(this.props.orderStatus)
         if(this.props.orderStatus==2 ){
           if(sessionStorage.getItem('isDeskUnit')!=='true'){
             this.setState({
@@ -175,7 +220,6 @@ class EditWorkOrder extends Component {
             this.setState({
                 orderData:res.data.data[0]
             })
-            console.log(res.data)
             this.getOrderSouse();
             this.getServiceUnit();
             this.getProject(res.data.data[0].unitId);
@@ -190,7 +234,7 @@ class EditWorkOrder extends Component {
             this.setState({
                 fileList:[]
             })
-            if(isOpen == "true"){
+            if(isOpen == "true" || this.props.only==3 || this.props.orderStatus>=5){
                 this.setState({
                     showList:"block",
                     isRequired:true,
@@ -499,16 +543,6 @@ class EditWorkOrder extends Component {
             this.setState({handlerDataTZ})
         });
     }
-    beforeUpload=(file) => {
-        let fileSize = file.size/1024;
-        if(fileSize > 5125){
-            this.error("图片过大，请重新上传！");
-            this.setState({UploadFlg:true});
-            return;
-        }else{
-            this.setState({UploadFlg:false})
-        }
-    }
     backOrder=() =>{
         $axios.post(`${config.api_server}/ops/workorder/backOrder`,{
             id:this.props.rowData,
@@ -516,7 +550,7 @@ class EditWorkOrder extends Component {
         }).then(res =>{
             if(res.data.success){
                 this.props.changeShowType('list');
-                this.props.refreshData(1)
+                this.props.refreshData(1,true)
             }
         })
     }
@@ -527,7 +561,7 @@ class EditWorkOrder extends Component {
         message.success(con)
     }
     render(){
-        const { previewVisible,  fileList, resouseData,faultCategoryData,faultItemData,faultTypeData,projectdata,serviceUnitdata,userUnitdata,slaListdata,slaLevelData,handlerData,handlerDataTZ } = this.state;
+        const { previewVisible,previewVisibles, previewImage, fileList, resouseData,faultCategoryData,faultItemData,faultTypeData,projectdata,serviceUnitdata,userUnitdata,slaListdata,slaLevelData,handlerData,handlerDataTZ } = this.state;
         const {getFieldDecorator} = this.props.form;
         const uploadButton = (
         <div>
@@ -571,18 +605,24 @@ class EditWorkOrder extends Component {
             <div className='editWorkOrder' style={{marginLeft:'0',marginTop:'0',padding:'0',overflow:'hidden',height:'100%'}}>
             <LocaleProvider locale={zhCN}>
                 <Form>
+                <FormItem
+                        {...formItemLayout}
+                        label="故障号"
+                    >
+                         <div>{this.state.orderData.workOrderNumber}</div>
+                    </FormItem>
                     <FormItem
                         {...formItemLayout}
-                        label="故障来源"
+                        label="事件来源"
                     >
                         {getFieldDecorator('faultResouse', {
                             rules: [{
                                 required: true,
-                                message: '请选择故障来源',
+                                message: '请选择事件来源',
                             }],
                             initialValue:this.state.orderData.faultSourceId
                         })(
-                            <Select placeholder="请选择故障来源..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} disabled={this.state.statusDisable}>
+                            <Select placeholder="请选择事件来源..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0} disabled={this.state.statusDisable}>
                                 {
                                     resouseData.map((item,index) => {
                                         return <Option key={index} value={item.dictItemId}>{item.itemValue}</Option>
@@ -593,26 +633,26 @@ class EditWorkOrder extends Component {
                     </FormItem>
                     <FormItem
                         {...formItemLayout}
-                        label="故障主题"
+                        label="事件主题"
                     >
                         {getFieldDecorator('faultTheme', {
                             rules: [{
                                 required: true,
-                                message: '请填写故障主题',
+                                message: '请填写事件主题',
                             }],
                             initialValue:this.state.orderData.faultTheme
                         })(
-                            <Input placeholder="请填写故障主题..."  disabled={this.state.statusDisable}/>
+                            <Input placeholder="请填写事件主题..."  disabled={this.state.statusDisable}/>
                         )}
                     </FormItem>
                     <FormItem
                         {...formItemLayout}
-                        label="故障描述"
+                        label="事件描述"
                     >
                         {getFieldDecorator('faultDescription', {
                             rules: [{
                                 required: true,
-                                message: '请填写故障描述',
+                                message: '请填写事件描述',
                             }],
                             initialValue:this.state.orderData.workOrderDesc
                         })(
@@ -623,16 +663,16 @@ class EditWorkOrder extends Component {
                         <Col span={12}>
                             <FormItem
                                 {...formItemLayout1}
-                                label="报障单位"
+                                label="上报单位"
                             >
                                 {getFieldDecorator('faultReportedUnit', {
                                     rules: [{
                                         required: true,
-                                        message: '请选择报障单位',
+                                        message: '请选择上报单位',
                                     }],
                                     initialValue:this.state.orderData.faultSourceUnitId
                                 })(
-                                    <Select placeholder="请选择报障单位..."   disabled={this.state.statusDisable} showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}>
+                                    <Select placeholder="请选择上报单位..."   disabled={this.state.statusDisable} showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}>
                                         {
                                             userUnitdata.map((item,index) => {
                                                 return <Option key={index} value={item.unitId}>{item.unitName}</Option>
@@ -646,16 +686,16 @@ class EditWorkOrder extends Component {
                         <Col span={12}>
                         <FormItem
                                 {...formItemLayout1}
-                                label="报障人"
+                                label="上报人"
                             >
                                 {getFieldDecorator('faultPerson', {
                                     rules: [{
                                         required: true,
-                                        message: '请填写报障人',
+                                        message: '请填写上报人',
                                     }],
                                     initialValue:this.state.orderData.reportPeopleFault
                                 })(
-                                    <Input placeholder='请填写报障人...'  disabled={this.state.statusDisable}/>
+                                    <Input placeholder='请填写上报人...'  disabled={this.state.statusDisable}/>
                                 )}
                             </FormItem>
                             
@@ -903,7 +943,8 @@ class EditWorkOrder extends Component {
                                     action={`${config.api_server}/upload/resource/commonupload`}
                                     listType="picture-card"
                                     fileList={fileList}
-                                    onPreview={this.handlePreview}
+                                    onRemove={this.handleRemove}
+                                    onPreview={this.handlePreviews}
                                     onChange={this.handleChange}
                                     data={{
                                         type:"workorder",
@@ -911,11 +952,10 @@ class EditWorkOrder extends Component {
                                     }}
                                     beforeUpload={this.beforeUpload}
                                 >
-                                    { this.state.orderData.faultPicture?this.state.orderData.faultPicture.split(',').length >= 3 ? null : uploadButton:uploadButton}
+                                    {(this.state.orderData.faultPicture?this.state.orderData.faultPicture.split(',').length:0)+fileList.length >= 3 ? null : uploadButton}
                                 </Upload>
                             )}
                             {
-                            //    console.log(this.state.orderData.faultPicture?this.state.orderData.faultPicture.split(','):'null')
                             this.state.orderData.faultPicture?this.state.orderData.faultPicture.split(',').map((item,key) =>(
                                 <div key={key} className='ant-upload ant-upload-select ant-upload-select-picture-card imgshow' onClick={this.handlePreview}>
                                     <span className='imgmask'>
@@ -925,12 +965,15 @@ class EditWorkOrder extends Component {
                                 </div>
                                 )):null
                             }
-                                
-                            <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
+                            <Modal width='80%' visible={previewVisibles} footer={null} onCancel={this.handleCancels}>
+                                    <img alt="example" style={{ width: '100%' }} src={previewImage} />
+                            </Modal>
+                            <Modal width='80%' visible={previewVisible} footer={null} onCancel={this.handleCancel}>
                                     <img alt="example" style={{ width: '100%' }} src={this.state.imgSrc} />
                             </Modal>
                           </div>
-                        <div>可以上传3张图片，单张小于5M。图片支持的格式有：jpg,bmp,png,gif</div>
+                        <div>可以上传3张图片，单张小于5M。图片支持的格式有：jpg,png,gif</div>
+                        <Alert style={{display:this.state.alertShow?'block':'none'}} closable={true} message="图片上传失败,请重试!" type="error" />
                     </FormItem>
                     <FormItem
                         {...formItemLayout}
@@ -945,7 +988,7 @@ class EditWorkOrder extends Component {
                             <Select mode="multiple"  disabled={this.state.statusDisable} placeholder="请选择相关人..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}>
                                 {
                                     handlerDataTZ.map((item,index) => {
-                                        return <Option key={index} value={item.id}>{`${item.username}(${item.rolename})`}</Option>
+                                        return <Option key={index} value={item.loginId}>{`${item.username}(${item.rolename})`}</Option>
                                     })
                                 }
                             </Select>

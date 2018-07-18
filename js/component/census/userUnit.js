@@ -1,15 +1,13 @@
 import 'antd/dist/antd.css';
 import React,{Component} from 'react';
-import { Tabs,Table,Menu, Icon,Radio,DatePicker,LocaleProvider,Progress } from 'antd';
+import { Tabs,Table,Radio,DatePicker,LocaleProvider,Progress } from 'antd';
 import moment from 'moment';
 import zh_CN from 'antd/lib/locale-provider/zh_CN';
 import axios from 'axios';
-import Menus from '../header';
 import config from '../../config';
 import PieReact from './pieCharts';
 import './index.less';
 
-const SubMenu = Menu.SubMenu;
 const { RangePicker } = DatePicker;
 const RadioButton = Radio.Button;
 const RadioGroup = Radio.Group;
@@ -26,7 +24,6 @@ class ChartsUser extends Component{
         reprottype:3,
         startTime:moment(new Date()).subtract(moment(new Date(),'YYYY-MM').daysInMonth(),'days').format('YYYY-MM-DD hh:mm:ss'),
         endTime:moment(new Date()).format('YYYY-MM-DD hh:mm:ss'),
-        barOption:{},
         pieOption:{},
     }
     getData(dt,st,et){
@@ -119,7 +116,6 @@ class ChartsUser extends Component{
     }
 
     btnChange=(e) =>{
-        console.log(e.target.value)
         switch(parseInt(e.target.value)){
             case 0:
             this.getData(this.state.census,moment(new Date()).format('YYYY-MM-DD hh:mm:ss'),moment(new Date()).format('YYYY-MM-DD hh:mm:ss'))
@@ -151,7 +147,6 @@ class ChartsUser extends Component{
             titName='维保期限'
             break;
         }
-        console.log(titName)
         const columns = [{
             title:titName,
             dataIndex: 'name',
@@ -181,25 +176,7 @@ class ChartsUser extends Component{
             dataIndex:'totalPercentage'
           }];
         return(
-            <div style={{width:'100%',height:'100%'}}>
-            <Menus />
-            <div style={{width:'14%',height:'100%',float:'left',marginTop:'50px',}}>
-                <Menu
-                theme='dark'
-                onClick={this.handleClick}
-                mode="inline"
-                defaultOpenKeys={['sub1']}
-                defaultSelectedKeys={['0']}
-                style={{height:'100%'}}
-                >
-                <SubMenu key="sub1" title={<span><Icon type="mail" /><span>工单统计</span></span>}>
-                    <Menu.Item key="0">运维单位</Menu.Item>
-                    <Menu.Item key="1">故障大类</Menu.Item>
-                    <Menu.Item key="2">用户单位</Menu.Item>
-                    <Menu.Item key="3">维保期限</Menu.Item>
-                </SubMenu>
-                </Menu>
-            </div>
+ 
                     <div className='charts-wrap'>
                     <div className='chart-query'>
                     <RadioGroup defaultValue={this.state.querytype} disabled={this.state.radioDisable} size="large" onChange={this.btnChange}>
@@ -222,7 +199,6 @@ class ChartsUser extends Component{
                         </TabPane>
                     </Tabs>
                     </div>
-            </div>
         )
     }
 }

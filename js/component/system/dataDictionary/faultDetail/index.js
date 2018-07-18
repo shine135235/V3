@@ -169,6 +169,7 @@ export default class ChildArea extends Component{
         this.setState({editVisible})
     }  
     refresh = () =>{
+        this.setState({search:""})
         this.getParentListData({pageNum :1,pageSize:this.state.pageSize,search:""});
     } 
     onSearch = (value) =>{
@@ -209,7 +210,7 @@ export default class ChildArea extends Component{
                             <Search placeholder="搜索"  style={{ width: "100%" }} onSearch={this.onSearch}/>                          
                         </div>
                 </div>
-                <div>
+                <div style = {{"height":"94%","overflowY":"auto"}}>
                     <LocaleProvider locale = {zhCN}>
                         <Table dataSource={this.state.data}  pagination = {pagination} columns={this.columns} />        
                     </LocaleProvider>                   

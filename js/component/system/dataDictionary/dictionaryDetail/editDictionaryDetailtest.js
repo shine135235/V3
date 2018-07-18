@@ -1,6 +1,6 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Input,Col,LocaleProvider,message} from 'antd';
+import { Button,Modal,Form,Input,Col,LocaleProvider,message,Tooltip,Icon} from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import config from '../../../../config';
 import './dictionaryAll.less';
@@ -70,6 +70,7 @@ class EditDictionaryDetailTest extends Component{
                             this.success();
                         }, 3000);
                     }else{
+                        this.setState({editLoading: false})  
                         let error = ""
                         if(res.data.message && res.data.message != ""){
                             error = res.data.message
@@ -100,7 +101,7 @@ class EditDictionaryDetailTest extends Component{
         this.isOrNoStyle({});
     }
     eventCode = (rule, value, callback) =>{
-        if(!(/^[A-Za-z]+$/g.test(value))){
+        if(!(/^[A-Z]+$/g.test(value))){
             callback("条目内容建议为名称首字母大写");
         }else{
             callback();
@@ -108,6 +109,7 @@ class EditDictionaryDetailTest extends Component{
     }
     render(){
         const { getFieldDecorator } = this.props.form;
+        const text = <span>条目格式统一为名称拼音首字母大写</span>;
         const formItemLayout = {
             labelCol: {
                 xs: { span: 24 },
@@ -129,7 +131,7 @@ class EditDictionaryDetailTest extends Component{
                     afterClose={this.afterClose}
                     destroyOnClose={true}
                     footer={[
-                        <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;建议条目项标识格式统一为名称拼音首字母大写</span>,
+                        // <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;建议条目项标识格式统一为名称拼音首字母大写</span>,
                         <Button key="back" size="large" onClick={this.editHandleCancel}>取消</Button>,
                         <Button key="submit" type="primary" htmlType='submit' size="large" loading={this.state.editLoading} onClick={this.editHandleOk}
                         >保存</Button>
@@ -154,7 +156,14 @@ class EditDictionaryDetailTest extends Component{
                         </FormItem>
                         <FormItem
                         {... formItemLayout}
-                        label={'条目项标识-名称'}
+                        label={(
+                            <span>
+                            条目标识-名称&nbsp;
+                                <Tooltip placement="top" title={text}>
+                                    <Icon type="info-circle-o"  className = "iTip" />
+                                </Tooltip>
+                            </span>
+                        )}
                         required={false}
                         >
                             {/* <FormItem 

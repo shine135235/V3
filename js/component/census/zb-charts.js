@@ -24,7 +24,6 @@ class chartsQuality extends Component{
         reprottype:3,
         startTime:moment(new Date()).subtract(moment(new Date(),'YYYY-MM').daysInMonth(),'days').format('YYYY-MM-DD hh:mm:ss'),
         endTime:moment(new Date()).format('YYYY-MM-DD hh:mm:ss'),
-        barOption:{},
         pieOption:{},
     }
     getData(dt,st,et){
@@ -54,55 +53,7 @@ class chartsQuality extends Component{
                 pieData.push(PieObj);
                 PieObj={};
             });
-            if(this.state.census==0 || this.state.census==1){
-                this.setState({
-                    barOption:{
-                        tooltip: {
-                            trigger: 'axis'
-                        },
-                        legend: {
-                            data:['工单总数','已完成','处理中']
-                        },
-                        xAxis: [
-                            {
-                                type: 'category',
-                                data:legendData,
-                                axisPointer: {
-                                    type: 'shadow'
-                                },
-                                axisLabel:{  
-                                    interval:0,//横轴信息全部显示   
-                               }  
-                            }
-                        ],
-                        yAxis:{
-                                type: 'value',
-                                name: '工单总数',
-                                axisLabel: {
-                                    formatter: '{value} 个'
-                                }
-                        },
-                        series: [
-                            {
-                                name:'工单总数',
-                                type:'bar',
-                                data:barData
-                            },
-                            {
-                                name:'已完成',
-                                type:'bar',
-                                data:complete
-                            },
-                            {
-                                name:'处理中',
-                                type:'bar',
-                                data:doing
-                            }
-                        ]
-                    }
-                })
-            }else{
-                console.log(this.state.census)
+
                 let titName='';
                 switch(this.state.census){
                     case 0:
@@ -149,7 +100,6 @@ class chartsQuality extends Component{
                         ]
                     }
                 })
-            }
             
         })
     }
@@ -168,7 +118,6 @@ class chartsQuality extends Component{
     }
 
     btnChange=(e) =>{
-        console.log(e.target.value)
         switch(parseInt(e.target.value)){
             case 0:
             this.getData(this.state.census,moment(new Date()).format('YYYY-MM-DD hh:mm:ss'),moment(new Date()).format('YYYY-MM-DD hh:mm:ss'))
@@ -200,7 +149,6 @@ class chartsQuality extends Component{
             titName='维保期限'
             break;
         }
-        console.log(titName)
         const columns = [{
             title:titName,
             dataIndex: 'name',

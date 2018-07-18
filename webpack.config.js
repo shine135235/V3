@@ -4,6 +4,7 @@ const CleanWebpackPlugin=require('clean-webpack-plugin');
 
 const theme = require('./js/theme');
 
+
 // const imgPath='./img/';
 // const jsPath='./js/'
 
@@ -71,9 +72,6 @@ module.exports={
               },
         ]
     },
-    // externals:{
-    //     'BMap':'BMap'
-    // },
     plugins:[
         new HtmlWebpackPlugin({//动态输出
             title:'智能IT运维平台',

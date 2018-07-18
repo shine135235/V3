@@ -22,7 +22,8 @@ export default class ChildArea extends Component{
             record:[],
             pageSize:10,
             pageNum:1,
-            totalRecord:0
+            totalRecord:0,
+            param:""
         }
     }
     columns = [{
@@ -59,8 +60,8 @@ export default class ChildArea extends Component{
     showModal = (record) =>{
         this.setState({record,editVisible:true});
     }
-    getParentListData = ({pageNum,pageSize}) => {
-        axios.get(`${config.api_server}/sys/dict/queryall?pageNum=${pageNum}&pageSize=${pageSize}`).then((res) =>{
+    getParentListData = ({pageNum,pageSize,param = ""}) => {
+        axios.get(`${config.api_server}/sys/dict/query/fuzzy?pageNum=${pageNum}&pageSize=${pageSize}&param=${param}`).then((res) =>{
             if(res.data.page.datas){
                 this.setState({data:res.data.page.datas,totalRecord:res.data.page.totalRecord,pageNum:pageNum})
                 //eslint-disable-next-line
@@ -69,16 +70,15 @@ export default class ChildArea extends Component{
             }
         })
     }
-
     componentDidMount(){
         let pageNum = this.state.pageNum;
         let pageSize = this.state.pageSize;
         this.getParentListData({pageNum,pageSize});
     }
     refresh = () =>{
-        // let pageNum = this.state.pageNum;
         let pageNum = 1;
         let pageSize = this.state.pageSize;
+        this.setState({param:""})
         this.getParentListData({pageNum,pageSize});
     }
     success = (success) => {
@@ -126,12 +126,12 @@ export default class ChildArea extends Component{
         });
     }
     onShowSizeChange = (current, size) =>{
-        this.setState({pageNum:current})
-        this.getParentListData({pageNum:current,pageSize:size})
+        this.setState({pageNum:current,selectedRowKeys:[],showBetchDel:"none"})
+        this.getParentListData({pageNum:current,pageSize:size,param:this.state.param})
     } 
     onChange = (page, pageSize) =>{
-        this.setState({pageNum:page})
-        this.getParentListData({pageNum :page,pageSize:pageSize})
+        this.setState({pageNum:page,selectedRowKeys:[],showBetchDel:"none"})
+        this.getParentListData({pageNum :page,pageSize:pageSize,param:this.state.param})
     }
     showTotal = (total) => {
         return `共 ${total} 条记录 `
@@ -142,14 +142,9 @@ export default class ChildArea extends Component{
     onSearch = (value) =>{
         let pageNum = 1;
         let pageSize = 10;
-        let searchValue = value;
-        axios.get(`${config.api_server}/sys/dict/query/fuzzy?pageNum=${pageNum}&pageSize=${pageSize}&param=${searchValue}`).then((res) =>{
-            if(res.data.page.datas){
-                this.setState({data:res.data.page.datas})
-                this.setState({totalRecord:res.data.page.totalRecord})
-            }
-        })
-
+        let param = value;
+        this.setState({param})
+        this.getParentListData({pageNum,pageSize,param})
     }
     render(){
         const pagination = {

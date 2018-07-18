@@ -14,6 +14,7 @@ class AddSysProject extends Component {
         vendorData: [],
         vendorDataJF: [],
         vendorDataJL: [],
+        data:[]
     }
     showModal = () => {
         this.setState({
@@ -65,6 +66,15 @@ class AddSysProject extends Component {
             })
         })
     }
+    getSelectList = () =>{
+        $axios.get(`${config.api_server}/sys/faultcategory/list`).then((res) =>{
+            if(res.data.page){
+                if(res.data.page.datas.length != 0){
+                    this.setState({data:res.data.page.datas})
+                }  
+            } 
+        })
+    }
     componentDidMount(){
         //获取参与人
         this.getUnitListData();
@@ -72,6 +82,7 @@ class AddSysProject extends Component {
         this.getUserJfData();
         //获取监理负责人
         this.getUserJLData();
+        this.getSelectList();
     }
     handleOk = (e) => {
         e.preventDefault();
@@ -79,7 +90,13 @@ class AddSysProject extends Component {
             if (err) {
                 return;
             }
-            
+            let faultcategory = [];
+            let option = values.faultName;
+            for(let i = 0;i<option.length;i++){
+                let opt = {};
+                opt.id = option[i];
+                faultcategory.push(opt)
+            }
             this.setState({ loading: true });
             //eslint-disable-next-line
             console.log('Received values of form: ', values);
@@ -98,10 +115,10 @@ class AddSysProject extends Component {
             }
             //eslint-disable-next-line
             console.log('vendor', ids);
-            this.addSysProjectData({name,quality,codename,ids,first_party,supervisor,fphone,sphone});
+            this.addSysProjectData({name,quality,codename,ids,first_party,supervisor,fphone,sphone,faultcategory});
         });
     }
-    addSysProjectData = ({name = '',quality = '',codename = '',ids = [],first_party="",supervisor="",fphone="",sphone=""}) => {
+    addSysProjectData = ({name = '',quality = '',codename = '',ids = [],first_party="",supervisor="",fphone="",sphone="",faultcategory = []}) => {
         $axios.post(`${config.api_server}/pro/project`,{
             "name":name,
             "quality":quality,
@@ -111,6 +128,7 @@ class AddSysProject extends Component {
             "supervisor":supervisor,
             "fphone":fphone,
             "sphone":sphone,
+            "faultcategory":faultcategory
         }).then((json) => {
             if(json.data.success){
                 this.success("添加成功！");
@@ -233,6 +251,13 @@ class AddSysProject extends Component {
                 <Option value={item.id} key={i}>{`${item.username}`}</Option>
             )
         }
+        const children = [];
+        let bData = this.state.data;
+        if(bData.length > 0){
+            for (let i = 0; i < bData.length; i++) {
+                children.push(<Option key = {i} value = {bData[i].id}>{bData[i].faultname}</Option>);
+           }
+        }
         // eslint-disable-next-line
         console.log("vendorJLArr",vendorJLArr);
         return(
@@ -262,6 +287,32 @@ class AddSysProject extends Component {
                                 }]
                             })(
                                 <Input/>
+                            )}
+                        </FormItem>
+                        <FormItem
+                        {...formItemLayout}
+                        label={(
+                            <span>
+                            事件大类&nbsp;
+                            </span>
+                        )}
+                        hasFeedback
+                        >
+                            {getFieldDecorator('faultName', {
+                                rules: [{ required: true, message: '请选择事件大类', whitespace: true,type:"array" }],
+                            })(
+                                <Select
+                                    mode="multiple"
+                                    style={{ width: '100%' }}
+                                    showSearch
+                                    optionFilterProp="children"
+                                    placeholder="请选择事件大类"
+                                    onSelect={this.onSelect}
+                                    filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}
+                                >
+                                    {children}
+                                </Select>
+                                
                             )}
                         </FormItem>
                         <FormItem

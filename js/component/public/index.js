@@ -23,7 +23,9 @@ export class UserRoleList extends Component{
     }
     componentDidMount(){
         axios.get(`${config.api_server}/sys/role/selectlist`,{
+            params:{
                 unitId:this.props.uid?this.props.uid:''
+            }
         }).then(res =>{
             this.setState({
                 sp:res.data
@@ -34,21 +36,22 @@ export class UserRoleList extends Component{
         sessionStorage.setItem('role',value)
     }
     render(){
-       if(this.state.sp!=null){
+       if(this.state.sp.length>0){
            return (
                <Select key='role' disabled={this.props.self?this.props.self:false} defaultValue={this.props.selectValue} style={{width:"100%"}} mode={this.props.mode} onChange={this.handleChange}  placeholder="请为该人员设置角色">
                    {
                      this.state.sp.map((item,i) =>{
-                         console.log(item.id,item.name)
                          return (
                              <Option key={`role${i}`} value={item.id}>{item.name}</Option>
                          )
-                     })  
+                     })
                    }
                </Select>
            )
        }else{
-           return null
+           return (
+               <Select placeholder='请选择角色'></Select>
+           )
        }
     }
 }

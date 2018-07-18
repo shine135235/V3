@@ -91,6 +91,7 @@ class AddEventCategory extends Component{
                         this.success();
                     }, 3000);
                 }else{
+                    this.setState({ editLoading: false});
                     let error = ""
                     if(res.data.message && res.data.message != ""){
                         error = res.data.message

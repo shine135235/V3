@@ -6,9 +6,10 @@ import './login.less';
 import config from '../../config';
 
 axios.defaults.timeout=60000;
-axios.defaults.headers.bjswsc=sessionStorage.getItem('token')?sessionStorage.getItem('token'):'';
 axios.defaults.withCredentials=true;//请求时将cookie带入header中
 axios.interceptors.request.use(config =>{
+  config.headers['bjswsc']=sessionStorage.getItem('token')?sessionStorage.getItem('token'):'';
+  //config['data']=sessionStorage.getItem('token')?sessionStorage.getItem('token'):'';
   if(config.validateStatus(200)){
     return config
   }
@@ -37,7 +38,7 @@ class LoginForm extends Component {
     }
     handleSubmit = (e) => {
       e.preventDefault();
-        let userForm=this.props.form.getFieldsValue(['userName','password']);
+        let userForm=this.props.form.getFieldsValue(['userName','password','remember']);
         if(userForm.userName!=undefined && userForm.userName!=''){
           if(userForm.password!=undefined && userForm.password!=''){
             if(this.state.axiosSend){
@@ -49,10 +50,10 @@ class LoginForm extends Component {
                  userName:userForm.userName,
                  passWord:btoa(userForm.password)
               }).then(res =>{
-                console.log(res.data)
                 if(res.data.flag==='success'){
                   message.success('登录成功!');
                   sessionStorage.setItem('isLogin',true);
+                  sessionStorage.setItem('isOver',false);
                   sessionStorage.setItem("user",JSON.stringify(res.data.info)); 
                   sessionStorage.setItem("v2IP",JSON.stringify(res.data.v2.IP)); 
                   sessionStorage.setItem("v2UserName",userForm.userName);  
@@ -64,8 +65,12 @@ class LoginForm extends Component {
                   sessionStorage.setItem("isDeskUnit",JSON.stringify(res.data.info.isTotalDeskUnit)); 
                   sessionStorage.setItem("deskUnitId",JSON.stringify(res.data.info.unitId).replace(/"/g,""));  
                   sessionStorage.setItem("isOpen",JSON.stringify(res.data.info.userRole[0].isOpen));  
-                  this.props.history.push('/Home');
+                  sessionStorage.setItem('pid',res.data.info.userRole[0].resource[0].id);
+                  localStorage.setItem('uname',userForm.userName)
+                  localStorage.setItem('pwd',userForm.password);
+                  this.props.history.push(res.data.info.userRole[0].resource[0].pathname);
                 }else{
+                  console.log(333)
                   this.setState({
                     alertShow:true,
                     errMessage:res.data.message,
@@ -79,15 +84,6 @@ class LoginForm extends Component {
                     })
                   },2000)
                 }
-              }).catch(error =>{
-                if (error.request) {
-                  alert('登录失败,请求已超时,请检查网络链接或刷新后重试!');
-                  if(error.request.readyState == 4 && error.request.status == 0){
-                     //请求错误时,重新请求写这里
-                  }
-              } else {
-                  console.log('Error', error.message);
-              }
               })
           }
       }else{
@@ -134,6 +130,7 @@ class LoginForm extends Component {
           <FormItem>
             {getFieldDecorator('userName', {
               rules: [{ required: false, message: '请输入用户名!' }],
+              initialValue:localStorage.getItem('uname')
             })(
               <Input size='large' prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />} placeholder="用户名" />
             )}
@@ -141,6 +138,7 @@ class LoginForm extends Component {
           <FormItem>
             {getFieldDecorator('password', {
               rules: [{ required: false, message: '请输入密码!' }],
+              initialValue:localStorage.getItem('pwd')
             })(
               <Input size='large' prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />} type="password" placeholder="密码" />
             )}

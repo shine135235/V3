@@ -274,7 +274,9 @@ class AssetsFrom extends Component{
     }
     
     componentWillMount(){
+        console.log(this.props.unit)
         this.getUserUnit();
+        //this.unitPeople(this.props.unit);
         this.getDoWhat()
     }
     AssetsList=() =>{
@@ -291,23 +293,21 @@ class AssetsFrom extends Component{
     getUserUnit = () => {
         axios.get(`${config.api_server}/sys/unit/userunit`).then((json) => {
             let userUnitdata = json.data.data;
-            this.setState({userUnitdata})
+            this.setState({userUnitdata});
+            userUnitdata.map(item =>{
+                if(item.unitId==this.props.unit){
+                    this.setState({
+                        unitPeople:item.principalname,
+                        unitPeoplePhone:item.principalphone
+                    })
+                }
+            })
         })
     }
     getDoWhat=() =>{
         axios.get(`${config.api_server}/assets/common/assetsuse`).then(res =>{
             let dowhat=res.data.page.datas;
             this.setState({dowhat})
-        })
-    }
-    unitPeople=(v) =>{
-        this.state.userUnitdata.map(item =>{
-            if(item.unitId==v){
-                this.setState({
-                    unitPeople:item.principalname,
-                    unitPeoplePhone:item.principalphone
-                })
-            }
         })
     }
     componentDidMount(){
@@ -497,8 +497,9 @@ class AssetsFrom extends Component{
                                 required: true,
                                 message:'请选择领用单位!'
                             }],
+                            initialValue:this.props.unit
                             })(
-                                <Select placeholder="请选择领用单位..." onChange={this.unitPeople}>
+                                <Select placeholder="请选择领用单位..." onChange={this.unitPeople} disabled={true}>
                                     {
                                         this.state.userUnitdata.map((item,index) => {
                                             return <Option key={index} value={item.unitId}>{item.unitName}</Option>

@@ -63,6 +63,7 @@ export default class Allin extends Component{
             dataId:'',
             loading:true,
             show:'none',
+            nameShow:false,
             loadIframe:false,
             sliderShow:false,
             iwPosition:{
@@ -78,6 +79,7 @@ export default class Allin extends Component{
         this.loopData=setInterval(this.loopFunction,10000)
         this.districtEvent={
             created:(amap) =>{
+                     const _this=this;
                     amap.plugin('AMap.DistrictSearch', function() {
                         //实例化DistrictSearch
                         let district=new window.AMap.DistrictSearch({
@@ -104,6 +106,21 @@ export default class Allin extends Component{
                     });
                 //装载地图风格
                 amap.setMapStyle('amap://styles/905e0a8dcd491635342909768bb07b3e');
+                window.AMap.event.addListener(amap,'zoomend',function(){
+                    let zooms=amap.getZoom()
+                     _this.setState({
+                         zoom:zooms
+                     })
+                     if(zooms>11){
+                         _this.setState({
+                             nameShow:true
+                         })
+                     }else{
+                        _this.setState({
+                            nameShow:false
+                        })
+                     }
+                })
             }
         }
         this.eventIw={
@@ -116,12 +133,23 @@ export default class Allin extends Component{
         }
         this.markerEvent={
             click:(marker) =>{
-                console.log(marker.target.Nh.extData)
                  this.setState({
                      iwPosition:marker.target.getPosition(),
                      iwVisible:true,
                      iwContent:marker.target.Nh.extData
                  })
+            },
+            mouseover:(e) =>{
+                const marker=e.target;
+                if(this.state.zoom<=11){
+                    marker.render(this.markerHoverRender)
+                }
+            },
+            mouseout:(e) => {
+                const marker = e.target;
+                if(this.state.zoom<=11){
+                    marker.render(this.markerRender)
+                }
             }
         }
     }
@@ -136,7 +164,7 @@ export default class Allin extends Component{
         })
     }
     getData=(st,et) =>{
-        axios.get(`${config.api_server}/homepage/details`,{
+        axios.get(`${config.api_server}/homepages/details`,{
             params:{
                 startDate:moment(st).format('YYYY-MM-DD'),
                 endDate:moment(et).format('YYYY-MM-DD'),
@@ -431,8 +459,8 @@ export default class Allin extends Component{
     }
     timeChange=(value) =>{
         this.setState({
-            startTime:moment(this.prevMonth).add('days',value[0]).format('MM/DD'),
-            endTime:moment(this.prevMonth).add('days',value[1]).format('MM/DD'),
+            strTime:moment(this.prevMonth).add('days',value[0]).format('YYYY-MM-DD'),
+            endTime:moment(this.prevMonth).add('days',value[1]).format('YYYY-MM-DD'),
             sliderShow:false,
             spanDisplay:true
         });
@@ -453,6 +481,12 @@ export default class Allin extends Component{
     componentWillUnmount(){
         clearInterval(this.loopData)
     }
+    markerRender=(extData) =>(
+        extData.islast?<span className={`school-icon ${extData.level}`}><span className='school-name' style={{display:this.state.nameShow?'inline-block':'none'}}>{extData.name}</span><span className='event-num'>{extData.num}</span><span className={`animate-span b${extData.level}`}></span></span>:<span className={`school-icon ${extData.level}`}><span className='school-name' style={{display:this.state.nameShow?'inline-block':'none'}}>{extData.name}</span><span className='event-num'>{extData.num}</span></span>
+    )
+    markerHoverRender=(extData) =>(
+        extData.islast?<span className={`school-icon ${extData.level}`}><span className='school-name' style={{display:'inline-block'}}>{extData.name}</span><span className='event-num'>{extData.num}</span><span className={`animate-span b${extData.level}`}></span></span>:<span className={`school-icon ${extData.level}`}><span className='school-name' style={{display:'inline-block'}}>{extData.name}</span><span className='event-num'>{extData.num}</span></span>
+    )
     render(){
         const MonthMarks={};
         for(let i=1;i<=this.daysInMonth+1;i++){
@@ -478,11 +512,7 @@ export default class Allin extends Component{
                 <Map zoom={this.state.zoom} loading={<Spin spinning={true} />} amapkey='aebd33b15781df8815513afe16c4a4c6' theme='amap://styles/905e0a8dcd491635342909768bb07b3e' version='1.4.6' center={this.state.center} events={this.districtEvent}>
                     {
                         this.state.makers.map((item,key) =>(
-                            <Marker key={key} position={{longitude: item.lgt, latitude: item.lat}} events={this.markerEvent} extData={item.detail}>
-                            {
-                                key==0? <span className={`school-icon ${item.level}`}><span className='event-num'>{item.num}</span><span className={`animate-span b${item.level}`}></span><span className='school-name'>{item.name}</span></span>:<span className={`school-icon ${item.level}`}><span className='event-num'>{item.num}</span><span className='school-name'>{item.name}</span></span>
-                            }
-                            </Marker>
+                            <Marker key={key} render={this.markerRender} position={{longitude: item.lgt, latitude: item.lat}} events={this.markerEvent} extData={item}></Marker>
                         ))
                     }
                 {/* <InfoWindow position={this.state.iwPosition} visible={this.state.iwVisible} content={this.state.iwContent} size={{width:200,height:100}} events={this.eventIw} offset={[0,-30]}></InfoWindow> */}
@@ -492,7 +522,7 @@ export default class Allin extends Component{
                     <div className='time-wrap' onMouseLeave={this.mousLeave}>
                         <div className='date-picker'>
                             <span onClick={this.sliderShow} style={{display:this.state.spanDisplay?'inline-block':'none'}}>
-                                <Icon type="calendar" />　<span>{moment(this.state.startTime).format('MM/DD')} - {moment(this.state.endTime).format('MM/DD')}</span>
+                                <Icon type="calendar" />　<span>{moment(this.state.strTime).format('MM/DD')} - {moment(this.state.endTime).format('MM/DD')}</span>
                             </span>
                             <Slider style={siderStyle}  range marks={MonthMarks} tipFormatter={this.tipFormatter} min={1}  max={this.daysInMonth} defaultValue={[1,this.daysInMonth]}  onAfterChange={this.timeChange} />
                         </div>

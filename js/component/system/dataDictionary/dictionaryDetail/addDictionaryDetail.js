@@ -1,6 +1,6 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Select,LocaleProvider,message,Col,Input,Icon,Row } from 'antd';
+import { Button,Modal,Form,Select,LocaleProvider,message,Col,Input,Icon,Row,Tooltip } from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 //  import Child from "./childTest";
  import config from '../../../../config';
@@ -99,6 +99,7 @@ class AddDictionaryDetail extends Component{
                             this.success();
                         }, 1000);
                     }else{
+                        this.setState({ addLoading: false});
                         let error = ""
                         if(res.data.message && res.data.message != ""){
                             error = res.data.message
@@ -163,7 +164,7 @@ class AddDictionaryDetail extends Component{
         });
     }
     eventCode = (rule, value, callback) =>{
-        if(!(/^[A-Za-z]+$/g.test(value))){
+        if(!(/^[A-Z]+$/g.test(value))){
             callback("条目内容建议为名称首字母大写");
         }else{
             callback();
@@ -171,6 +172,7 @@ class AddDictionaryDetail extends Component{
     }
     render(){
         const { getFieldDecorator,getFieldValue } = this.props.form;
+        const text = <span>条目格式统一为名称拼音首字母大写</span>;
         const formItemLayout = {
             labelCol: {
                 xs: { span: 24 },
@@ -205,7 +207,14 @@ class AddDictionaryDetail extends Component{
           return (
             <FormItem
               {... formItemLayout}
-              label={'条目项标识-名称'}
+              label={(
+                <span>
+                条目标识-名称&nbsp;
+                    <Tooltip placement="top" title={text}>
+                        <Icon type="info-circle-o"  className = "iTip" />
+                    </Tooltip>
+                </span>
+            )}
               required={true}
               key={k}
             >    
@@ -214,11 +223,11 @@ class AddDictionaryDetail extends Component{
                         <Col span={10}>
                             <FormItem >
                                 {getFieldDecorator(`dicName${k}`, {
-                                        rules: [{ required: true, message: '请输入条目项标识', whitespace: true }, {
+                                        rules: [{ required: true, message: '请输入条目标识', whitespace: true }, {
                                           validator: this.eventCode,
                                       }],
                                     })(
-                                        <Input placeholder="条目项标识" />
+                                        <Input placeholder="条目标识" />
                                     )
                                 }
                             </FormItem>
@@ -267,7 +276,7 @@ class AddDictionaryDetail extends Component{
                     width={600}
                     afterClose = {this.removeData}
                     footer={[
-                        <span key style = {{"display":"inline-block","marginRight":"50px","color":"#BA55D3"}}>提示:&nbsp;建议条目项标识格式统一为名称拼音首字母大写</span>,
+                        // <span key style = {{"display":"inline-block","marginRight":"50px","color":"#BA55D3"}}>提示:&nbsp;建议条目项标识格式统一为名称拼音首字母大写</span>,
                         <Button key="back" size="large" onClick={this.addHandleCancel}>取消</Button>,
                         <Button key="submit" type="primary" size="large" loading={this.state.addLoading}  onClick={this.addHandleOk} >
                         保存

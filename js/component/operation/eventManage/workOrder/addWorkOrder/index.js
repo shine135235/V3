@@ -1,11 +1,12 @@
 import React,{Component} from 'react';
 import { Button, Form, Select, Input,  Row, Col, Upload, Icon, Modal, DatePicker, 
-    LocaleProvider, message
+    LocaleProvider, message,Alert
 } from 'antd';
 import moment from 'moment';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import $axios from 'axios';
 import config from '../../../../../config';
+import {checkPhone,checkInput} from '../../../../public/RexRules';
 import './index.less'
 
 
@@ -36,59 +37,69 @@ class AddWorkOrder extends Component {
         gzdlID:'',
         unitDisable:false,
         defaultUnitValue:'',
-        nowPro:''
+        nowPro:'',
+        alertShow:false
     }
     goBack = () => { 
         this.props.changeShowType('list')
     }
+    uploads=true
     submitFunc = (e) => {
         e.preventDefault();
-        this.props.form.validateFields({ force: true },(err, values) => {
-            if (err) {
-                return;
+        this.state.fileList.map(item =>{
+            if(item.status=='error'){
+                this.uploads=false
             }
-            let faultSource = values.faultResouse;//故障来源
-            let faultTheme = values.faultTheme;//故障主题
-            let workOrderDesc = values.faultDescription;//工单描述
-            let unitId = values.faultUnit;//流转单位
-            let faultSourceUnit = values.faultReportedUnit;//故障来源单位
-            let reportPeopleFault = values.faultPerson;  //报障人
-            let contactPhone = values.faultPersonPhone; //联系电话
-            let projectId = "";   //项目名称
-            let faultCategoryId = "";  //故障大类
-            let faultCategoryDetailId = "";  //故障细类
-            let faultType = "";  //故障类型
-            let slaId = "";    //sla 协议
-            let slaTimeLevelId = "";    //sla 等级
-            let appointmentTime =values.faultTime?values.faultTime.format('YYYY-MM-DD HH:mm:ss'):'';  //预约时间
-            let currentHandle = "";//处理人
-            let faultPicture = [];// 保存的图片路径
-            let status = "2";  //状态
-            let relevantPeople = "";// 需要通知的相关人
-            if(this.state.isRequired){
-                projectId = values.faultProject;
-                faultCategoryId = values.faultCategory;
-                faultCategoryDetailId = values.faultItem;
-                faultType = values.faultType;
-                slaId = values.faultService;
-                slaTimeLevelId = values.faultServiceLevel;
-                currentHandle = values.faultDealPeople;
-                let rP = values.faultRelevantPerson;
-                if(rP != undefined){
-                    relevantPeople = rP.join(",");
+        })
+        if(this.uploads){
+            this.props.form.validateFields({ force: true },(err, values) => {
+                if (err) {
+                    return;
                 }
-                status = "3"
-            }
-            let pic = this.state.fileList;
-            if(pic.length > 0){
-                for(let i = 0;i<pic.length;i++){
-                    faultPicture.push(pic[i].response.path);
+                let faultSource = values.faultResouse;//故障来源
+                let faultTheme = values.faultTheme;//故障主题
+                let workOrderDesc = values.faultDescription;//工单描述
+                let unitId = values.faultUnit;//流转单位
+                let faultSourceUnit = values.faultReportedUnit;//故障来源单位
+                let reportPeopleFault = values.faultPerson;  //报障人
+                let contactPhone = values.faultPersonPhone; //联系电话
+                let projectId = "";   //项目名称
+                let faultCategoryId = "";  //故障大类
+                let faultCategoryDetailId = "";  //故障细类
+                let faultType = "";  //故障类型
+                let slaId = "";    //sla 协议
+                let slaTimeLevelId = "";    //sla 等级
+                let appointmentTime =values.faultTime?values.faultTime.format('YYYY-MM-DD HH:mm:ss'):'';  //预约时间
+                let currentHandle = "";//处理人
+                let faultPicture = [];// 保存的图片路径
+                let status = "2";  //状态
+                let relevantPeople = "";// 需要通知的相关人
+                if(this.state.isRequired){
+                    projectId = values.faultProject;
+                    faultCategoryId = values.faultCategory;
+                    faultCategoryDetailId = values.faultItem;
+                    faultType = values.faultType;
+                    slaId = values.faultService;
+                    slaTimeLevelId = values.faultServiceLevel;
+                    currentHandle = values.faultDealPeople;
+                    let rP = values.faultRelevantPerson;
+                    if(rP != undefined){
+                        relevantPeople = rP.join(",");
+                    }
+                    status = "3"
                 }
-            }
-            faultPicture = faultPicture.join(",");
-            console.log("故障添加的所有值",values);
-            this.addWorkOrder({faultSource,faultTheme,workOrderDesc,unitId,faultSourceUnit,reportPeopleFault,contactPhone,projectId,faultCategoryId,faultCategoryDetailId,faultType,slaId,slaTimeLevelId,appointmentTime,currentHandle,faultPicture,status,relevantPeople})
-        });
+                let pic = this.state.fileList;
+                if(pic.length > 0){
+                    for(let i = 0;i<pic.length;i++){
+                        faultPicture.push(pic[i].response.path);
+                    }
+                }
+                faultPicture = faultPicture.join(",");
+                this.addWorkOrder({faultSource,faultTheme,workOrderDesc,unitId,faultSourceUnit,reportPeopleFault,contactPhone,projectId,faultCategoryId,faultCategoryDetailId,faultType,slaId,slaTimeLevelId,appointmentTime,currentHandle,faultPicture,status,relevantPeople})
+            });
+        }else{
+            message.error('请检查您的图片是否上传成功!')
+        }
     }
 
     addWorkOrder = ({faultSource = "",faultTheme = "",workOrderDesc = "",unitId = "",faultSourceUnit = "",reportPeopleFault = "",contactPhone = "",projectId = "",faultCategoryId = "",faultCategoryDetailId = "",faultType = "",slaId = "",slaTimeLevelId = "",appointmentTime = "",currentHandle = "",faultPicture = "",status = "",relevantPeople = "",}) => {
@@ -117,7 +128,7 @@ class AddWorkOrder extends Component {
             if(json.data.success){
                 this.success("添加成功！");
                 this.props.changeShowType('list');
-                this.props.refreshData(1);
+                this.props.refreshData(1,true);
             }else{
                 this.error("添加失败！");
             }
@@ -471,25 +482,48 @@ class AddWorkOrder extends Component {
         });
     }
     handleChange = (info) => {
-        console.log(info)
-        if(info.file.type==='image/jpeg' || info.file.type==='image/png'){
-            this.setState({ fileList:info.fileList })
-            
-        }else{
-            message.error('上传图片格式有误,请重新上传!')
-            return ;
-        }
+        let fileList=info.fileList;
+        fileList.filter(item =>{
+            if(item.response){
+                if(item.response.success==='true'){
+                    this.setState({
+                        alertShow:false
+                    })
+                    return item.status='success'
+                }else{
+                    this.setState({
+                        alertShow:true
+                    })
+                    return item.status='error';
+                }
+            }
+        })
+        this.setState({fileList:fileList});
     };
     beforeUpload=(file) => {
-        console.log(file)
         let fileSize = file.size/1024;
-        if(fileSize > 5125){
-            this.error("图片过大，请重新上传！");
-            this.setState({UploadFlg:true});
-            return;
+        if(file.type==='image/jpeg' || file.type==='image/png' || file.type==='image/gif'){
+            if(fileSize > 5125){
+                this.error("图片过大，请重新上传！");
+                this.setState({UploadFlg:true});
+                return;
+            }else{
+                this.setState({UploadFlg:false})
+            }
         }else{
-            this.setState({UploadFlg:false})
+            this.error('上传图片格式有误,请重新上传!');
+            this.setState({UploadFlg:true});
+            return ;
         }
+        
+    }
+    handleRemove=(vs) =>{
+        console.log(vs)
+       if(this.state.fileList.length<=1){
+           this.setState({
+               alertShow:false
+           })
+       }
     }
     error = (con) => {
         message.error(con)
@@ -544,15 +578,15 @@ class AddWorkOrder extends Component {
                 <Form>
                     <FormItem
                         {...formItemLayout}
-                        label="故障来源"
+                        label="事件来源"
                     >
                         {getFieldDecorator('faultResouse', {
                             rules: [{
                                 required: true,
-                                message: '请选择故障来源',
+                                message: '请选择事件来源',
                             }],
                         })(
-                            <Select placeholder="请选择故障来源..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}>
+                            <Select placeholder="请选择事件来源..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}>
                                 {
                                     resouseData.map((item,index) => {
                                         return <Option key={index} value={item.dictItemId}>{item.itemValue}</Option>
@@ -563,43 +597,43 @@ class AddWorkOrder extends Component {
                     </FormItem>
                     <FormItem
                         {...formItemLayout}
-                        label="故障主题"
+                        label="事件主题"
                     >
                         {getFieldDecorator('faultTheme', {
                             rules: [{
                                 required: true,
-                                message: '请填写故障主题',
+                                message: '请填写事件主题',
                             }],
                         })(
-                            <Input placeholder="请填写故障主题..."/>
+                            <Input placeholder="请填写事件主题..."/>
                         )}
                     </FormItem>
                     <FormItem
                         {...formItemLayout}
-                        label="故障描述"
+                        label="事件描述"
                     >
                         {getFieldDecorator('faultDescription', {
                             rules: [{
                                 required: true,
-                                message: '请填写故障描述',
+                                message: '请填写事件描述',
                             }],
                         })(
-                            <TextArea rows={4} />
+                            <TextArea rows={4} placeholder='请填写事件描述...' />
                         )}
                     </FormItem>
                     <Row style={{"marginTop":"12px"}}>
                         <Col span={12}>
                             <FormItem
                                 {...formItemLayout1}
-                                label="报障单位"
+                                label="上报单位"
                             >
                                 {getFieldDecorator('faultReportedUnit', {
                                     rules: [{
                                         required: true,
-                                        message: '请选择报障单位',
+                                        message: '请选择上报单位',
                                     }],
                                 })(
-                                    <Select placeholder="请选择报障单位..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}>
+                                    <Select placeholder="请选择上报单位..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}>
                                         {
                                             userUnitdata.map((item,index) => {
                                                 return <Option key={index} value={item.unitId}>{item.unitName}</Option>
@@ -613,15 +647,17 @@ class AddWorkOrder extends Component {
                         <Col span={12}>
                         <FormItem
                                 {...formItemLayout1}
-                                label="报障人"
+                                label="上报人"
                             >
                                 {getFieldDecorator('faultPerson', {
                                     rules: [{
                                         required: true,
-                                        message: '请填写报障人',
+                                        message: '请填写上报人',
+                                    },{
+                                        validator:checkInput
                                     }],
                                 })(
-                                    <Input placeholder='请填写报障人...'/>
+                                    <Input placeholder='请填写上报人...'/>
                                 )}
                             </FormItem>
                             
@@ -637,6 +673,8 @@ class AddWorkOrder extends Component {
                                     rules: [{
                                         required: true,
                                         message: '请填写联系电话',
+                                    },{
+                                        validator:checkPhone
                                     }],
                                 })(
                                     <Input placeholder='请填写联系电话...'/>
@@ -864,6 +902,7 @@ class AddWorkOrder extends Component {
                                     action={`${config.api_server}/upload/resource/commonupload`}
                                     listType="picture-card"
                                     fileList={fileList}
+                                    onRemove={this.handleRemove}
                                     onPreview={this.handlePreview}
                                     onChange={this.handleChange}
                                     data={{type:"workorder"}}
@@ -872,11 +911,12 @@ class AddWorkOrder extends Component {
                                     {fileList.length >= 3 ? null : uploadButton}
                                 </Upload>
                             )}
-                                <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
+                                <Modal width='80%' visible={previewVisible} footer={null} onCancel={this.handleCancel}>
                                     <img alt="example" style={{ width: '100%' }} src={previewImage} />
                                 </Modal>
                           </div>
-                        <div>可以上传3张图片，单张小于5M。图片支持的格式有：jpg,bmp,png,gif</div>
+                        <div>可以上传3张图片，单张小于5M。图片支持的格式有：jpg,png,gif</div>
+                        <Alert style={{display:this.state.alertShow?'block':'none'}} closable={true} message="图片上传失败,请重试!" type="error" />
                     </FormItem>
                     <FormItem
                         {...formItemLayout}
@@ -891,7 +931,7 @@ class AddWorkOrder extends Component {
                             <Select onSelect={this.setTz} mode="multiple" placeholder="请选择相关人..." showSearch optionFilterProp="children" filterOption={(input, option) => option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0}>
                                 {
                                     handlerDataTZ.map((item,index) => {
-                                        return <Option key={index} value={item.id}>{`${item.username}(${item.rolename})`}</Option>
+                                        return <Option key={index} value={item.loginId}>{`${item.username}(${item.rolename})`}</Option>
                                     })
                                 }
                             </Select>

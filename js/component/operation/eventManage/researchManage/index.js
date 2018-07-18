@@ -123,6 +123,7 @@ const Option = Select.Option;
         this.getDataList({});
     }
     refresh = () =>{
+        this.setState({searchparam:"",selectedRowKeys:[],showBetchDel:"none"})
         this.getDataList({});
     }
     success = (success) => {
@@ -175,7 +176,7 @@ const Option = Select.Option;
         render:(text,row) => {
             return(
                 <span className='bigspan' onClick={this.stopEvent}>
-                    <AuthPower><a god='bjdy' href="#" onClick = {this.edit.bind(this,row)} className={row.status=='1'?'gary':''} disabled = {row.status=='1'?true:false}>编辑</a></AuthPower>
+                    <AuthPower><a god='bjdy' href="#" onClick = {this.edit.bind(this,row)} className={row.status<='1'?'gary':''} disabled = {row.status<='1'?true:false}>编辑</a></AuthPower>
                     <span className="ant-divider" />
                     <AuthPower><a god='scdy' href="#" onClick = {this.delData.bind(this,String(row.id))}>删除</a></AuthPower>
                     <span className="ant-divider" />
@@ -327,7 +328,7 @@ const Option = Select.Option;
         // this.setState({ visible });
     }
     onSearch = (value) =>{
-        this.setState({searchparam:value})
+        this.setState({searchparam:value,selectedRowKeys:[],showBetchDel:"none"})
         this.getDataList({searchparam:value});
     }
     onClose = () =>{
@@ -386,21 +387,26 @@ const Option = Select.Option;
         })
     }
     pageChange=(page) =>{
-        this.setState({pageNum:page})
+        this.setState({pageNum:page,selectedRowKeys:[],showBetchDel:"none"})
         this.getDataList({pageNum:page,searchparam:this.state.searchparam})
     }
     onShowSizeChange = (current, size) =>{
-        this.setState({pageNum:current})
+        this.setState({pageNum:current,selectedRowKeys:[],showBetchDel:"none"})
         this.getDataList({pageNum:current,pageSize:size,searchparam:this.state.searchparam})
+    }
+    showTotal = (total) => {
+        return `共 ${total} 条记录`
     }
     render(){
         const { getFieldDecorator } = this.props.form;
         // let v2Ip = sessionStorage.getItem('v2IP').replace(/"/g,"");
         const pagination = {
+            size:"small",
             showQuickJumper:true,
             current:this.state.pageNum,
             total:this.state.totalRecord,
             onChange:this.pageChange,
+            showTotal:this.showTotal,
             onShowSizeChange:this.onShowSizeChange
         }
         const { selectedRowKeys } = this.state;

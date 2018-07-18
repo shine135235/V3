@@ -1,5 +1,5 @@
 //eslint-disable-next-line
-import ES6Shim from 'es6-shim';
+import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {BrowserRouter,browserHistory} from 'react-router-dom';

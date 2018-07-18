@@ -1,6 +1,6 @@
 import React,{Component} from 'react';
 import $axios from 'axios';
-import { Button,Modal,Form,Input,message,LocaleProvider } from 'antd';
+import { Button,Modal,Form,Input,message,LocaleProvider,Icon,Tooltip } from 'antd';
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import config from '../../../../config';
 // import WrappedRegistrationForm from "./test";
@@ -74,10 +74,10 @@ class AddEventCategory extends Component{
          e.preventDefault();
         this.props.form.validateFieldsAndScroll((err, values) => {
             //eslint-disable-next-line
-            console.log("valuesvaluesvalues",values)
+            // console.log("valuesvaluesvalues",values)
             if (err) {
                 //eslint-disable-next-line
-                 console.log("get单位类型",11111111111111111)
+                //  console.log("get单位类型",11111111111111111)
                 return;
             }
             let bdata = this.props.dataList;
@@ -139,8 +139,16 @@ class AddEventCategory extends Component{
         // })
         this.setState({ addLoading: false});
     }
+    eventCode = (rule, value, callback) =>{
+        if(!(/^[A-Z]+$/g.test(value))){
+            callback("类别编码建议为名称首字母大写");
+        }else{
+            callback();
+        }
+    }
     render(){
         const { getFieldDecorator } = this.props.form;
+        const text = <span>格式统一为名称拼音首字母大写</span>;
         const formItemLayout = {
         labelCol: {
             xs: { span: 24 },
@@ -162,7 +170,7 @@ class AddEventCategory extends Component{
                     destroyOnClose={true}
                     afterClose = {this.afterClose}
                     footer={[
-                        <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;建议类别编码格式统一为拼音首字母大写</span>,
+                        // <span key style = {{"display":"inline-block","marginRight":"20px","color":"#BA55D3"}}>提示:&nbsp;建议类别编码格式统一为拼音首字母大写</span>,
                         <Button key="back" size="large" onClick={this.addHandleCancel}>取消</Button>,
                         <Button key="submit" type="primary" size="large" htmlType="submit" loading={this.state.addLoading} onClick={this.addHandleOk}>
                         保存
@@ -193,13 +201,16 @@ class AddEventCategory extends Component{
                         label={(
                             <span>
                             类别编码&nbsp;
+                                <Tooltip placement="top" title={text}>
+                                    <Icon type="info-circle-o"  className = "iTip" />
+                                </Tooltip>
                             </span>
                         )}
                         hasFeedback
                         >
                         {getFieldDecorator('categoryCode', {
                             rules: [{ required: true, message: '请输入类别编码', whitespace: true }, {
-                                validator: this.eventName,
+                                validator: this.eventCode,
                             }],
                         })(
                             <Input placeholder = "如：ZCLB" onBlur={this.handleBlur}/>

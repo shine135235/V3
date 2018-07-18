@@ -27,6 +27,7 @@ export default class SysProject extends Component{
             supervisor:"",
             first_party:"",
             users:[],
+            faultcategory:[],
             vendorDataJL:[],
             vendorDataJF:[],
             pageNum:1,
@@ -141,6 +142,7 @@ export default class SysProject extends Component{
             let supervisor = json.data.data.supervisor;
             let usersArr = json.data.data.users;
             let users = []
+            let faultcategory = json.data.data.faultcategory;
             if(usersArr.length > 0){
                 for(let i = 0;i<usersArr.length;i++){
                     users.push(usersArr[i].id);
@@ -159,6 +161,7 @@ export default class SysProject extends Component{
                 supervisor,
                 first_party,
                 users,
+                faultcategory,
                 visibleEdit:true,
             })
         })
@@ -218,8 +221,8 @@ export default class SysProject extends Component{
         //获取监理负责人
         this.getUserJLData();
     }
-    showTotal = (total, range) => {
-        return `共 ${total} 条记录 第${range[0]}-${range[1]}条 `
+    showTotal = (total) => {
+        return `共 ${total} 条记录 `
     }
     changeVisibleEdit = ({visibleEdit = false}) => {
         this.setState({
@@ -247,6 +250,7 @@ export default class SysProject extends Component{
         this.getListData({searchVal:value});
     }
     refreshData = () => {
+        this.setState({searchVal:""})
         this.getListData({})
 
     }
@@ -263,6 +267,7 @@ export default class SysProject extends Component{
                 sphone,
                 supervisor,
                 first_party,
+                faultcategory,
                 users} = this.state;
         return (
             <div className='data-class-over1'>
@@ -291,7 +296,7 @@ export default class SysProject extends Component{
                             current={this.state.pageNum}
                             showQuickJumper={true}
                             total={totalRecord}
-                            // showTotal={this.showTotal}
+                            showTotal={this.showTotal}
                             // showSizeChanger={true}
                             size="small"
                             onChange={this.onChange}
@@ -299,7 +304,7 @@ export default class SysProject extends Component{
                         />          
                     </LocaleProvider>
                 </div>
-                <EditSysProject getListData={this.getListData} visibleEdit={visibleEdit} changeVisibleEdit = {this.changeVisibleEdit} name={Name} quality={quality} CodeName={CodeName} fphone={fphone} sphone={sphone} supervisor={supervisor} first_party={first_party} users={users} rowId={rowId}/>
+                <EditSysProject getListData={this.getListData} visibleEdit={visibleEdit} changeVisibleEdit = {this.changeVisibleEdit} name={Name} quality={quality} CodeName={CodeName} fphone={fphone} sphone={sphone} supervisor={supervisor} first_party={first_party} users={users} rowId={rowId} faultcategory = {faultcategory}/>
             </div>
         )
     }
